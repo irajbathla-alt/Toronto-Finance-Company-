@@ -1,0 +1,55 @@
+.hero h1{
+  font-family:"Cormorant Garamond",serif;
+  font-weight:300;
+  font-size:clamp(54px,7.4vw,108px);
+  line-height:.88;
+  letter-spacing:.025em;
+  text-transform:uppercase;
+  font-synthesis:none;
+  -webkit-font-smoothing:antialiased;
+}
+
+.hero .title-line{
+  display:block;
+  font-weight:300;
+  text-transform:uppercase;
+}
+
+.hero .title-line + .title-line{
+  margin-top:.08em;
+}
+
+.hero .eyebrow{
+  font-weight:400;
+  letter-spacing:.3em;
+  text-transform:uppercase;
+}
+
+.hero .sub{
+  font-weight:300;
+  letter-spacing:.12em;
+  line-height:1.8;
+  text-transform:uppercase;
+}
+
+.hero,.metrics,.metric,.actions{
+  text-align:center;
+  justify-content:center;
+}
+
+.brand,.navlinks,.btn,.metric span{
+  text-transform:uppercase;
+}
+
+@media(max-width:760px){
+  .hero h1{
+    font-size:clamp(42px,13vw,58px);
+    line-height:.92;
+    letter-spacing:.015em;
+  }
+  .hero .sub{
+    font-size:10px;
+    letter-spacing:.09em;
+    max-width:92vw;
+  }
+}
