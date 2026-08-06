@@ -1,15 +1,15 @@
 (() => {
   const cfg = window.TFC_CONFIG || {};
-  const api = async (action, payload = {}) => {
-    if (cfg.demoMode || !cfg.apiUrl || cfg.apiUrl.includes('PASTE_')) {
-      return { ok: true, data: { applicationId: 'TFC-DEMO', ...payload } };
-    }
-    const response = await fetch(cfg.apiUrl, {
-      method: 'POST',
-      body: JSON.stringify({ action, ...payload })
-    });
-    return response.json();
-  };
+  const jsonp = (action, payload = {}) => new Promise((resolve, reject) => {
+    const cb = `tfc_cb_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const script = document.createElement('script');
+    const timer = setTimeout(() => { cleanup(); reject(new Error('The CRM request timed out.')); }, 20000);
+    const cleanup = () => { clearTimeout(timer); delete window[cb]; script.remove(); };
+    window[cb] = data => { cleanup(); resolve(data); };
+    script.onerror = () => { cleanup(); reject(new Error('Could not reach the CRM service.')); };
+    script.src = `${cfg.apiUrl}?action=${encodeURIComponent(action)}&payload=${encodeURIComponent(JSON.stringify({ action, ...payload }))}&callback=${encodeURIComponent(cb)}&_=${Date.now()}`;
+    document.head.appendChild(script);
+  });
 
   const enhance = () => {
     document.querySelectorAll('[data-go="dashboard"]').forEach(button => {
@@ -26,16 +26,11 @@
     submit.onclick = async () => {
       const stored = JSON.parse(localStorage.getItem('tfc-demo') || '{}');
       const application = stored.application || {};
-      ['requested','revenue','years'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) application[id] = el.value;
-      });
-      const purpose = document.getElementById('purpose');
-      if (purpose) application.purpose = purpose.value;
-      submit.disabled = true;
-      submit.textContent = 'Creating Account...';
+      ['requested','revenue','years'].forEach(id => { const el = document.getElementById(id); if (el) application[id] = el.value; });
+      const purpose = document.getElementById('purpose'); if (purpose) application.purpose = purpose.value;
+      submit.disabled = true; submit.textContent = 'Creating Account...';
       try {
-        const result = await api('createAccount', application);
+        const result = await jsonp('createAccount', application);
         if (!result.ok) throw new Error(result.error || 'Account could not be created');
         localStorage.setItem('tfc-current-application', JSON.stringify(result.data));
         document.body.insertAdjacentHTML('beforeend', `<div class="overlay" id="crmSuccess"><div class="modal" style="text-align:center"><h3>Application Submitted</h3><p>Your Toronto Finance Company account has been created successfully.</p><p><strong>Application ID: ${result.data.applicationId || 'Created'}</strong></p><button class="darkbtn wide" id="openPortal">Open Client Portal</button></div></div>`);
