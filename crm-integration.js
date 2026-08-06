@@ -64,7 +64,7 @@
       button.dataset.crmLogin = 'true';
       button.textContent = 'Log In';
       button.removeAttribute('data-go');
-      button.onclick = () => { window.location.href = 'client-portal.html'; };
+      button.onclick = () => { window.location.href = 'client-dashboard.html'; };
     });
 
     const submit = document.querySelector('#next');
@@ -87,8 +87,8 @@
         await createAccountPost(application);
         const result = await confirmAccount(application);
         localStorage.setItem('tfc-current-application', JSON.stringify(result.data));
-        document.body.insertAdjacentHTML('beforeend', `<div class="overlay" id="crmSuccess"><div class="modal" style="text-align:center"><h3>Application Submitted</h3><p>Your Toronto Finance Company account has been created successfully.</p><p><strong>Application ID: ${result.data.applicationId || 'Created'}</strong></p><button class="darkbtn wide" id="openPortal">Open Client Portal</button></div></div>`);
-        document.getElementById('openPortal').onclick = () => window.location.href = 'client-portal.html';
+        document.body.insertAdjacentHTML('beforeend', `<div class="overlay" id="crmSuccess"><div class="modal" style="text-align:center"><h3>Application Submitted</h3><p>Your Toronto Finance Company account has been created successfully.</p><p><strong>Application ID: ${result.data.applicationId || 'Created'}</strong></p><button class="darkbtn wide" id="openPortal">Open Client Dashboard</button></div></div>`);
+        document.getElementById('openPortal').onclick = () => window.location.href = 'client-dashboard.html';
       } catch (error) {
         alert(error.message);
         submit.disabled = false;
