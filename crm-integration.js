@@ -1,34 +1,79 @@
 (() => {
   const cfg = window.TFC_CONFIG || {};
 
-  const jsonp = (action, payload = {}) => new Promise((resolve, reject) => {
-    const callbackName = `tfc_cb_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    const script = document.createElement('script');
-    const timer = setTimeout(() => {
-      cleanup();
-      reject(new Error('The CRM confirmation timed out. Please try logging in with the account you created.'));
-    }, 20000);
+  function jsonp(action, payload = {}, mode = 'payload') {
+    return new Promise((resolve, reject) => {
+      const callbackName = `tfc_cb_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      const script = document.createElement('script');
+      const params = new URLSearchParams({
+        action,
+        callback: callbackName,
+        _: String(Date.now())
+      });
 
-    function cleanup() {
-      clearTimeout(timer);
-      delete window[callbackName];
-      script.remove();
+      if (mode === 'payload') {
+        params.set('payload', JSON.stringify({ action, ...payload }));
+      } else {
+        Object.entries(payload).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) params.set(key, String(value));
+        });
+      }
+
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error('CRM request timed out.'));
+      }, 15000);
+
+      function cleanup() {
+        clearTimeout(timer);
+        delete window[callbackName];
+        script.remove();
+      }
+
+      window[callbackName] = data => {
+        cleanup();
+        resolve(data);
+      };
+
+      script.onerror = () => {
+        cleanup();
+        reject(new Error('CRM script could not be loaded.'));
+      };
+
+      script.src = `${cfg.apiUrl}?${params.toString()}`;
+      document.head.appendChild(script);
+    });
+  }
+
+  async function crmRequest(action, payload = {}) {
+    const errors = [];
+
+    for (const mode of ['payload', 'direct']) {
+      try {
+        return await jsonp(action, payload, mode);
+      } catch (error) {
+        errors.push(error.message);
+      }
     }
 
-    window[callbackName] = data => {
-      cleanup();
-      resolve(data);
-    };
+    try {
+      const params = new URLSearchParams({ action, _: String(Date.now()) });
+      Object.entries(payload).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) params.set(key, String(value));
+      });
+      const response = await fetch(`${cfg.apiUrl}?${params.toString()}`, {
+        method: 'GET',
+        cache: 'no-store',
+        redirect: 'follow'
+      });
+      const text = await response.text();
+      return JSON.parse(text);
+    } catch (error) {
+      errors.push(error.message);
+    }
 
-    script.onerror = () => {
-      cleanup();
-      reject(new Error('Could not confirm the CRM account. Please try again.'));
-    };
-
-    const request = { action, ...payload };
-    script.src = `${cfg.apiUrl}?action=${encodeURIComponent(action)}&payload=${encodeURIComponent(JSON.stringify(request))}&callback=${encodeURIComponent(callbackName)}&_=${Date.now()}`;
-    document.head.appendChild(script);
-  });
+    throw new Error('Could not reach the CRM service. The Google Apps Script web app may need to be redeployed with access set to Anyone.');
+  }
 
   async function createAccountPost(application) {
     const form = new URLSearchParams();
@@ -50,7 +95,7 @@
     for (let attempt = 0; attempt < 8; attempt += 1) {
       if (attempt) await new Promise(resolve => setTimeout(resolve, 1200));
       try {
-        const result = await jsonp('clientLogin', {
+        const result = await crmRequest('clientLogin', {
           email: application.email,
           password: application.password
         });
