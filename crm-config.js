@@ -40,11 +40,6 @@ if (/client-dashboard\.html$/i.test(window.location.pathname)) {
     sessionStorage.removeItem(SESSION_KEY);
     localStorage.removeItem(LEGACY_KEY);
   }
-
-  const authFix=document.createElement('script');
-  authFix.src='client-auth-fix.js?v=20260806-1';
-  authFix.defer=true;
-  document.head.appendChild(authFix);
 }
 
 if (/client-portal\.html$/i.test(window.location.pathname)) {
