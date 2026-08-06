@@ -28,11 +28,11 @@
     },
     'Conditional Approval': {
       title: 'Conditional Approval Available',
-      body: 'A conditional financing approval is available. Please review the approval details, conditions and next steps shown in your client dashboard.'
+      body: 'A conditional financing approval is available. Please review the advisor message and contact your advisor to discuss the conditions and next steps.'
     },
     'Approved': {
       title: 'Financing Approval Available',
-      body: 'Your financing approval is available for review. Please review the approved amount, product terms and next steps in your client dashboard.'
+      body: 'Your financing application has been approved. Please review the advisor message and contact your advisor to discuss the approved amount, terms and next steps.'
     },
     'Funded': {
       title: 'Financing Completed',
