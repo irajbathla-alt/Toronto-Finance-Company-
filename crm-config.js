@@ -3,3 +3,10 @@ window.TFC_CONFIG={
   minimumStatements:6,
   demoMode:false
 };
+
+if (/client-portal\.html$/i.test(window.location.pathname)) {
+  const adobeSignScript = document.createElement('script');
+  adobeSignScript.src = 'adobe-sign-embed.js';
+  adobeSignScript.defer = true;
+  document.head.appendChild(adobeSignScript);
+}
