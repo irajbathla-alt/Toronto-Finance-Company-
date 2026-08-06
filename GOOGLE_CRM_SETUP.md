@@ -1,6 +1,6 @@
 # Toronto Finance Company — Google CRM Setup
 
-The website UI is installed. Complete these steps once to activate live Google Sheets, Drive uploads, client logins and admin updates.
+The website UI is installed. Complete these steps once to activate live Google Sheets, Drive uploads, client logins, admin updates and approval email alerts.
 
 ## 1. Create Google resources
 
@@ -18,11 +18,13 @@ The website UI is installed. Complete these steps once to activate live Google S
    - `ROOT_FOLDER_ID`
    - `ADMIN_EMAIL`
    - `ADMIN_PASSWORD`
-5. Run any function once and approve Google Sheets and Drive permissions.
-6. Select **Deploy → New deployment → Web app**.
-7. Execute as **Me**.
-8. Access: choose the appropriate option for your organization. For a public client portal, use **Anyone**.
-9. Copy the deployed Web App URL.
+   - `CLIENT_PORTAL_URL`
+5. Run `healthCheck` once and approve the requested Google Sheets, Drive and email permissions.
+6. Select **Deploy → Manage deployments**.
+7. Edit the existing Web App deployment and select **New version**.
+8. Execute as **Me**.
+9. For a public client portal, set access to **Anyone**.
+10. Deploy. Editing the existing deployment normally keeps the same Web App URL.
 
 ## 3. Connect the website
 
@@ -38,7 +40,7 @@ window.TFC_CONFIG = {
 
 ## 4. Portal addresses
 
-- Client portal: `client-portal.html`
+- Client portal: `client-dashboard.html`
 - Admin CRM: `admin.html`
 - Eligibility form: `eligibility.html`
 
@@ -49,11 +51,25 @@ window.TFC_CONFIG = {
 - Bank Statements, Identification, Financial Statements and Other Documents subfolders
 - Minimum six statement tracking
 - Client login using application email/password
-- Client profile, business information, documents and status tabs
-- Central advisor message and approval/decline quote
+- Client information, documents and status tracking
+- Central advisor message and approval terms
 - Admin application list, filters and status counts
 - Admin messages, approval amount, quote, advisor and internal notes
 - Direct Drive-folder link from the admin file
+- Email alert when a file first reaches **Conditional Approval**
+- A second email alert when a file first reaches **Approved**
+- Approval details remain private; the email directs the client to log in
+- Duplicate alerts for the same approval status are prevented
+- Notification status, date and any email error are stored in the CRM row
+
+## Approval email behaviour
+
+The email is sent only when the admin saves one of these statuses:
+
+- `Conditional Approval`
+- `Approved`
+
+The email does not show the approved amount, pricing or conditions. It contains a secure client-portal login link. The Apps Script uses `MailApp`, so the Google account that owns the deployment must authorize email sending and is subject to Google's daily sending quota.
 
 ## Security note
 
