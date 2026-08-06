@@ -13,7 +13,7 @@ if (/client-portal\.html$/i.test(window.location.pathname)) {
 
 if (/admin\.html$/i.test(window.location.pathname)) {
   const adminSaveFixScript = document.createElement('script');
-  adminSaveFixScript.src = 'admin-save-fix.js';
+  adminSaveFixScript.src = 'admin-save-fix.js?v=20260805-2';
   adminSaveFixScript.defer = true;
   document.head.appendChild(adminSaveFixScript);
 }
