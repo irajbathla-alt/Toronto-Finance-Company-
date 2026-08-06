@@ -23,7 +23,15 @@ function doGet(e) {
   try {
     const p = parseGet(e);
     if (!p.action || p.action === 'health') return output(healthCheck(), p.callback);
-    const fn = { createAccount, clientLogin, getClient, adminLogin, adminList, adminUpdate }[p.action];
+    const fn = {
+      createAccount,
+      clientLogin,
+      getClient,
+      adminLogin,
+      adminList,
+      adminUpdate,
+      adminEnsureDrive
+    }[p.action];
     if (!fn) throw new Error('Unknown action');
     return output(fn(p), p.callback);
   } catch (err) {
@@ -34,7 +42,16 @@ function doGet(e) {
 function doPost(e) {
   try {
     const p = parsePost(e);
-    const fn = { createAccount, clientLogin, getClient, uploadDocument, adminLogin, adminList, adminUpdate }[p.action];
+    const fn = {
+      createAccount,
+      clientLogin,
+      getClient,
+      uploadDocument,
+      adminLogin,
+      adminList,
+      adminUpdate,
+      adminEnsureDrive
+    }[p.action];
     if (!fn) throw new Error('Unknown action');
     return json(fn(p));
   } catch (err) {
@@ -73,7 +90,13 @@ function json(value) {
 }
 
 function healthCheck() {
-  const out = { ok: true, service: 'Toronto Finance Company CRM', approvalEmailEnabled: true, lazyDriveFolders: true };
+  const out = {
+    ok: true,
+    service: 'Toronto Finance Company CRM',
+    approvalEmailEnabled: true,
+    lazyDriveFolders: true,
+    adminDriveOnDemand: true
+  };
   try {
     const ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
     out.spreadsheetName = ss.getName();
@@ -271,6 +294,21 @@ function adminLogin(p) {
 
 function adminList() {
   return { ok: true, data: rows().map(record => safe({ ...record, documents: listDocs(record) })) };
+}
+
+function adminEnsureDrive(p) {
+  const record = find(p.applicationId);
+  const folder = ensureDriveFolder(record);
+  const fresh = find(p.applicationId);
+  return {
+    ok: true,
+    data: safe({
+      ...fresh,
+      driveFolderId: folder.getId(),
+      driveUrl: folder.getUrl(),
+      documents: listDocs(fresh)
+    })
+  };
 }
 
 function adminUpdate(p) {
