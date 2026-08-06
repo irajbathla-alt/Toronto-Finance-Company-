@@ -8,13 +8,13 @@ window.TFC_CONFIG={
   if(!document.querySelector('link[data-tfc-motion]')){
     const motionStyles=document.createElement('link');
     motionStyles.rel='stylesheet';
-    motionStyles.href='motion.css?v=20260806-1';
+    motionStyles.href='motion.css?v=20260806-2';
     motionStyles.dataset.tfcMotion='true';
     document.head.appendChild(motionStyles);
   }
   if(!document.querySelector('script[data-tfc-motion]')){
     const motionScript=document.createElement('script');
-    motionScript.src='motion.js?v=20260806-1';
+    motionScript.src='motion.js?v=20260806-2';
     motionScript.defer=true;
     motionScript.dataset.tfcMotion='true';
     document.head.appendChild(motionScript);
