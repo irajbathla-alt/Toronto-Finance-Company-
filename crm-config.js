@@ -42,6 +42,13 @@ if (/client-dashboard\.html$/i.test(window.location.pathname)) {
   }
 }
 
+if (/admin\.html$/i.test(window.location.pathname)) {
+  const adminTools=document.createElement('script');
+  adminTools.src='admin-crm-tools.js?v=20260806-1';
+  adminTools.defer=true;
+  document.head.appendChild(adminTools);
+}
+
 if (/client-portal\.html$/i.test(window.location.pathname)) {
   const adobeSignScript = document.createElement('script');
   adobeSignScript.src = 'adobe-sign-embed.js';
