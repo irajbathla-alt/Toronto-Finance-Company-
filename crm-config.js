@@ -47,6 +47,12 @@ if (/admin\.html$/i.test(window.location.pathname)) {
   adminTools.src='admin-crm-tools.js?v=20260806-1';
   adminTools.defer=true;
   document.head.appendChild(adminTools);
+
+  window.addEventListener('load',()=>{
+    const saveConfirmation=document.createElement('script');
+    saveConfirmation.src='admin-save-confirm-v2.js?v=20260806-1';
+    document.body.appendChild(saveConfirmation);
+  },{once:true});
 }
 
 if (/client-portal\.html$/i.test(window.location.pathname)) {
