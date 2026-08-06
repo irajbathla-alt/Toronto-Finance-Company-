@@ -10,10 +10,3 @@ if (/client-portal\.html$/i.test(window.location.pathname)) {
   adobeSignScript.defer = true;
   document.head.appendChild(adobeSignScript);
 }
-
-if (/admin\.html$/i.test(window.location.pathname)) {
-  const adminSaveFixScript = document.createElement('script');
-  adminSaveFixScript.src = 'admin-save-fix.js?v=20260805-2';
-  adminSaveFixScript.defer = true;
-  document.head.appendChild(adminSaveFixScript);
-}
