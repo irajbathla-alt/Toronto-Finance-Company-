@@ -150,6 +150,17 @@
     }
   }
 
+  async function confirmSavedUpdate(update) {
+    for (const delayMs of [500, 700, 900, 1200, 1600, 2200, 3000, 4000, 5000]) {
+      await wait(delayMs);
+      try {
+        const result = await readApi('getClient', { applicationId: update.applicationId });
+        if (result?.ok && exactMatch(result.data, update)) return result.data;
+      } catch (_) {}
+    }
+    return null;
+  }
+
   async function verifiedSave() {
     if (!selected?.applicationId) return;
 
@@ -163,26 +174,17 @@
     saveButton.disabled = true;
     saveButton.textContent = 'Saving...';
     saveMessage.className = 'notice';
-    saveMessage.textContent = 'Saving the stage and client message to Google Sheets...';
+    saveMessage.textContent = 'Sending the stage and client message to Google Sheets...';
 
     try {
-      await sendUpdate(update);
-      saveMessage.textContent = 'Update sent. Confirming the exact stage and message shown to the client...';
+      // Apps Script may keep the POST response open while processing an approval email.
+      // Start the write, but judge success only by reading the exact saved values back.
+      sendUpdate(update).catch(() => null);
+      saveMessage.textContent = 'Update sent. Confirming the exact stage and client message...';
 
-      let confirmedData = null;
-      for (const delayMs of [700, 1000, 1400, 1800, 2200]) {
-        await wait(delayMs);
-        try {
-          const result = await readApi('getClient', { applicationId: update.applicationId });
-          if (result?.ok && exactMatch(result.data, update)) {
-            confirmedData = result.data;
-            break;
-          }
-        } catch (_) {}
-      }
-
+      const confirmedData = await confirmSavedUpdate(update);
       if (!confirmedData) {
-        throw new Error('The update was sent, but the CRM did not confirm the exact stage and client message. Refresh the file before sending it again.');
+        throw new Error('The CRM did not confirm the exact saved values. Refresh Applications before trying the update again.');
       }
 
       Object.assign(selected, confirmedData);
@@ -191,13 +193,11 @@
       render();
       openFile(update.applicationId);
       saveMessage.className = 'notice success';
-      saveMessage.textContent = 'Saved and verified. The client dashboard will show this stage and advisor message.';
+      saveMessage.textContent = 'Saved and verified. The client dashboard now shows this stage and advisor message.';
       toast('Client update verified');
     } catch (error) {
       saveMessage.className = 'notice error';
-      saveMessage.textContent = error.name === 'AbortError'
-        ? 'The save request timed out. Confirm that the latest Apps Script version is deployed.'
-        : error.message;
+      saveMessage.textContent = error.message || 'The update could not be verified.';
     } finally {
       saveButton.disabled = false;
       saveButton.textContent = 'Save Client Update';
