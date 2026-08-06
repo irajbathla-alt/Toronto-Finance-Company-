@@ -9,80 +9,117 @@
     'notes'
   ];
 
-  const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+  let saving = false;
 
-  function valuesMatch(record, update) {
-    return SAVE_FIELDS.every(key => String(record?.[key] ?? '') === String(update[key] ?? ''));
+  function getElement(id) {
+    return document.getElementById(id);
   }
 
-  async function saveUpdateWithPost() {
-    if (!selected) return;
+  function setSaveState(isSaving, message, kind = '') {
+    const button = getElement('save');
+    const notice = getElement('saveMsg');
 
-    const applicationId = selected.applicationId;
-    const update = { applicationId };
+    if (button) {
+      button.disabled = isSaving;
+      button.textContent = isSaving ? 'Saving...' : 'Save Client Update';
+    }
+
+    if (notice) {
+      notice.className = 'notice' + (kind ? ' ' + kind : '');
+      notice.textContent = message || '';
+    }
+  }
+
+  function collectUpdate() {
+    if (typeof selected === 'undefined' || !selected?.applicationId) return null;
+
+    const update = { applicationId: selected.applicationId };
     SAVE_FIELDS.forEach(key => {
-      update[key] = document.getElementById(key)?.value ?? '';
+      update[key] = getElement(key)?.value ?? '';
     });
+    return update;
+  }
 
-    const saveButton = document.getElementById('save');
-    const saveMessage = document.getElementById('saveMsg');
-    saveButton.disabled = true;
-    saveButton.textContent = 'Saving...';
-    saveMessage.className = 'notice';
-    saveMessage.textContent = 'Saving update to Google Sheets...';
+  async function sendUpdate(update) {
+    if (!window.TFC_CONFIG?.apiUrl) {
+      throw new Error('The CRM service is not configured.');
+    }
+
+    await fetch(window.TFC_CONFIG.apiUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      cache: 'no-store',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      body: JSON.stringify({ action: 'adminUpdate', ...update })
+    });
+  }
+
+  function updateLocalView(update) {
+    if (typeof applications === 'undefined' || typeof selected === 'undefined') return;
+
+    const updatedRecord = {
+      ...selected,
+      ...update,
+      updated: new Date().toISOString()
+    };
+
+    const index = applications.findIndex(
+      item => String(item.applicationId) === String(update.applicationId)
+    );
+
+    if (index >= 0) applications[index] = updatedRecord;
+    selected = updatedRecord;
+
+    if (typeof render === 'function') render();
+
+    const previewTitle = getElement('previewTitle');
+    const previewBody = getElement('previewBody');
+    const summaryStatus = getElement('summaryStatus');
+    const summaryAdvisor = getElement('summaryAdvisor');
+
+    if (previewTitle) previewTitle.textContent = update.messageTitle || 'Welcome';
+    if (previewBody) previewBody.textContent = update.messageBody || 'Your Toronto Finance Company account has been created.';
+    if (summaryStatus) summaryStatus.textContent = update.status || 'Account Created';
+    if (summaryAdvisor) summaryAdvisor.textContent = update.advisor || 'Unassigned';
+  }
+
+  async function handleSave(event) {
+    const target = event.target?.closest?.('#save');
+    if (!target) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    if (saving) return;
+
+    const update = collectUpdate();
+    if (!update) {
+      setSaveState(false, 'Open an application before saving.', 'error');
+      return;
+    }
+
+    saving = true;
+    setSaveState(true, 'Saving update to Google Sheets...');
 
     try {
-      await fetch(cfg.apiUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify({ action: 'adminUpdate', ...update })
-      });
-
-      let confirmedRecord = null;
-      for (let attempt = 0; attempt < 8; attempt += 1) {
-        await delay(attempt === 0 ? 650 : 1100);
-        try {
-          const result = await api('getClient', { applicationId });
-          if (result?.ok && valuesMatch(result.data, update)) {
-            confirmedRecord = result.data;
-            break;
-          }
-        } catch (_) {
-          // The POST may already have succeeded. Continue checking before showing an error.
-        }
-      }
-
-      if (!confirmedRecord) {
-        throw new Error('The update was sent, but Google Sheets did not confirm it yet. Refresh applications and check the file again.');
-      }
-
-      const index = applications.findIndex(item => String(item.applicationId) === String(applicationId));
-      if (index >= 0) applications[index] = { ...applications[index], ...confirmedRecord };
-      selected = index >= 0 ? applications[index] : confirmedRecord;
-
-      render();
-      openFile(applicationId);
-      saveMessage.className = 'notice success';
-      saveMessage.textContent = 'Saved and confirmed in Google Sheets. The client dashboard will show the updated message and status.';
-      toast('Client update saved');
+      await sendUpdate(update);
+      updateLocalView(update);
+      setSaveState(false, 'Update sent successfully. Use Refresh Applications to confirm the latest Google Sheets values.', 'success');
+      if (typeof toast === 'function') toast('Client update sent');
     } catch (error) {
-      saveMessage.className = 'notice error';
-      saveMessage.textContent = error.message || 'The update could not be saved.';
+      setSaveState(false, error.message || 'The update could not be sent.', 'error');
     } finally {
-      saveButton.disabled = false;
-      saveButton.textContent = 'Save Client Update';
+      saving = false;
     }
   }
 
   function install() {
-    const saveButton = document.getElementById('save');
-    if (!saveButton || typeof api !== 'function') {
-      setTimeout(install, 100);
-      return;
-    }
+    document.addEventListener('click', handleSave, true);
 
-    saveButton.onclick = saveUpdateWithPost;
-    saveButton.dataset.postSaveEnabled = 'true';
+    const button = getElement('save');
+    if (button) button.dataset.postSaveEnabled = 'true';
   }
 
   if (document.readyState === 'loading') {
