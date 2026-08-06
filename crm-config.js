@@ -4,6 +4,23 @@ window.TFC_CONFIG={
   demoMode:false
 };
 
+(function loadMotionSystem(){
+  if(!document.querySelector('link[data-tfc-motion]')){
+    const motionStyles=document.createElement('link');
+    motionStyles.rel='stylesheet';
+    motionStyles.href='motion.css?v=20260806-1';
+    motionStyles.dataset.tfcMotion='true';
+    document.head.appendChild(motionStyles);
+  }
+  if(!document.querySelector('script[data-tfc-motion]')){
+    const motionScript=document.createElement('script');
+    motionScript.src='motion.js?v=20260806-1';
+    motionScript.defer=true;
+    motionScript.dataset.tfcMotion='true';
+    document.head.appendChild(motionScript);
+  }
+})();
+
 if (/client-portal\.html$/i.test(window.location.pathname)) {
   const adobeSignScript = document.createElement('script');
   adobeSignScript.src = 'adobe-sign-embed.js';
