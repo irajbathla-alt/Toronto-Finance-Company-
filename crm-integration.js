@@ -9,16 +9,15 @@
   }
 
   function saveClientSession(data) {
-    const session = {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({
       applicationId: data.applicationId,
       email: data.email || '',
       authenticatedAt: new Date().toISOString()
-    };
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    }));
     localStorage.setItem(LEGACY_KEY, JSON.stringify(data));
   }
 
-  function jsonp(action, payload = {}, mode = 'direct', timeout = 6500) {
+  function jsonp(action, payload = {}, mode = 'direct', timeout = 8000) {
     return new Promise((resolve, reject) => {
       const callbackName = `tfc_cb_${Date.now()}_${Math.random().toString(36).slice(2)}`;
       const script = document.createElement('script');
@@ -59,62 +58,41 @@
   }
 
   async function fastRead(action, payload = {}) {
-    const requests = [
-      jsonp(action, payload, 'direct'),
-      jsonp(action, payload, 'payload')
-    ];
-
     try {
-      return await Promise.any(requests);
+      return await Promise.any([
+        jsonp(action, payload, 'direct'),
+        jsonp(action, payload, 'payload')
+      ]);
     } catch (_) {
       throw new Error('Could not reach the CRM service. Please try again.');
     }
   }
 
-  async function createAccountPost(application) {
-    const form = new URLSearchParams();
-    form.set('action', 'createAccount');
-    Object.entries(application).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) form.set(key, String(value));
-    });
+  async function createAccount(application, startedAt) {
+    try {
+      const result = await jsonp('createAccount', application, 'direct', 12000);
+      if (!result?.ok) throw new Error(result?.error || 'Account creation failed.');
+      return result;
+    } catch (primaryError) {
+      if (/already exists/i.test(primaryError.message || '')) throw primaryError;
 
-    await fetch(cfg.apiUrl, {
-      method: 'POST',
-      mode: 'no-cors',
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-      body: form.toString()
-    });
-  }
-
-  async function confirmAccount(application, startedAt) {
-    let lastError = null;
-    const delays = [250, 700, 1200];
-
-    for (let attempt = 0; attempt < delays.length; attempt += 1) {
-      await new Promise(resolve => setTimeout(resolve, delays[attempt]));
+      await new Promise(resolve => setTimeout(resolve, 500));
       try {
-        const result = await fastRead('clientLogin', {
+        const recovery = await fastRead('clientLogin', {
           email: application.email,
           password: application.password
         });
-
-        if (result?.ok) {
-          const createdAt = new Date(result.data?.created || 0).getTime();
-          if (createdAt && createdAt < startedAt - 120000) {
-            throw new Error('An account already exists for this email. Please use Log In instead.');
-          }
-          return result;
+        if (recovery?.ok) {
+          const createdAt = new Date(recovery.data?.created || 0).getTime();
+          if (!createdAt || createdAt >= startedAt - 120000) return recovery;
+          throw new Error('An account already exists for this email. Please use Log In instead.');
         }
-
-        lastError = new Error(result?.error || 'Your account is still being prepared.');
-      } catch (error) {
-        lastError = error;
-        if (/already exists/i.test(error.message)) throw error;
+      } catch (recoveryError) {
+        if (/already exists/i.test(recoveryError.message || '')) throw recoveryError;
       }
-    }
 
-    throw lastError || new Error('Your account could not be confirmed. Please use Log In or try again.');
+      throw primaryError;
+    }
   }
 
   function enhance() {
@@ -168,32 +146,33 @@
       clearClientSession();
       createButton.disabled = true;
       createButton.textContent = 'Creating Account...';
-      if (message) message.textContent = 'Creating your secure account. This usually takes only a few seconds.';
+      if (message) message.textContent = 'Creating your secure account...';
 
       try {
+        let result;
         if (cfg.demoMode) {
-          const demo = {
-            applicationId: 'TFC-DEMO',
-            name,
-            email,
-            status: 'Account Created',
-            statements: 0,
-            documents: []
+          result = {
+            ok: true,
+            data: {
+              applicationId: 'TFC-DEMO',
+              name,
+              email,
+              status: 'Account Created',
+              statements: 0,
+              documents: []
+            }
           };
-          saveClientSession(demo);
         } else {
-          await createAccountPost(application);
-          if (message) message.textContent = 'Account received. Confirming your secure login...';
-          const result = await confirmAccount(application, startedAt);
-          saveClientSession(result.data);
+          result = await createAccount(application, startedAt);
         }
 
+        saveClientSession(result.data);
         createButton.textContent = 'Account Created';
         if (message) message.textContent = 'Success. Opening your client dashboard...';
         window.location.replace('client-dashboard.html');
       } catch (error) {
         clearClientSession();
-        if (message) message.textContent = error.message;
+        if (message) message.textContent = error.message || 'Account creation failed. Please try again.';
         createButton.disabled = false;
         createButton.textContent = 'Create Account';
       }
