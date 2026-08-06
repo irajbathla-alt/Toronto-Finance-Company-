@@ -166,10 +166,14 @@
           result = await createAccount(application, startedAt);
         }
 
+        if (!result?.data?.applicationId) throw new Error('Account was created, but the dashboard could not be opened. Please log in.');
         saveClientSession(result.data);
         createButton.textContent = 'Account Created';
         if (message) message.textContent = 'Success. Opening your client dashboard...';
-        window.location.replace('client-dashboard.html');
+
+        const dashboardUrl = new URL('client-dashboard.html', window.location.href);
+        dashboardUrl.searchParams.set('created', '1');
+        window.location.assign(dashboardUrl.href);
       } catch (error) {
         clearClientSession();
         if (message) message.textContent = error.message || 'Account creation failed. Please try again.';
