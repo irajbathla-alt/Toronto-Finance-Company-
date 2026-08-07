@@ -22,7 +22,7 @@ const ACTIVITY_HEADERS = ['activityId','created','applicationId','actor','action
 const NOTIFICATION_HEADERS = ['notificationId','created','status','applicationId','to','template','attempts','lastError','sentAt'];
 const APPROVAL_STATUSES = ['Conditional Approval','Approved'];
 const EARLY_STATUSES = ['Account Created','Statements Required','Ready for Review'];
-const OPERATION_TTL = 120;
+const OPERATION_TTL = 300;
 
 let _ss;
 const _sheetCache = {};
@@ -98,11 +98,11 @@ function saveOperationResult(requestId, result) {
 
 function operationResult(p) {
   if (!p.requestId) throw new Error('requestId is required');
-  const cache = CacheService.getScriptCache();
-  const key = `op:${p.requestId}`;
-  const value = cache.get(key);
+  const value = CacheService.getScriptCache().get(`op:${p.requestId}`);
   if (!value) return { ok:true, pending:true };
-  cache.remove(key);
+  // Do not delete here. The browser may lose a JSONP response after Apps Script
+  // has served it. Keeping the result until TTL expiry makes polling idempotent
+  // and allows the next retry to receive the same completed operation.
   return JSON.parse(value);
 }
 
@@ -126,9 +126,10 @@ function setAdminPassword(password) {
 function healthCheck() {
   const out = {
     ok:true,
-    service:'Toronto Finance Company CRM v2',
+    service:'Toronto Finance Company CRM v2.1',
     architecture:'Apps Script + Sheets + Drive',
-    minimumStatements:CONFIG.MIN_STATEMENTS
+    minimumStatements:CONFIG.MIN_STATEMENTS,
+    operationResultRetryable:true
   };
   try {
     out.spreadsheetName = db().getName();
