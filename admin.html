@@ -18,105 +18,31 @@
     <button class="hidden" id="logoutBtn">Log Out</button>
   </nav>
 </header>
-
 <section id="login" class="login-card card">
-  <div class="eyebrow" style="text-align:center">Secure Operations</div>
-  <h1>Admin Login</h1>
+  <div class="eyebrow" style="text-align:center">Secure Operations</div><h1>Admin Login</h1>
   <p>Manage applications, client communications, documents and financing stages from one workspace.</p>
   <div class="field"><label>Email Address</label><input id="adminEmail" type="email" autocomplete="username"></div>
   <div class="field"><label>Password</label><input id="adminPassword" type="password" autocomplete="current-password"></div>
-  <button class="btn" id="adminLogin" style="width:100%;margin-top:20px">Log In</button>
-  <div id="loginMsg" class="notice"></div>
+  <button class="btn" id="adminLogin" style="width:100%;margin-top:20px">Log In</button><div id="loginMsg" class="notice"></div>
 </section>
-
 <main id="admin" class="shell hidden">
-  <section class="hero-row">
-    <div><div class="eyebrow">Operations Dashboard</div><h1>Application CRM</h1><p>Move files from intake to funding with a single client-visible source of truth.</p></div>
-    <div class="hero-actions"><div class="sync" id="lastSync">Not refreshed yet</div><button class="btn secondary" id="refresh">Refresh Applications</button></div>
-  </section>
-
-  <section class="metrics">
-    <article class="metric card"><span>All Applications</span><strong id="mAll">0</strong></article>
-    <article class="metric card"><span>Action Required</span><strong id="mAction">0</strong></article>
-    <article class="metric card"><span>Ready for Review</span><strong id="mReady">0</strong></article>
-    <article class="metric card"><span>Under Review</span><strong id="mReview">0</strong></article>
-    <article class="metric card"><span>Decisions</span><strong id="mDecision">0</strong></article>
-  </section>
-
-  <section class="workspace card">
-    <div class="toolbar">
-      <input id="search" placeholder="Search client, email, business or application ID">
-      <select id="filter"></select>
-      <button class="btn secondary" id="clearFilters">Clear Filters</button>
-    </div>
-    <div class="chips">
-      <button class="chip active" data-chip="">All</button>
-      <button class="chip" data-chip="action">Action Required</button>
-      <button class="chip" data-chip="ready">Ready</button>
-      <button class="chip" data-chip="review">Under Review</button>
-      <button class="chip" data-chip="decision">Decisions</button>
-    </div>
-    <div class="tablewrap">
-      <table><thead><tr><th>Application</th><th>Client</th><th>Business</th><th>Status</th><th>Statements</th><th>Advisor</th><th>Updated</th><th></th></tr></thead><tbody id="rows"></tbody></table>
-      <div id="empty" class="empty hidden">No applications match the selected filters.</div>
-    </div>
-  </section>
+  <section class="hero-row"><div><div class="eyebrow">Operations Dashboard</div><h1>Application CRM</h1><p>Move files from intake to funding with a single client-visible source of truth.</p></div><div class="hero-actions"><div class="sync" id="lastSync">Not refreshed yet</div><button class="btn secondary" id="refresh">Refresh Applications</button></div></section>
+  <section class="metrics"><article class="metric card"><span>All Applications</span><strong id="mAll">0</strong></article><article class="metric card"><span>Action Required</span><strong id="mAction">0</strong></article><article class="metric card"><span>Ready for Review</span><strong id="mReady">0</strong></article><article class="metric card"><span>Under Review</span><strong id="mReview">0</strong></article><article class="metric card"><span>Decisions</span><strong id="mDecision">0</strong></article></section>
+  <section class="workspace card"><div class="toolbar"><input id="search" placeholder="Search client, email, business or application ID"><select id="filter"></select><button class="btn secondary" id="clearFilters">Clear Filters</button></div><div class="chips"><button class="chip active" data-chip="">All</button><button class="chip" data-chip="action">Action Required</button><button class="chip" data-chip="ready">Ready</button><button class="chip" data-chip="review">Under Review</button><button class="chip" data-chip="decision">Decisions</button></div><div class="tablewrap"><table><thead><tr><th>Application</th><th>Client</th><th>Business</th><th>Status</th><th>Statements</th><th>Advisor</th><th>Updated</th><th></th></tr></thead><tbody id="rows"></tbody></table><div id="empty" class="empty hidden">No applications match the selected filters.</div></div></section>
 </main>
-
 <div class="backdrop" id="backdrop"></div>
-<aside class="drawer" id="drawer">
-  <header class="drawer-head"><div><div class="eyebrow">Application File</div><h2 id="dTitle">Application</h2></div><button class="close" id="close">×</button></header>
-  <div class="drawer-body">
-    <section class="summary-grid">
-      <article class="summary-card card"><small>Status</small><strong id="summaryStatus">—</strong></article>
-      <article class="summary-card card"><small>Statements</small><strong id="summaryStatements">0 / 6</strong></article>
-      <article class="summary-card card"><small>Advisor</small><strong id="summaryAdvisor">Unassigned</strong></article>
-      <article class="summary-card card"><small>Revision</small><strong id="summaryRevision">#1</strong></article>
-    </section>
-
-    <div id="pipeline" class="pipeline"></div>
-
-    <section class="section card"><div class="section-title"><h3>Client & Application</h3><button class="quick" id="copyId">Copy ID</button></div><div id="details"></div></section>
-
-    <section class="section card">
-      <div class="section-title"><h3>Quick Stage Actions</h3></div>
-      <div class="quick-actions">
-        <button class="quick" data-status="Statements Required">Request Statements</button>
-        <button class="quick" data-status="Ready for Review">Ready for Review</button>
-        <button class="quick" data-status="Under Review">Under Review</button>
-        <button class="quick" data-status="Additional Documents Required">Request Documents</button>
-        <button class="quick" data-status="Conditional Approval">Conditional Approval</button>
-        <button class="quick" data-status="Approved">Approved</button>
-        <button class="quick" data-status="Funded">Funded</button>
-        <button class="quick" data-status="Declined">Declined</button>
-      </div>
-    </section>
-
-    <section class="section card"><div class="section-title"><h3>Client Message Preview</h3></div><div class="message-preview"><small>Message From Your Advisor</small><h3 id="previewTitle">Welcome</h3><p id="previewBody">Your advisor message will appear here.</p></div></section>
-
-    <section class="section card">
-      <div class="section-title"><h3>Client Update</h3></div>
-      <div class="form-grid">
-        <div class="field"><label>Status</label><select id="status"></select></div>
-        <div class="field"><label>Assigned Advisor</label><input id="advisor"></div>
-        <div class="field full"><label>Message Title</label><input id="messageTitle"></div>
-        <div class="field full"><label>Message to Client</label><textarea id="messageBody" rows="4"></textarea></div>
-        <div class="field"><label>Approved Amount</label><input id="approvedAmount" type="number" min="0"></div>
-        <div class="field"><label>Product / Terms</label><input id="quote"></div>
-        <div class="field full"><label>Internal Notes</label><textarea id="notes" rows="5"></textarea></div>
-      </div>
-      <div class="drawer-buttons"><button class="btn gold" id="save">Save Client Update</button><button class="btn secondary" id="drive">Open Drive Folder</button></div>
-      <div id="saveMsg" class="notice"></div>
-    </section>
-
-    <section class="section card"><div class="section-title"><h3>Uploaded Documents</h3><span class="subtle" id="documentCount">0 files</span></div><ul id="documents" class="list"></ul></section>
-    <section class="section card"><div class="section-title"><h3>Activity History</h3><span class="subtle">Latest 20</span></div><ul id="activity" class="list"></ul></section>
-  </div>
-</aside>
-<div class="toast" id="toast"></div>
-
-<script src="crm-config.js?v=20260807-bridge1"></script>
-<script src="crm-api.js?v=20260807-bridge1"></script>
-<script src="admin-app.js?v=20260807-bridge1"></script>
+<aside class="drawer" id="drawer"><header class="drawer-head"><div><div class="eyebrow">Application File</div><h2 id="dTitle">Application</h2></div><button class="close" id="close">×</button></header><div class="drawer-body">
+<section class="summary-grid"><article class="summary-card card"><small>Status</small><strong id="summaryStatus">—</strong></article><article class="summary-card card"><small>Statements</small><strong id="summaryStatements">0 / 6</strong></article><article class="summary-card card"><small>Advisor</small><strong id="summaryAdvisor">Unassigned</strong></article><article class="summary-card card"><small>Revision</small><strong id="summaryRevision">#1</strong></article></section>
+<div id="pipeline" class="pipeline"></div>
+<section class="section card"><div class="section-title"><h3>Client & Application</h3><button class="quick" id="copyId">Copy ID</button></div><div id="details"></div></section>
+<section class="section card"><div class="section-title"><h3>Quick Stage Actions</h3></div><div class="quick-actions"><button class="quick" data-status="Statements Required">Request Statements</button><button class="quick" data-status="Ready for Review">Ready for Review</button><button class="quick" data-status="Under Review">Under Review</button><button class="quick" data-status="Additional Documents Required">Request Documents</button><button class="quick" data-status="Conditional Approval">Conditional Approval</button><button class="quick" data-status="Approved">Approved</button><button class="quick" data-status="Funded">Funded</button><button class="quick" data-status="Declined">Declined</button></div></section>
+<section class="section card"><div class="section-title"><h3>Client Message Preview</h3></div><div class="message-preview"><small>Message From Your Advisor</small><h3 id="previewTitle">Welcome</h3><p id="previewBody">Your advisor message will appear here.</p></div></section>
+<section class="section card"><div class="section-title"><h3>Client Update</h3></div><div class="form-grid"><div class="field"><label>Status</label><select id="status"></select></div><div class="field"><label>Assigned Advisor</label><input id="advisor"></div><div class="field full"><label>Message Title</label><input id="messageTitle"></div><div class="field full"><label>Message to Client</label><textarea id="messageBody" rows="4"></textarea></div><div class="field"><label>Approved Amount</label><input id="approvedAmount" type="number" min="0"></div><div class="field"><label>Product / Terms</label><input id="quote"></div><div class="field full"><label>Internal Notes</label><textarea id="notes" rows="5"></textarea></div></div><div class="drawer-buttons"><button class="btn gold" id="save">Save Client Update</button><button class="btn secondary" id="drive">Open Drive Folder</button></div><div id="saveMsg" class="notice"></div></section>
+<section class="section card"><div class="section-title"><h3>Uploaded Documents</h3><span class="subtle" id="documentCount">0 files</span></div><ul id="documents" class="list"></ul></section>
+<section class="section card"><div class="section-title"><h3>Activity History</h3><span class="subtle">Latest 20</span></div><ul id="activity" class="list"></ul></section>
+</div></aside><div class="toast" id="toast"></div>
+<script src="crm-config.js?v=20260807-recovery2"></script>
+<script src="crm-api.js?v=20260807-recovery2"></script>
+<script src="admin-app.js?v=20260807-recovery2"></script>
 </body>
 </html>
