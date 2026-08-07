@@ -2,6 +2,7 @@
   const cfg = window.TFC_CONFIG || {};
   const SESSION_KEY = 'tfc-client-auth';
   const LEGACY_KEY = 'tfc-current-application';
+  const endpoints = [...new Set([cfg.apiUrl, cfg.apiFallbackUrl].filter(Boolean))];
 
   function clearClientSession() {
     sessionStorage.removeItem(SESSION_KEY);
@@ -17,7 +18,7 @@
     localStorage.setItem(LEGACY_KEY, JSON.stringify(data));
   }
 
-  function jsonp(action, payload = {}, mode = 'direct', timeout = 8000) {
+  function jsonpAt(url, action, payload = {}, mode = 'direct', timeout = 8000) {
     return new Promise((resolve, reject) => {
       const callbackName = `tfc_cb_${Date.now()}_${Math.random().toString(36).slice(2)}`;
       const script = document.createElement('script');
@@ -52,20 +53,33 @@
         reject(new Error('The CRM service could not be reached.'));
       };
 
-      script.src = `${cfg.apiUrl}?${params.toString()}`;
+      script.src = `${url}?${params.toString()}`;
       document.head.appendChild(script);
     });
   }
 
-  async function fastRead(action, payload = {}) {
-    try {
-      return await Promise.any([
-        jsonp(action, payload, 'direct'),
-        jsonp(action, payload, 'payload')
-      ]);
-    } catch (_) {
-      throw new Error('Could not reach the CRM service. Please try again.');
+  async function jsonp(action, payload = {}, mode = 'direct', timeout = 8000) {
+    let lastError;
+    for (const url of endpoints) {
+      try {
+        return await jsonpAt(url, action, payload, mode, timeout);
+      } catch (error) {
+        lastError = error;
+      }
     }
+    throw lastError || new Error('The CRM service could not be reached.');
+  }
+
+  async function fastRead(action, payload = {}) {
+    let lastError;
+    for (const mode of ['direct', 'payload']) {
+      try {
+        return await jsonp(action, payload, mode);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error('Could not reach the CRM service. Please try again.');
   }
 
   async function createAccount(application, startedAt) {
@@ -136,7 +150,7 @@
         if (message) message.textContent = 'Your password must contain at least 8 characters.';
         return;
       }
-      if (!cfg.apiUrl || cfg.apiUrl.includes('PASTE_')) {
+      if (!endpoints.length) {
         if (message) message.textContent = 'The CRM service has not been configured.';
         return;
       }
