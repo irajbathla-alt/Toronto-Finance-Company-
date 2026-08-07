@@ -1,6 +1,5 @@
 window.TFC_CONFIG={
-  apiUrl:"https://script.google.com/macros/s/AKfycbxeKEo8MZtfQbCla7cCBbThaMkGk-CltycfR2IE2Uk9WcO52sS9ok4Wej_gIOOsI7MP/exec",
-  apiFallbackUrl:"https://script.google.com/macros/s/AKfycby6bmKACh-ddzZ9_Qy20pZgIhr-xJkxtH8q3Y0X9TxX3OVbXUeIkpGsiL6Jya4fwClX/exec",
+  apiUrl:"https://script.google.com/macros/s/AKfycbwsvfl21rZo5Cn2FGdcn9JqqMvz5XWegU8_CrGqOPnJirAGV7XUH-p9kfWCqJnuPTL9/exec",
   minimumStatements:6,
   demoMode:false
 };
