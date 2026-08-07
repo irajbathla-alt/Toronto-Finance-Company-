@@ -22,7 +22,6 @@ const ACTIVITY_HEADERS = ['activityId','created','applicationId','actor','action
 const NOTIFICATION_HEADERS = ['notificationId','created','status','applicationId','to','template','attempts','lastError','sentAt'];
 const APPROVAL_STATUSES = ['Conditional Approval','Approved'];
 const EARLY_STATUSES = ['Account Created','Statements Required','Ready for Review'];
-const OPERATION_TTL = 300;
 
 let _ss;
 const _sheetCache = {};
@@ -30,9 +29,9 @@ const _headerCache = {};
 
 function doGet(e) {
   try {
+    ensureCoreReady();
     const p = parseGet(e);
     if (!p.action || p.action === 'health') return output(healthCheck(), p.callback);
-    if (p.action === 'operationResult') return output(operationResult(p), p.callback);
     const result = routeAction(p.action, p);
     return output(result, p.callback);
   } catch (err) {
@@ -42,16 +41,17 @@ function doGet(e) {
 
 function doPost(e) {
   let p = {};
+  let result;
   try {
+    ensureCoreReady();
     p = parsePost(e);
-    const result = routeAction(p.action, p);
-    if (p.requestId) saveOperationResult(p.requestId, result);
-    return json(result);
+    result = routeAction(p.action, p);
   } catch (err) {
-    const result = { ok:false, error:err.message || String(err) };
-    if (p.requestId) saveOperationResult(p.requestId, result);
-    return json(result);
+    result = { ok:false, error:err.message || String(err) };
   }
+  return String(p.bridge || '') === '1'
+    ? bridgeOutput(result, p.requestId)
+    : json(result);
 }
 
 function routeAction(action, p) {
@@ -72,11 +72,21 @@ function parseGet(e) {
 }
 
 function parsePost(e) {
+  const q = (e && e.parameter) || {};
+  if (q.payload) {
+    try {
+      return {
+        ...JSON.parse(q.payload),
+        bridge:q.bridge || '1',
+        requestId:q.requestId || ''
+      };
+    } catch (_) {}
+  }
   const raw = (e && e.postData && e.postData.contents) || '';
   if (raw) {
     try { return JSON.parse(raw); } catch (_) {}
   }
-  return { ...((e && e.parameter) || {}) };
+  return { ...q };
 }
 
 function output(value, callback) {
@@ -92,18 +102,21 @@ function json(value) {
   return ContentService.createTextOutput(JSON.stringify(value)).setMimeType(ContentService.MimeType.JSON);
 }
 
-function saveOperationResult(requestId, result) {
-  CacheService.getScriptCache().put(`op:${requestId}`, JSON.stringify(result), OPERATION_TTL);
+function bridgeOutput(result, requestId) {
+  const payload = JSON.stringify({
+    channel:'tfc-crm-bridge',
+    requestId:String(requestId || ''),
+    result
+  }).replace(/</g,'\\u003c');
+  const html = `<!doctype html><html><body><script>window.parent.postMessage(${payload}, '*');<\/script></body></html>`;
+  return HtmlService.createHtmlOutput(html)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
-function operationResult(p) {
-  if (!p.requestId) throw new Error('requestId is required');
-  const value = CacheService.getScriptCache().get(`op:${p.requestId}`);
-  if (!value) return { ok:true, pending:true };
-  // Do not delete here. The browser may lose a JSONP response after Apps Script
-  // has served it. Keeping the result until TTL expiry makes polling idempotent
-  // and allows the next retry to receive the same completed operation.
-  return JSON.parse(value);
+function ensureCoreReady() {
+  ensureSheet('Applications', APP_HEADERS);
+  ensureSessionSecret();
+  initializeSequence();
 }
 
 function setupSystem() {
@@ -126,10 +139,10 @@ function setAdminPassword(password) {
 function healthCheck() {
   const out = {
     ok:true,
-    service:'Toronto Finance Company CRM v2.1',
+    service:'Toronto Finance Company CRM v3',
     architecture:'Apps Script + Sheets + Drive',
-    minimumStatements:CONFIG.MIN_STATEMENTS,
-    operationResultRetryable:true
+    transport:'Direct POST bridge + JSONP reads',
+    minimumStatements:CONFIG.MIN_STATEMENTS
   };
   try {
     out.spreadsheetName = db().getName();
@@ -380,10 +393,10 @@ function clientLogin(p) {
 }
 
 function adminLogin(p) {
+  if (getAdminPassword() === 'CHANGE_THIS_ADMIN_PASSWORD') throw new Error('Admin password is not configured. Run setAdminPassword() once in Apps Script.');
   if (String(p.email||'').trim().toLowerCase() !== CONFIG.ADMIN_EMAIL.toLowerCase() || String(p.password||'') !== getAdminPassword()) {
     throw new Error('Invalid admin credentials');
   }
-  if (getAdminPassword() === 'CHANGE_THIS_ADMIN_PASSWORD') throw new Error('Admin password is not configured. Run setAdminPassword() in Apps Script.');
   return { ok:true, session:issueSession('admin','',CONFIG.ADMIN_EMAIL) };
 }
 
@@ -397,8 +410,7 @@ function clientConfirmSignature(p) {
   verifySession(p.token,'client',p.applicationId);
   const before = findApplicationById(p.applicationId);
   const patch = { signatureConfirmed:true, signatureConfirmedAt:new Date() };
-  const preview = { ...before, ...patch };
-  patch.nextAction = nextActionFor(preview);
+  patch.nextAction = nextActionFor({ ...before, ...patch });
   const record = updateApplication(p.applicationId,patch);
   logActivity(p.applicationId,'client','Signature Confirmed',before.status,record.status,'Client confirmed completion of the electronic signature step.');
   return { ok:true, data:safe(record) };
@@ -456,8 +468,7 @@ function adminUpdate(p) {
   const statusChanged = nextStatus !== String(before.status||'');
   const shouldQueueApproval = statusChanged && APPROVAL_STATUSES.includes(nextStatus) &&
     String(before.lastNotificationStatus||'') !== nextStatus && String(before.lastNotificationQueuedStatus||'') !== nextStatus;
-  const preview = { ...before, ...patch };
-  patch.nextAction = nextActionFor(preview);
+  patch.nextAction = nextActionFor({ ...before, ...patch });
   if (shouldQueueApproval) patch.lastNotificationQueuedStatus = nextStatus;
   const record = updateApplication(p.applicationId,patch,p.revision === '' ? undefined : p.revision);
   const detail = statusChanged
@@ -476,11 +487,21 @@ function ensureDriveFolder(record) {
   if (record.driveFolderId) {
     try { return DriveApp.getFolderById(record.driveFolderId); } catch (_) {}
   }
-  const root = DriveApp.getFolderById(CONFIG.ROOT_FOLDER_ID);
-  const folder = root.createFolder(`${record.applicationId} - ${record.business||record.name||record.email}`);
-  ['Bank Statements','Identification','Financial Statements','Other Documents'].forEach(name => folder.createFolder(name));
-  updateApplicationSystem(record.applicationId,{driveFolderId:folder.getId(),driveUrl:folder.getUrl(),driveIndexedAt:new Date()});
-  return folder;
+  const lock = LockService.getScriptLock();
+  lock.waitLock(15000);
+  try {
+    const fresh = findApplicationById(record.applicationId);
+    if (fresh.driveFolderId) {
+      try { return DriveApp.getFolderById(fresh.driveFolderId); } catch (_) {}
+    }
+    const root = DriveApp.getFolderById(CONFIG.ROOT_FOLDER_ID);
+    const folder = root.createFolder(`${fresh.applicationId} - ${fresh.business||fresh.name||fresh.email}`);
+    ['Bank Statements','Identification','Financial Statements','Other Documents'].forEach(name => folder.createFolder(name));
+    updateApplicationSystem(fresh.applicationId,{driveFolderId:folder.getId(),driveUrl:folder.getUrl(),driveIndexedAt:new Date()});
+    return folder;
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function adminEnsureDrive(p) {
@@ -619,6 +640,7 @@ function getActivity(p) {
 }
 
 function queueApprovalNotification(record) {
+  ensureNotificationTrigger();
   appendObject('Notifications',{
     notificationId:`NTF-${Utilities.getUuid()}`,created:new Date(),status:'pending',applicationId:record.applicationId,
     to:record.email,template:record.status,attempts:0,lastError:'',sentAt:''
