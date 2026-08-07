@@ -6,6 +6,7 @@
 
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
   const makeId = () => (window.crypto?.randomUUID?.() || `req-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const normalize = value => String(value ?? '').trim();
 
   function getSession() {
     try {
@@ -72,6 +73,43 @@
     return result;
   }
 
+  function adminUpdateMatches(data, payload) {
+    const fields = ['status','advisor','messageTitle','messageBody','approvedAmount','quote','notes'];
+    return fields.every(field => normalize(data?.[field]) === normalize(payload?.[field]));
+  }
+
+  async function recoverCompletedWrite(action, payload) {
+    const session = getSession();
+    if (!session?.token || !payload?.applicationId) return null;
+
+    try {
+      if (action === 'adminUpdate') {
+        const result = await get('getClient', { applicationId: payload.applicationId }, { timeout: 9000 });
+        if (!adminUpdateMatches(result.data, payload)) return null;
+        return {
+          ok: true,
+          data: result.data,
+          recovered: true,
+          notificationQueued: ['Conditional Approval','Approved'].includes(String(result.data.status || '')) &&
+            String(result.data.lastNotificationQueuedStatus || '') === String(result.data.status || '')
+        };
+      }
+
+      if (action === 'adminEnsureDrive') {
+        const result = await get('getClient', { applicationId: payload.applicationId }, { timeout: 9000 });
+        return result.data?.driveUrl ? { ok:true, data:result.data, recovered:true } : null;
+      }
+
+      if (action === 'clientConfirmSignature') {
+        const result = await get('getClient', { applicationId: payload.applicationId }, { timeout: 9000 });
+        const confirmed = result.data?.signatureConfirmed === true || String(result.data?.signatureConfirmed).toLowerCase() === 'true';
+        return confirmed ? { ok:true, data:result.data, recovered:true } : null;
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
   async function post(action, payload = {}, options = {}) {
     if (!cfg.apiUrl) throw new Error('CRM service is not configured.');
 
@@ -84,8 +122,6 @@
       ...payload
     });
 
-    // The web app response is cross-origin opaque on GitHub Pages. We therefore
-    // submit once and retrieve the result by requestId through JSONP.
     fetch(cfg.apiUrl, {
       method: 'POST',
       mode: 'no-cors',
@@ -103,7 +139,8 @@
     while (Date.now() - started < timeout) {
       await sleep(delay);
       try {
-        const result = await jsonp('operationResult', { requestId }, Math.min(7000, timeout));
+        const remaining = Math.max(2500, timeout - (Date.now() - started));
+        const result = await jsonp('operationResult', { requestId }, Math.min(7000, remaining));
         if (result?.pending) {
           delay = Math.min(1200, Math.round(delay * 1.35));
           continue;
@@ -111,28 +148,31 @@
         if (!result?.ok) throw new Error(result?.error || 'CRM operation failed.');
         return result;
       } catch (error) {
-        if (/operation failed/i.test(error.message || '')) throw error;
+        if (/operation failed|invalid|unauthorized|session expired|changed in another/i.test(error.message || '')) throw error;
         delay = Math.min(1200, Math.round(delay * 1.35));
       }
     }
 
-    throw new Error('The CRM is taking longer than expected. Please refresh and confirm the latest status before retrying.');
+    const recovered = await recoverCompletedWrite(action, payload);
+    if (recovered) return recovered;
+
+    throw new Error('The CRM could not confirm this operation. Refresh once before retrying to avoid a duplicate action.');
   }
 
   async function createAccount(payload) {
-    const result = await post('createAccount', payload, { timeout: 15000 });
+    const result = await post('createAccount', payload, { timeout: 18000 });
     setSession(result.session);
     return result;
   }
 
   async function clientLogin(email, password) {
-    const result = await post('clientLogin', { email, password }, { timeout: 12000 });
+    const result = await post('clientLogin', { email, password }, { timeout: 15000 });
     setSession(result.session);
     return result;
   }
 
   async function adminLogin(email, password) {
-    const result = await post('adminLogin', { email, password }, { timeout: 12000 });
+    const result = await post('adminLogin', { email, password }, { timeout: 15000 });
     setSession(result.session);
     return result;
   }
