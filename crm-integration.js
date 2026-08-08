@@ -2,7 +2,7 @@
   const cfg = window.TFC_CONFIG || {};
   const SESSION_KEY = 'tfc-client-auth';
   const LEGACY_KEY = 'tfc-current-application';
-  const endpoints = [...new Set([cfg.apiUrl, cfg.apiFallbackUrl].filter(Boolean))];
+  const REQUEST_TIMEOUT = Number(cfg.requestTimeout || 30000);
 
   function clearClientSession() {
     sessionStorage.removeItem(SESSION_KEY);
@@ -18,8 +18,11 @@
     localStorage.setItem(LEGACY_KEY, JSON.stringify(data));
   }
 
-  function jsonpAt(url, action, payload = {}, mode = 'direct', timeout = 8000) {
+  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+  function jsonp(action, payload = {}, mode = 'direct', timeout = REQUEST_TIMEOUT) {
     return new Promise((resolve, reject) => {
+      if (!cfg.apiUrl) return reject(new Error('The CRM service has not been configured.'));
       const callbackName = `tfc_cb_${Date.now()}_${Math.random().toString(36).slice(2)}`;
       const script = document.createElement('script');
       const params = new URLSearchParams({ action, callback: callbackName, _: String(Date.now()) });
@@ -34,13 +37,13 @@
 
       const timer = setTimeout(() => {
         cleanup();
-        reject(new Error('The CRM is taking longer than expected.'));
+        reject(new Error('The CRM is taking longer than expected while Google Apps Script starts.'));
       }, timeout);
 
       function cleanup() {
         clearTimeout(timer);
-        delete window[callbackName];
-        script.remove();
+        try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; }
+        if (script.parentNode) script.parentNode.removeChild(script);
       }
 
       window[callbackName] = data => {
@@ -53,28 +56,20 @@
         reject(new Error('The CRM service could not be reached.'));
       };
 
-      script.src = `${url}?${params.toString()}`;
+      script.src = `${cfg.apiUrl}?${params.toString()}`;
       document.head.appendChild(script);
     });
   }
 
-  async function jsonp(action, payload = {}, mode = 'direct', timeout = 8000) {
-    let lastError;
-    for (const url of endpoints) {
-      try {
-        return await jsonpAt(url, action, payload, mode, timeout);
-      } catch (error) {
-        lastError = error;
-      }
-    }
-    throw lastError || new Error('The CRM service could not be reached.');
-  }
-
   async function fastRead(action, payload = {}) {
     let lastError;
-    for (const mode of ['direct', 'payload']) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if (attempt) await sleep(1200);
       try {
-        return await jsonp(action, payload, mode);
+        return await Promise.any([
+          jsonp(action, payload, 'direct'),
+          jsonp(action, payload, 'payload')
+        ]);
       } catch (error) {
         lastError = error;
       }
@@ -84,13 +79,13 @@
 
   async function createAccount(application, startedAt) {
     try {
-      const result = await jsonp('createAccount', application, 'direct', 12000);
+      const result = await jsonp('createAccount', application, 'direct', 35000);
       if (!result?.ok) throw new Error(result?.error || 'Account creation failed.');
       return result;
     } catch (primaryError) {
       if (/already exists/i.test(primaryError.message || '')) throw primaryError;
 
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await sleep(1000);
       try {
         const recovery = await fastRead('clientLogin', {
           email: application.email,
@@ -150,7 +145,7 @@
         if (message) message.textContent = 'Your password must contain at least 8 characters.';
         return;
       }
-      if (!endpoints.length) {
+      if (!cfg.apiUrl) {
         if (message) message.textContent = 'The CRM service has not been configured.';
         return;
       }
@@ -160,7 +155,7 @@
       clearClientSession();
       createButton.disabled = true;
       createButton.textContent = 'Creating Account...';
-      if (message) message.textContent = 'Creating your secure account...';
+      if (message) message.textContent = 'Connecting securely to CRM...';
 
       try {
         let result;
