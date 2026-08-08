@@ -23,6 +23,20 @@ window.TFC_CONFIG={
   document.head.appendChild(script);
 })();
 
+(function hardenClientPortal(){
+  setTimeout(()=>{
+    if(!/client-dashboard\.html/i.test(location.pathname))return;
+    if(typeof window.jsonp==='function'&&!window.jsonp.__tfcHardened){
+      const original=window.jsonp;
+      const wrapped=function(action,payload={},mode='direct',timeout=30000){
+        return original(action,payload,mode,Math.max(Number(timeout)||0,30000));
+      };
+      wrapped.__tfcHardened=true;
+      window.jsonp=wrapped;
+    }
+  },0);
+})();
+
 (function loadMotionSystem(){
   if(!document.querySelector('link[data-tfc-motion]')){
     const link=document.createElement('link');
