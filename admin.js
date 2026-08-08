@@ -3,7 +3,9 @@
 
   const cfg = window.TFC_CONFIG || {};
   const minimumStatements = Number(cfg.minimumStatements || 6);
+  const DEFAULT_TIMEOUT = Number(cfg.requestTimeout || 30000);
   const $ = selector => document.querySelector(selector);
+  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
   let applications = [];
   let selected = null;
 
@@ -20,17 +22,19 @@
 
   function toast(message) {
     const el = $('#toast');
+    if (!el) return;
     el.textContent = message;
     el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 2200);
+    setTimeout(() => el.classList.remove('show'), 2400);
   }
 
-  function jsonpAt(url, action, payload = {}, mode = 'direct', timeout = 12000) {
+  function jsonp(action, payload = {}, mode = 'direct', timeout = DEFAULT_TIMEOUT) {
     return new Promise((resolve, reject) => {
-      if (!url) return reject(new Error('CRM endpoint is not configured.'));
+      if (!cfg.apiUrl) return reject(new Error('CRM endpoint is not configured.'));
       const callback = `tfc_admin_${Date.now()}_${Math.random().toString(36).slice(2)}`;
       const script = document.createElement('script');
       const params = new URLSearchParams({ action, callback, _: String(Date.now()) });
+
       if (mode === 'payload') {
         params.set('payload', JSON.stringify({ action, ...payload }));
       } else {
@@ -38,38 +42,40 @@
           if (value !== undefined && value !== null) params.set(key, String(value));
         });
       }
+
       const timer = setTimeout(() => {
         cleanup();
-        reject(new Error('CRM request timed out.'));
+        reject(new Error('CRM request timed out while Google Apps Script was starting.'));
       }, timeout);
+
       function cleanup() {
         clearTimeout(timer);
-        delete window[callback];
-        script.remove();
+        try { delete window[callback]; } catch (_) { window[callback] = undefined; }
+        if (script.parentNode) script.parentNode.removeChild(script);
       }
+
       window[callback] = data => {
         cleanup();
         resolve(data);
       };
+
       script.onerror = () => {
         cleanup();
         reject(new Error('CRM endpoint could not be reached.'));
       };
-      script.src = `${url}?${params.toString()}`;
+
+      script.src = `${cfg.apiUrl}?${params.toString()}`;
       document.head.appendChild(script);
     });
   }
 
-  function urls() {
-    return [...new Set([cfg.apiUrl, cfg.apiFallbackUrl].filter(Boolean))];
-  }
-
-  async function readApi(action, payload = {}, timeout = 12000) {
+  async function readApi(action, payload = {}, timeout = DEFAULT_TIMEOUT) {
     let lastError;
-    for (const url of urls()) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if (attempt) await sleep(1200);
       for (const mode of ['direct', 'payload']) {
         try {
-          const result = await jsonpAt(url, action, payload, mode, timeout);
+          const result = await jsonp(action, payload, mode, timeout);
           if (result) return result;
         } catch (error) {
           lastError = error;
@@ -125,7 +131,7 @@
   async function load(showToast = false) {
     $('#refresh').disabled = true;
     try {
-      const result = await readApi('adminList', {}, 15000);
+      const result = await readApi('adminList');
       if (!result?.ok) throw new Error(result?.error || 'Could not load applications.');
       applications = result.data || [];
       render();
@@ -148,7 +154,7 @@
   async function loadDocuments(applicationId) {
     $('#documentCount').textContent = 'Loading…';
     try {
-      const result = await readApi('getDocuments', { applicationId }, 15000);
+      const result = await readApi('getDocuments', { applicationId });
       renderDocs(result?.ok ? result.data || [] : []);
     } catch (_) {
       renderDocs([]);
@@ -201,7 +207,7 @@
     $('#saveMsg').textContent = 'Saving directly to CRM…';
 
     try {
-      const result = await readApi('adminUpdate', update, 25000);
+      const result = await readApi('adminUpdate', update, 35000);
       if (!result?.ok) throw new Error(result?.error || 'The client update could not be saved.');
       selected = result.data || { ...selected, ...update, updated: new Date().toISOString() };
       const index = applications.findIndex(app => String(app.applicationId) === String(selected.applicationId));
@@ -228,7 +234,7 @@
     $('#drive').disabled = true;
     $('#drive').textContent = 'Creating Folder…';
     try {
-      const result = await readApi('adminEnsureDrive', { applicationId: selected.applicationId }, 25000);
+      const result = await readApi('adminEnsureDrive', { applicationId: selected.applicationId }, 35000);
       if (!result?.ok || !result.data?.driveUrl) throw new Error(result?.error || 'Drive folder could not be created.');
       selected = result.data;
       const index = applications.findIndex(app => String(app.applicationId) === String(selected.applicationId));
@@ -248,9 +254,9 @@
     const password = $('#adminPassword').value;
     $('#adminLogin').disabled = true;
     $('#loginMsg').className = 'notice';
-    $('#loginMsg').textContent = 'Signing in…';
+    $('#loginMsg').textContent = 'Connecting to CRM…';
     try {
-      const result = await readApi('adminLogin', { email, password }, 15000);
+      const result = await readApi('adminLogin', { email, password });
       if (!result?.ok) throw new Error(result?.error || 'Login failed.');
       $('#login').classList.add('hidden');
       $('#admin').classList.remove('hidden');
