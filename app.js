@@ -14,8 +14,8 @@ function landing() {
       <nav class="nav">
         <div class="brand">TORONTO FINANCE COMPANY</div>
         <div class="navlinks">
-          <button data-go="landing">Experience</button>
-          <button data-go="apply">About</button>
+          <button data-page="experience.html">Experience</button>
+          <button data-page="about.html">About</button>
           <button data-go="apply">Privacy</button>
           <button data-go="dashboard">Log In</button>
           <button class="pill" data-go="apply">Apply</button>
@@ -86,6 +86,10 @@ function apply() {
 }
 
 function wire() {
+  document.querySelectorAll('[data-page]').forEach(element => {
+    element.onclick = () => { window.location.href = element.dataset.page; };
+  });
+
   document.querySelectorAll('[data-go]').forEach(element => {
     element.onclick = () => {
       const destination = element.dataset.go;
@@ -96,4 +100,6 @@ function wire() {
   });
 }
 
-landing();
+const params = new URLSearchParams(window.location.search);
+if (params.get('apply') === '1') apply();
+else landing();
