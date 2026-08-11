@@ -10,16 +10,17 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="company-pages.css?v=20260811-2">
 <style>
-.about-page .about-hero{padding-top:88px;padding-bottom:88px}
-.about-page .about-hero .hero-inner{max-width:920px;text-align:center}
-.about-page .about-hero h1{max-width:900px;margin:0 auto;font-size:clamp(40px,4.9vw,64px);line-height:.98}
-.about-page .about-hero .about-hero-line{display:block;white-space:nowrap}
+.about-page .about-hero{padding:88px 24px}
+.about-page .about-hero .hero-inner{width:100%;max-width:none;margin:0;display:flex;flex-direction:column;align-items:center;text-align:center}
+.about-page .about-hero .eyebrow{width:100%;text-align:center}
+.about-page .about-hero h1{width:100%;max-width:none;margin:0;display:flex;flex-direction:column;align-items:center;font-size:clamp(40px,4.9vw,64px);line-height:.98;text-align:center}
+.about-page .about-hero .about-hero-line{display:block;width:max-content;max-width:100%;margin-left:auto;margin-right:auto;white-space:nowrap;text-align:center}
 .about-page .about-hero .about-hero-line + .about-hero-line{margin-top:5px}
-.about-page .about-hero .lead{max-width:690px;margin:26px auto 0;font-size:14px;line-height:1.75}
+.about-page .about-hero .lead{width:min(690px,100%);margin:26px auto 0;font-size:14px;line-height:1.75;text-align:center}
 .about-page .about-intro{grid-template-columns:1fr 1fr;gap:72px;align-items:center}
 .about-page .about-intro .section-title{font-size:clamp(36px,4.2vw,52px);line-height:1.02}
 @media(max-width:850px){.about-page .about-intro{grid-template-columns:1fr;gap:24px}.about-page .about-hero{padding-top:68px;padding-bottom:68px}}
-@media(max-width:620px){.about-page .about-hero h1{font-size:38px}.about-page .about-hero .about-hero-line{white-space:normal}.about-page .about-hero .lead{font-size:13px}}
+@media(max-width:620px){.about-page .about-hero h1{font-size:38px}.about-page .about-hero .about-hero-line{width:100%;white-space:normal}.about-page .about-hero .lead{font-size:13px}}
 </style>
 </head>
 <body class="about-page">
