@@ -12,12 +12,14 @@
 <style>
 .about-page .about-hero{padding-top:88px;padding-bottom:88px}
 .about-page .about-hero .hero-inner{max-width:920px;text-align:center}
-.about-page .about-hero h1{max-width:790px;margin:0 auto;font-size:clamp(42px,5.2vw,68px);line-height:1}
-.about-page .about-hero .lead{max-width:690px;margin:24px auto 0;font-size:14px;line-height:1.75}
+.about-page .about-hero h1{max-width:900px;margin:0 auto;font-size:clamp(40px,4.9vw,64px);line-height:.98}
+.about-page .about-hero .about-hero-line{display:block;white-space:nowrap}
+.about-page .about-hero .about-hero-line + .about-hero-line{margin-top:5px}
+.about-page .about-hero .lead{max-width:690px;margin:26px auto 0;font-size:14px;line-height:1.75}
 .about-page .about-intro{grid-template-columns:1fr 1fr;gap:72px;align-items:center}
 .about-page .about-intro .section-title{font-size:clamp(36px,4.2vw,52px);line-height:1.02}
 @media(max-width:850px){.about-page .about-intro{grid-template-columns:1fr;gap:24px}.about-page .about-hero{padding-top:68px;padding-bottom:68px}}
-@media(max-width:540px){.about-page .about-hero h1{font-size:40px}.about-page .about-hero .lead{font-size:13px}}
+@media(max-width:620px){.about-page .about-hero h1{font-size:38px}.about-page .about-hero .about-hero-line{white-space:normal}.about-page .about-hero .lead{font-size:13px}}
 </style>
 </head>
 <body class="about-page">
@@ -34,7 +36,10 @@
 <section class="pagehero about-hero">
   <div class="hero-inner">
     <div class="eyebrow">About Toronto Finance Company</div>
-    <h1>Financing should improve life. Not add pressure.</h1>
+    <h1>
+      <span class="about-hero-line">Financing should improve life.</span>
+      <span class="about-hero-line">Not add pressure.</span>
+    </h1>
     <p class="lead">At Toronto Finance Company, we believe good financing starts with understanding the client before discussing a product. Our role is to make the decision clearer, explain the trade-offs, and help clients move forward only when the financing genuinely makes sense.</p>
   </div>
 </section>
