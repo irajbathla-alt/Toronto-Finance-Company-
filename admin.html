@@ -7,7 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="portal.css?v=20260807-stable2">
+<link rel="stylesheet" href="portal.css?v=20260812-decision1">
+<style>
+.client-response{border:1px solid rgba(198,150,78,.32);background:#fbf7f0;border-radius:10px;padding:16px}.client-response strong{display:block;font-size:11px;letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px}.client-response p{margin:4px 0;color:#786f65;font-size:12px;line-height:1.6}.client-response.has-response{background:#edf6f0;border-color:rgba(47,133,90,.25)}
+</style>
 </head>
 <body>
 <header class="tfc-top">
@@ -90,6 +93,11 @@
     <section class="section card"><div class="section-title"><h3>Client Message Preview</h3></div><div class="message-preview"><small>Message From Your Advisor</small><h3 id="previewTitle">Welcome</h3><p id="previewBody">Your advisor message will appear here.</p></div></section>
 
     <section class="section card">
+      <div class="section-title"><h3>Client Response</h3></div>
+      <div class="client-response" id="clientResponse"><strong>Awaiting Response</strong><p>When the client chooses Proceed or Request More Information, the response will appear here.</p></div>
+    </section>
+
+    <section class="section card">
       <div class="section-title"><h3>Client Update</h3></div>
       <div class="form-grid">
         <div class="field"><label>Status</label><select id="status"><option>Account Created</option><option>Statements Required</option><option>Ready for Review</option><option>Under Review</option><option>Additional Documents Required</option><option>Conditional Approval</option><option>Approved</option><option>Funded</option><option>Declined</option></select></div>
@@ -97,8 +105,14 @@
         <div class="field full"><label>Message Title</label><input id="messageTitle"></div>
         <div class="field full"><label>Message to Client</label><textarea id="messageBody" rows="4"></textarea></div>
         <div class="field"><label>Approved Amount</label><input id="approvedAmount" type="number" min="0"></div>
-        <div class="field"><label>Product / Terms</label><input id="quote"></div>
-        <div class="field full"><label>Internal Notes</label><textarea id="notes" rows="5"></textarea></div>
+        <div class="field"><label>Product / Terms</label><input id="quote" placeholder="Financing Available"></div>
+        <div class="field"><label>Term</label><input id="term" placeholder="e.g. 12 months"></div>
+        <div class="field"><label>Payment Frequency</label><input id="paymentFrequency" placeholder="e.g. Weekly"></div>
+        <div class="field"><label>Payment Amount</label><input id="paymentAmount" type="number" min="0" step="0.01"></div>
+        <div class="field"><label>Number of Payments</label><input id="numberPayments" type="number" min="0"></div>
+        <div class="field"><label>Total Repayment</label><input id="totalRepayment" type="number" min="0" step="0.01"></div>
+        <div class="field full"><label>Additional Documents Requested</label><textarea id="documentsRequested" rows="3" placeholder="Example: Driver’s licence for each signer, void cheque, latest financial statements"></textarea></div>
+        <div class="field full"><label>Internal / Advisor Notes</label><textarea id="notes" rows="5"></textarea></div>
       </div>
       <div class="drawer-buttons"><button class="btn gold" id="save">Save Client Update</button><button class="btn secondary" id="drive">Open Drive Folder</button></div>
       <div id="saveMsg" class="notice"></div>
@@ -110,6 +124,6 @@
 <div class="toast" id="toast"></div>
 
 <script src="crm-config.js?v=20260807-stable2"></script>
-<script src="admin.js?v=20260807-stable2"></script>
+<script src="admin.js?v=20260812-decision1"></script>
 </body>
 </html>
