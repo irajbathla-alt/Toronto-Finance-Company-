@@ -37,6 +37,15 @@ window.TFC_CONFIG={
   },0);
 })();
 
+(function loadClientDecision(){
+  if(!/client-dashboard\.html/i.test(location.pathname))return;
+  if(document.querySelector('script[data-tfc-decision]'))return;
+  const script=document.createElement('script');
+  script.src='client-decision.js?v=20260812-1';
+  script.dataset.tfcDecision='true';
+  document.head.appendChild(script);
+})();
+
 (function loadMotionSystem(){
   if(!document.querySelector('link[data-tfc-motion]')){
     const link=document.createElement('link');
