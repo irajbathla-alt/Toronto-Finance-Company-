@@ -3,7 +3,7 @@ window.TFC_CONFIG={
   minimumStatements:6,
   demoMode:false,
   requestTimeout:30000,
-  build:"20260812-decision3"
+  build:"20260812-decision4"
 };
 
 (function warmCrm(){
@@ -36,6 +36,28 @@ window.TFC_CONFIG={
       window.jsonp=wrapped;
     }
   },0);
+})();
+
+(function keepClientDecisionOpen(){
+  if(!/client-dashboard\.html/i.test(location.pathname))return;
+  const timer=setInterval(()=>{
+    const proceed=document.getElementById('decisionProceed');
+    const moreInfo=document.getElementById('decisionMoreInfo');
+    const status=document.getElementById('decisionStatus');
+    if(!proceed||!moreInfo)return;
+
+    const sending=Boolean(status&&/^Sending your response/i.test(String(status.textContent||'').trim()));
+    if(!sending){
+      proceed.disabled=false;
+      moreInfo.disabled=false;
+    }
+
+    if(status&&status.classList.contains('show')&&!sending&&/Your response has been sent:/i.test(status.textContent||'')){
+      const current=String(status.textContent||'').replace(/\s*You can respond again.*$/i,'').trim();
+      status.textContent=current+' You can respond again after reviewing any new advisor update.';
+    }
+  },350);
+  window.addEventListener('pagehide',()=>clearInterval(timer),{once:true});
 })();
 
 (function loadMotionSystem(){
