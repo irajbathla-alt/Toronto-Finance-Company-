@@ -63,14 +63,16 @@
     box.id = 'financingDecision';
     box.className = 'decision-wrap';
     box.innerHTML = `
-      <div class="decision-kicker">Financing Available</div>
-      <h2>Review your financing details.</h2>
-      <p>Please review the details below. You can ask us to continue with this financing or request more information before deciding.</p>
-      <div class="decision-disclaimer"><strong>Indicative only — not a commitment to lend</strong>Any financing shown here remains subject to final lender review, underwriting, documentation, eligibility, conditions and execution of final agreements. Selecting Proceed only asks Toronto Finance Company to continue the process and does not create a binding lending commitment.</div>
-      <div class="decision-card" id="decisionCard"></div>
-      <textarea class="decision-note" id="decisionNote" placeholder="Optional: add a question or note for your advisor"></textarea>
-      <div class="decision-actions"><button class="decision-proceed" id="decisionProceed">Proceed</button><button class="decision-info" id="decisionMoreInfo">Request More Information</button></div>
-      <div class="decision-status" id="decisionStatus"></div>
+      <div id="decisionOfferArea">
+        <div class="decision-kicker">Financing Available</div>
+        <h2>Review your financing details.</h2>
+        <p>Please review the details below. You can ask us to continue with this financing or request more information before deciding.</p>
+        <div class="decision-disclaimer"><strong>Indicative only — not a commitment to lend</strong>Any financing shown here remains subject to final lender review, underwriting, documentation, eligibility, conditions and execution of final agreements. Selecting Proceed only asks Toronto Finance Company to continue the process and does not create a binding lending commitment.</div>
+        <div class="decision-card" id="decisionCard"></div>
+        <textarea class="decision-note" id="decisionNote" placeholder="Optional: add a question or note for your advisor"></textarea>
+        <div class="decision-actions"><button class="decision-proceed" id="decisionProceed">Proceed</button><button class="decision-info" id="decisionMoreInfo">Request More Information</button></div>
+        <div class="decision-status" id="decisionStatus"></div>
+      </div>
       <div class="requested-docs" id="requestedDocs"><div class="decision-kicker">Additional Documents Requested</div><h3>Upload requested documents</h3><div class="requested-box" id="requestedText"></div><div class="requested-row"><select id="requestedCategory"><option value="identification">Identification</option><option value="financial">Financial Statements</option><option value="other">Other Documents</option></select><input id="requestedFiles" type="file" multiple></div><button class="requested-upload" id="requestedUpload">Upload Selected Documents</button><div class="requested-msg" id="requestedMsg"></div></div>
     `;
     future.parentNode.insertBefore(box, future);
@@ -81,41 +83,46 @@
     currentClient = data || currentClient;
     const box = ensureUI();
     if (!box || !currentClient) return;
+
     const status = String(currentClient.status || '');
     const hasOffer = Boolean(currentClient.approvedAmount || currentClient.quote || currentClient.term || currentClient.paymentAmount || currentClient.totalRepayment);
-    const visible = ['Conditional Approval', 'Approved'].includes(status) && hasOffer;
-    box.classList.toggle('show', visible);
-    if (!visible) return;
+    const canDecide = ['Conditional Approval', 'Approved'].includes(status) && hasOffer;
+    const requested = String(currentClient.documentsRequested || '').trim();
+    box.classList.toggle('show', Boolean(canDecide || requested));
+    if (!canDecide && !requested) return;
 
-    document.getElementById('decisionCard').innerHTML = `
-      <div class="decision-card-head"><h3>${currentClient.quote || 'Financing Available'}</h3><div class="decision-amount">${money(currentClient.approvedAmount)}</div></div>
-      <div class="decision-grid">
-        <div><small>Term</small><strong>${currentClient.term || '—'}</strong></div>
-        <div><small>Payment Frequency</small><strong>${currentClient.paymentFrequency || '—'}</strong></div>
-        <div><small>Payment Amount</small><strong>${money(currentClient.paymentAmount)}</strong></div>
-        <div><small>Number of Payments</small><strong>${currentClient.numberPayments || '—'}</strong></div>
-        <div><small>Total Repayment</small><strong>${money(currentClient.totalRepayment)}</strong></div>
-        <div><small>Status</small><strong>${status}</strong></div>
-      </div>`;
+    const offerArea = document.getElementById('decisionOfferArea');
+    offerArea.style.display = canDecide ? 'block' : 'none';
 
-    const note = document.getElementById('decisionNote');
-    note.value = currentClient.clientDecisionNote || '';
-    const response = document.getElementById('decisionStatus');
-    if (currentClient.clientDecision) {
-      response.classList.add('show');
-      response.textContent = `Your response has been sent: ${currentClient.clientDecision}. Your advisor has been notified.`;
-    } else {
-      response.classList.remove('show');
-      response.textContent = '';
+    if (canDecide) {
+      document.getElementById('decisionCard').innerHTML = `
+        <div class="decision-card-head"><h3>${currentClient.quote || 'Financing Available'}</h3><div class="decision-amount">${money(currentClient.approvedAmount)}</div></div>
+        <div class="decision-grid">
+          <div><small>Term</small><strong>${currentClient.term || '—'}</strong></div>
+          <div><small>Payment Frequency</small><strong>${currentClient.paymentFrequency || '—'}</strong></div>
+          <div><small>Payment Amount</small><strong>${money(currentClient.paymentAmount)}</strong></div>
+          <div><small>Number of Payments</small><strong>${currentClient.numberPayments || '—'}</strong></div>
+          <div><small>Total Repayment</small><strong>${money(currentClient.totalRepayment)}</strong></div>
+          <div><small>Status</small><strong>${status}</strong></div>
+        </div>`;
+
+      const note = document.getElementById('decisionNote');
+      note.value = currentClient.clientDecisionNote || '';
+      const response = document.getElementById('decisionStatus');
+      if (currentClient.clientDecision) {
+        response.classList.add('show');
+        response.textContent = `Your response has been sent: ${currentClient.clientDecision}. Your advisor has been notified.`;
+      } else {
+        response.classList.remove('show');
+        response.textContent = '';
+      }
+      document.getElementById('decisionProceed').onclick = () => submitDecision('Proceed');
+      document.getElementById('decisionMoreInfo').onclick = () => submitDecision('Request More Information');
     }
 
-    const requested = String(currentClient.documentsRequested || '').trim();
     const requestedBox = document.getElementById('requestedDocs');
     requestedBox.classList.toggle('show', Boolean(requested));
     document.getElementById('requestedText').textContent = requested;
-
-    document.getElementById('decisionProceed').onclick = () => submitDecision('Proceed');
-    document.getElementById('decisionMoreInfo').onclick = () => submitDecision('Request More Information');
     document.getElementById('requestedUpload').onclick = uploadRequestedDocuments;
   }
 
