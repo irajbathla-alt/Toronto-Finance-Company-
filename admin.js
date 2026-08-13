@@ -13,9 +13,9 @@
     'Statements Required': ['Bank Statements Required', 'Please upload your six most recent monthly business bank statements so we can continue reviewing your application.'],
     'Ready for Review': ['Documents Received', 'Thank you. Your required documents have been received and your application is ready for review.'],
     'Under Review': ['Application Under Review', 'Your application is currently under review. No action is required unless your advisor contacts you for additional information.'],
-    'Additional Documents Required': ['Additional Documents Required', 'We require additional information to continue reviewing your application. Please contact your advisor or provide the requested documents.'],
-    'Conditional Approval': ['Conditional Approval Available', 'A conditional financing approval is available. Please review the update and contact your advisor regarding the outstanding conditions.'],
-    'Approved': ['Financing Approved', 'Your financing application has been approved. Please review the approval details and contact your advisor for the next steps.'],
+    'Additional Documents Required': ['Additional Documents Required', 'We require additional information to continue reviewing your application. Please review the requested documents in your client portal and upload them securely.'],
+    'Conditional Approval': ['Conditional Financing Available', 'Financing terms are available for your review in the client portal. Please review the details and choose Proceed or Request More Information. Any financing shown is indicative only and is not a commitment to lend. Final financing remains subject to lender review, underwriting, documentation, conditions and final agreements.'],
+    'Approved': ['Financing Available', 'Financing terms are available for your review in the client portal. Please review the details and choose Proceed or Request More Information. Any financing shown is indicative only and is not a commitment to lend. Final financing remains subject to lender review, underwriting, documentation, conditions and final agreements.'],
     'Funded': ['Financing Completed', 'Your financing file has been completed. Thank you for choosing Toronto Finance Company.'],
     'Declined': ['Application Update', 'We have an update regarding your financing application. Please contact your advisor to discuss the available next steps.']
   };
@@ -103,7 +103,7 @@
     const query = $('#search').value.trim().toLowerCase();
     const filter = $('#filter').value;
     const data = applications.filter(app => {
-      const text = [app.applicationId, app.name, app.email, app.business, app.advisor].join(' ').toLowerCase();
+      const text = [app.applicationId, app.name, app.email, app.business, app.advisor, app.clientDecision].join(' ').toLowerCase();
       return (!filter || app.status === filter) && (!query || text.includes(query));
     });
 
@@ -112,7 +112,7 @@
         <td><strong>${app.applicationId || '—'}</strong><div class="subtle">${formatDate(app.created)}</div></td>
         <td><strong>${app.name || 'Unnamed client'}</strong><div class="subtle">${app.email || ''}</div></td>
         <td>${app.business || '<span class="subtle">Not provided</span>'}</td>
-        <td><span class="status ${statusClass(app.status)}">${app.status || 'Account Created'}</span></td>
+        <td><span class="status ${statusClass(app.status)}">${app.status || 'Account Created'}</span>${app.clientDecision ? `<div class="subtle" style="margin-top:5px">Client: ${app.clientDecision}</div>` : ''}</td>
         <td>${Number(app.statements || 0)}/${minimumStatements}</td>
         <td>${app.advisor || '<span class="subtle">Unassigned</span>'}</td>
         <td>${formatDate(app.updated)}</td>
@@ -170,6 +170,18 @@
     $('#drive').textContent = selected?.driveUrl ? 'Open Drive Folder' : 'Create & Open Drive Folder';
   }
 
+  function renderClientResponse(record) {
+    const box = $('#clientResponse');
+    if (!box) return;
+    if (!record?.clientDecision) {
+      box.className = 'client-response';
+      box.innerHTML = '<strong>Awaiting Response</strong><p>When the client chooses Proceed or Request More Information, the response will appear here.</p>';
+      return;
+    }
+    box.className = 'client-response has-response';
+    box.innerHTML = `<strong>${record.clientDecision}</strong><p>${record.clientDecisionNote || 'No additional note from the client.'}</p><p>${record.clientDecisionAt ? `Received ${formatDate(record.clientDecisionAt)}` : ''}</p>`;
+  }
+
   function openFile(id) {
     selected = applications.find(app => String(app.applicationId) === String(id));
     if (!selected) return;
@@ -184,8 +196,12 @@
       ['Requested Amount', selected.requested ? `CA$${Number(selected.requested).toLocaleString()}` : '—'],
       ['Created', formatDate(selected.created)], ['Updated', formatDate(selected.updated)]
     ].map(([key, value]) => `<div class="kv"><b>${key}</b><span>${value || '—'}</span></div>`).join('');
-    ['status', 'advisor', 'messageTitle', 'messageBody', 'approvedAmount', 'quote', 'notes'].forEach(key => $('#' + key).value = selected[key] || '');
+    ['status', 'advisor', 'messageTitle', 'messageBody', 'approvedAmount', 'quote', 'term', 'paymentFrequency', 'paymentAmount', 'numberPayments', 'totalRepayment', 'documentsRequested', 'notes'].forEach(key => {
+      const field = $('#' + key);
+      if (field) field.value = selected[key] || '';
+    });
     updatePreview();
+    renderClientResponse(selected);
     updateDriveButton();
     loadDocuments(selected.applicationId);
   }
@@ -199,7 +215,10 @@
   async function saveUpdate() {
     if (!selected) return;
     const update = { applicationId: selected.applicationId };
-    ['status', 'advisor', 'messageTitle', 'messageBody', 'approvedAmount', 'quote', 'notes'].forEach(key => update[key] = $('#' + key).value);
+    ['status', 'advisor', 'messageTitle', 'messageBody', 'approvedAmount', 'quote', 'term', 'paymentFrequency', 'paymentAmount', 'numberPayments', 'totalRepayment', 'documentsRequested', 'notes'].forEach(key => {
+      const field = $('#' + key);
+      if (field) update[key] = field.value;
+    });
 
     $('#save').disabled = true;
     $('#save').textContent = 'Saving…';
