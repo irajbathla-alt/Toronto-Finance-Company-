@@ -2,7 +2,8 @@ window.TFC_CONFIG={
   apiUrl:"https://script.google.com/macros/s/AKfycbwsvfl21rZo5Cn2FGdcn9JqqMvz5XWegU8_CrGqOPnJirAGV7XUH-p9kfWCqJnuPTL9/exec",
   minimumStatements:6,
   demoMode:false,
-  requestTimeout:30000
+  requestTimeout:30000,
+  build:"20260812-decision3"
 };
 
 (function warmCrm(){
@@ -19,7 +20,7 @@ window.TFC_CONFIG={
   window[callback]=cleanup;
   script.onerror=cleanup;
   script.src=url+'?action=health&callback='+encodeURIComponent(callback)+'&_='+Date.now();
-  timer=setTimeout(cleanup,30000);
+  timer=setTimeout(cleanup,12000);
   document.head.appendChild(script);
 })();
 
@@ -35,15 +36,6 @@ window.TFC_CONFIG={
       window.jsonp=wrapped;
     }
   },0);
-})();
-
-(function loadClientDecision(){
-  if(!/client-dashboard\.html/i.test(location.pathname))return;
-  if(document.querySelector('script[data-tfc-decision]'))return;
-  const script=document.createElement('script');
-  script.src='client-decision.js?v=20260812-1';
-  script.dataset.tfcDecision='true';
-  document.head.appendChild(script);
 })();
 
 (function loadMotionSystem(){
