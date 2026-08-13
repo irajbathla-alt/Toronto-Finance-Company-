@@ -11,7 +11,9 @@ const CONFIG = {
 const REQUIRED_HEADERS = [
   'applicationId','created','updated','name','email','passwordHash','phone','business',
   'address','city','province','postal','industry','revenue','requested','years','purpose',
-  'status','statements','advisor','messageTitle','messageBody','approvedAmount','quote','notes',
+  'status','statements','advisor','messageTitle','messageBody','approvedAmount','quote',
+  'term','paymentFrequency','paymentAmount','numberPayments','totalRepayment','documentsRequested',
+  'clientDecision','clientDecisionNote','clientDecisionAt','notes',
   'driveFolderId','driveUrl','lastNotificationStatus','lastNotificationAt','lastNotificationError'
 ];
 
@@ -26,6 +28,7 @@ function doGet(e) {
       createAccount,
       clientLogin,
       getClient,
+      clientDecision,
       adminLogin,
       adminList,
       adminUpdate,
@@ -47,6 +50,7 @@ function doPost(e) {
       createAccount,
       clientLogin,
       getClient,
+      clientDecision,
       uploadDocument,
       adminLogin,
       adminList,
@@ -97,7 +101,7 @@ function json(value) {
 function health() {
   const out = {
     ok:true,
-    service:'Toronto Finance Company CRM Simple 1.0',
+    service:'Toronto Finance Company CRM Simple 1.1',
     schemaSafe:true,
     minimumStatements:CONFIG.MIN_STATEMENTS
   };
@@ -311,6 +315,15 @@ function createAccount(p) {
       messageBody:'Your account has been created. Please complete your application and upload six recent bank statements.',
       approvedAmount:'',
       quote:'',
+      term:'',
+      paymentFrequency:'',
+      paymentAmount:'',
+      numberPayments:'',
+      totalRepayment:'',
+      documentsRequested:'',
+      clientDecision:'',
+      clientDecisionNote:'',
+      clientDecisionAt:'',
       notes:'',
       driveFolderId:'',
       driveUrl:'',
@@ -344,6 +357,29 @@ function getClient(p) {
   return { ok:true, data:safe({ ...record, documents:listDocuments(record) }) };
 }
 
+function clientDecision(p) {
+  const record = findApplication(p.applicationId);
+  const email = String(p.email || '').trim().toLowerCase();
+  if (email && email !== String(record.email || '').trim().toLowerCase()) {
+    throw new Error('Account verification failed');
+  }
+
+  const decision = String(p.decision || '').trim();
+  if (!['Proceed','Request More Information'].includes(decision)) {
+    throw new Error('Please choose Proceed or Request More Information');
+  }
+
+  updateRecord(record.applicationId,{
+    clientDecision:decision,
+    clientDecisionNote:String(p.note || '').trim(),
+    clientDecisionAt:new Date()
+  });
+
+  const fresh = findApplication(record.applicationId);
+  sendClientDecisionEmail(fresh);
+  return { ok:true, data:safe({ ...fresh, documents:[] }) };
+}
+
 function adminLogin(p) {
   if (CONFIG.ADMIN_PASSWORD === 'CHANGE_THIS_PASSWORD') {
     throw new Error('Change ADMIN_PASSWORD in Code.gs before deploying.');
@@ -370,7 +406,8 @@ function adminUpdate(p) {
   const before = findApplication(p.applicationId);
   const patch = {};
 
-  ['status','advisor','messageTitle','messageBody','approvedAmount','quote','notes']
+  ['status','advisor','messageTitle','messageBody','approvedAmount','quote','term','paymentFrequency',
+   'paymentAmount','numberPayments','totalRepayment','documentsRequested','notes']
     .forEach(key => {
       if (Object.prototype.hasOwnProperty.call(p,key)) patch[key] = p[key];
     });
@@ -408,9 +445,11 @@ function adminEnsureDrive(p) {
 function uploadDocument(p) {
   const record = findApplication(p.applicationId);
   const rootFolder = ensureDriveFolder(record);
-  const targetFolder = p.type === 'statement'
-    ? childFolder(rootFolder,'Bank Statements')
-    : childFolder(rootFolder,'Other Documents');
+  let folderName = 'Other Documents';
+  if (p.type === 'statement') folderName = 'Bank Statements';
+  else if (p.type === 'identification') folderName = 'Identification';
+  else if (p.type === 'financial') folderName = 'Financial Statements';
+  const targetFolder = childFolder(rootFolder,folderName);
 
   if (!p.base64) throw new Error('Missing document data');
 
@@ -490,11 +529,16 @@ function walkFolder(folder,out) {
   let files = folder.getFiles();
   while (files.hasNext()) {
     const file = files.next();
+    const folderName = folder.getName();
+    let type = 'document';
+    if (folderName === 'Bank Statements') type = 'statement';
+    else if (folderName === 'Identification') type = 'identification';
+    else if (folderName === 'Financial Statements') type = 'financial';
     out.push({
       name:file.getName(),
       date:file.getDateCreated(),
       url:file.getUrl(),
-      type:folder.getName() === 'Bank Statements' ? 'statement' : 'document'
+      type
     });
   }
 
@@ -531,18 +575,20 @@ function sendApprovalEmail(record) {
   const status = String(record.status || 'Approved');
   const clientName = String(record.name || 'Client').trim();
   const subject = status === 'Approved'
-    ? 'Your financing approval is ready to review'
-    : 'A conditional approval is ready to review';
+    ? 'Financing is available for your review'
+    : 'Conditional financing is available for your review';
 
   const body = [
     `Hello ${clientName},`,
     '',
     'There is an important update regarding your financing application with Toronto Finance Company.',
     '',
-    'Please log in to your secure client dashboard to review the approval and any conditions or next steps:',
+    'Please log in to your secure client dashboard to review the financing details and choose Proceed or Request More Information:',
     CONFIG.CLIENT_PORTAL_URL,
     '',
-    'For your privacy, approval details are not included in this email.',
+    'Any financing shown in the portal is indicative only and is not a commitment to lend. Final financing remains subject to lender review, underwriting, documentation, conditions and execution of final agreements.',
+    '',
+    'For your privacy, financing details are not included in this email.',
     '',
     CONFIG.COMPANY_NAME
   ].join('\n');
@@ -565,6 +611,29 @@ function sendApprovalEmail(record) {
     updateRecord(record.applicationId,{lastNotificationError:error});
     return { attempted:true, sent:false, error };
   }
+}
+
+function sendClientDecisionEmail(record) {
+  const decision = String(record.clientDecision || 'Client Response');
+  const subject = `${decision}: ${record.applicationId} - ${record.business || record.name || 'Client'}`;
+  const body = [
+    'A client has responded to financing available in the Toronto Finance Company portal.',
+    '',
+    `Application: ${record.applicationId}`,
+    `Client: ${record.name || ''}`,
+    `Business: ${record.business || ''}`,
+    `Response: ${decision}`,
+    `Client note: ${record.clientDecisionNote || 'No note provided'}`,
+    '',
+    'Open the Admin CRM to review the file and enter any additional documents required.'
+  ].join('\n');
+
+  try {
+    MailApp.sendEmail(CONFIG.ADMIN_EMAIL,subject,body,{
+      name:CONFIG.COMPANY_NAME,
+      replyTo:String(record.email || CONFIG.ADMIN_EMAIL)
+    });
+  } catch (_) {}
 }
 
 function safe(record) {
