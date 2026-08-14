@@ -37,7 +37,7 @@
 
       const timer = setTimeout(() => {
         cleanup();
-        reject(new Error('The CRM is taking longer than expected while Google Apps Script starts.'));
+        reject(new Error('CRM_TIMEOUT'));
       }, timeout);
 
       function cleanup() {
@@ -53,7 +53,7 @@
 
       script.onerror = () => {
         cleanup();
-        reject(new Error('The CRM service could not be reached.'));
+        reject(new Error('CRM_UNREACHABLE'));
       };
 
       script.src = `${cfg.apiUrl}?${params.toString()}`;
@@ -61,47 +61,80 @@
     });
   }
 
-  async function fastRead(action, payload = {}) {
+  async function fastRead(action, payload = {}, timeout = REQUEST_TIMEOUT) {
     let lastError;
     for (let attempt = 0; attempt < 2; attempt++) {
-      if (attempt) await sleep(1200);
-      try {
-        return await Promise.any([
-          jsonp(action, payload, 'direct'),
-          jsonp(action, payload, 'payload')
-        ]);
-      } catch (error) {
-        lastError = error;
+      if (attempt) await sleep(900);
+      for (const mode of ['direct', 'payload']) {
+        try {
+          const result = await jsonp(action, payload, mode, timeout);
+          if (result) return result;
+        } catch (error) {
+          lastError = error;
+        }
       }
     }
-    throw lastError || new Error('Could not reach the CRM service. Please try again.');
+    throw lastError || new Error('CRM_UNREACHABLE');
   }
 
-  async function createAccount(application, startedAt) {
-    try {
-      const result = await jsonp('createAccount', application, 'direct', 35000);
-      if (!result?.ok) throw new Error(result?.error || 'Account creation failed.');
-      return result;
-    } catch (primaryError) {
-      if (/already exists/i.test(primaryError.message || '')) throw primaryError;
-
-      await sleep(1000);
+  async function recoverAccount(application, attempts = 4) {
+    for (let attempt = 0; attempt < attempts; attempt++) {
+      if (attempt) await sleep(1400 + attempt * 500);
       try {
         const recovery = await fastRead('clientLogin', {
           email: application.email,
           password: application.password
-        });
-        if (recovery?.ok) {
-          const createdAt = new Date(recovery.data?.created || 0).getTime();
-          if (!createdAt || createdAt >= startedAt - 120000) return recovery;
-          throw new Error('An account already exists for this email. Please use Log In instead.');
-        }
-      } catch (recoveryError) {
-        if (/already exists/i.test(recoveryError.message || '')) throw recoveryError;
+        }, 15000);
+        if (recovery?.ok && recovery.data?.applicationId) return recovery;
+      } catch (_) {
+        // The original account-creation request may still be completing.
       }
-
-      throw primaryError;
     }
+    return null;
+  }
+
+  async function createAccount(application) {
+    let primaryError;
+
+    try {
+      const result = await jsonp('createAccount', application, 'direct', 45000);
+      if (result?.ok) return result;
+      if (result?.error && !/already exists/i.test(result.error)) {
+        throw new Error(result.error);
+      }
+      if (/already exists/i.test(result?.error || '')) {
+        const existing = await recoverAccount(application, 2);
+        if (existing?.ok) return existing;
+        throw new Error('An account already exists for this email. Please use Log In instead.');
+      }
+      throw new Error('Account creation could not be confirmed.');
+    } catch (error) {
+      primaryError = error;
+    }
+
+    // A Google Apps Script request can finish server-side after the browser timeout.
+    // Check for the new account before attempting another creation request.
+    const recovered = await recoverAccount(application, 3);
+    if (recovered?.ok) return recovered;
+
+    // One duplicate-safe retry. Code_SIMPLE.gs checks email uniqueness under a script lock.
+    try {
+      const retry = await jsonp('createAccount', application, 'payload', 35000);
+      if (retry?.ok) return retry;
+      if (/already exists/i.test(retry?.error || '')) {
+        const existing = await recoverAccount(application, 3);
+        if (existing?.ok) return existing;
+        throw new Error('An account already exists for this email. Please use Log In instead.');
+      }
+      if (retry?.error) throw new Error(retry.error);
+    } catch (retryError) {
+      const finalRecovery = await recoverAccount(application, 3);
+      if (finalRecovery?.ok) return finalRecovery;
+      if (/already exists/i.test(retryError.message || '')) throw retryError;
+    }
+
+    if (/already exists/i.test(primaryError?.message || '')) throw primaryError;
+    throw new Error('We could not confirm your account connection. Please click Create Account again. If the account was already created, use Log In with the same email and password.');
   }
 
   function enhance() {
@@ -151,11 +184,14 @@
       }
 
       const application = { name, email, password };
-      const startedAt = Date.now();
       clearClientSession();
       createButton.disabled = true;
       createButton.textContent = 'Creating Account...';
-      if (message) message.textContent = 'Connecting securely to CRM...';
+      if (message) message.textContent = 'Creating your secure account. Please keep this page open for a moment.';
+
+      const progressTimer = setTimeout(() => {
+        if (message) message.textContent = 'Still connecting securely. Your account may take a few extra seconds on the first connection.';
+      }, 12000);
 
       try {
         let result;
@@ -172,7 +208,7 @@
             }
           };
         } else {
-          result = await createAccount(application, startedAt);
+          result = await createAccount(application);
         }
 
         saveClientSession(result.data);
@@ -181,9 +217,11 @@
         window.location.replace('client-dashboard.html');
       } catch (error) {
         clearClientSession();
-        if (message) message.textContent = error.message || 'Account creation failed. Please try again.';
+        if (message) message.textContent = error.message || 'Account creation could not be confirmed. Please try again.';
         createButton.disabled = false;
         createButton.textContent = 'Create Account';
+      } finally {
+        clearTimeout(progressTimer);
       }
     };
   }
