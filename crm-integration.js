@@ -2,7 +2,7 @@
   const cfg = window.TFC_CONFIG || {};
   const SESSION_KEY = 'tfc-client-auth';
   const LEGACY_KEY = 'tfc-current-application';
-  const REQUEST_TIMEOUT = Number(cfg.requestTimeout || 30000);
+  const DEFAULT_TIMEOUT = Math.max(Number(cfg.requestTimeout || 30000), 30000);
 
   function clearClientSession() {
     sessionStorage.removeItem(SESSION_KEY);
@@ -20,20 +20,17 @@
 
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-  function jsonp(action, payload = {}, mode = 'direct', timeout = REQUEST_TIMEOUT) {
+  function jsonp(action, payload = {}, timeout = DEFAULT_TIMEOUT) {
     return new Promise((resolve, reject) => {
-      if (!cfg.apiUrl) return reject(new Error('The CRM service has not been configured.'));
+      if (!cfg.apiUrl) return reject(new Error('CRM_NOT_CONFIGURED'));
+
       const callbackName = `tfc_cb_${Date.now()}_${Math.random().toString(36).slice(2)}`;
       const script = document.createElement('script');
       const params = new URLSearchParams({ action, callback: callbackName, _: String(Date.now()) });
 
-      if (mode === 'payload') {
-        params.set('payload', JSON.stringify({ action, ...payload }));
-      } else {
-        Object.entries(payload).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) params.set(key, String(value));
-        });
-      }
+      Object.entries(payload).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) params.set(key, String(value));
+      });
 
       const timer = setTimeout(() => {
         cleanup();
@@ -61,80 +58,44 @@
     });
   }
 
-  async function fastRead(action, payload = {}, timeout = REQUEST_TIMEOUT) {
-    let lastError;
+  async function verifyCreatedAccount(application) {
     for (let attempt = 0; attempt < 2; attempt++) {
-      if (attempt) await sleep(900);
-      for (const mode of ['direct', 'payload']) {
-        try {
-          const result = await jsonp(action, payload, mode, timeout);
-          if (result) return result;
-        } catch (error) {
-          lastError = error;
-        }
-      }
-    }
-    throw lastError || new Error('CRM_UNREACHABLE');
-  }
-
-  async function recoverAccount(application, attempts = 4) {
-    for (let attempt = 0; attempt < attempts; attempt++) {
-      if (attempt) await sleep(1400 + attempt * 500);
+      if (attempt) await sleep(1800);
       try {
-        const recovery = await fastRead('clientLogin', {
+        const result = await jsonp('clientLogin', {
           email: application.email,
           password: application.password
-        }, 15000);
-        if (recovery?.ok && recovery.data?.applicationId) return recovery;
-      } catch (_) {
-        // The original account-creation request may still be completing.
-      }
+        }, 30000);
+        if (result?.ok && result.data?.applicationId) return result;
+      } catch (_) {}
     }
     return null;
   }
 
   async function createAccount(application) {
-    let primaryError;
-
     try {
-      const result = await jsonp('createAccount', application, 'direct', 45000);
-      if (result?.ok) return result;
-      if (result?.error && !/already exists/i.test(result.error)) {
-        throw new Error(result.error);
-      }
+      const result = await jsonp('createAccount', application, 90000);
+
+      if (result?.ok && result.data?.applicationId) return result;
+
       if (/already exists/i.test(result?.error || '')) {
-        const existing = await recoverAccount(application, 2);
+        const existing = await verifyCreatedAccount(application);
         if (existing?.ok) return existing;
         throw new Error('An account already exists for this email. Please use Log In instead.');
       }
+
+      if (result?.error) throw new Error(result.error);
       throw new Error('Account creation could not be confirmed.');
     } catch (error) {
-      primaryError = error;
+      if (!['CRM_TIMEOUT', 'CRM_UNREACHABLE'].includes(error.message || '')) throw error;
+
+      // The browser can time out even when Apps Script finishes server-side.
+      // Verify once before showing a failure to the applicant.
+      const recovered = await verifyCreatedAccount(application);
+      if (recovered?.ok) return recovered;
+
+      throw new Error('We could not connect to the secure application service. Please try Create Account again in a moment. If you already created the account, use Log In with the same email and password.');
     }
-
-    // A Google Apps Script request can finish server-side after the browser timeout.
-    // Check for the new account before attempting another creation request.
-    const recovered = await recoverAccount(application, 3);
-    if (recovered?.ok) return recovered;
-
-    // One duplicate-safe retry. Code_SIMPLE.gs checks email uniqueness under a script lock.
-    try {
-      const retry = await jsonp('createAccount', application, 'payload', 35000);
-      if (retry?.ok) return retry;
-      if (/already exists/i.test(retry?.error || '')) {
-        const existing = await recoverAccount(application, 3);
-        if (existing?.ok) return existing;
-        throw new Error('An account already exists for this email. Please use Log In instead.');
-      }
-      if (retry?.error) throw new Error(retry.error);
-    } catch (retryError) {
-      const finalRecovery = await recoverAccount(application, 3);
-      if (finalRecovery?.ok) return finalRecovery;
-      if (/already exists/i.test(retryError.message || '')) throw retryError;
-    }
-
-    if (/already exists/i.test(primaryError?.message || '')) throw primaryError;
-    throw new Error('We could not confirm your account connection. Please click Create Account again. If the account was already created, use Log In with the same email and password.');
   }
 
   function enhance() {
@@ -179,7 +140,7 @@
         return;
       }
       if (!cfg.apiUrl) {
-        if (message) message.textContent = 'The CRM service has not been configured.';
+        if (message) message.textContent = 'The secure application service is temporarily unavailable.';
         return;
       }
 
@@ -187,29 +148,29 @@
       clearClientSession();
       createButton.disabled = true;
       createButton.textContent = 'Creating Account...';
-      if (message) message.textContent = 'Creating your secure account. Please keep this page open for a moment.';
+      if (message) message.textContent = 'Creating your secure account. Please keep this page open.';
 
-      const progressTimer = setTimeout(() => {
-        if (message) message.textContent = 'Still connecting securely. Your account may take a few extra seconds on the first connection.';
+      const progress1 = setTimeout(() => {
+        if (message) message.textContent = 'Still connecting securely. Please keep this page open while we finish creating your account.';
       }, 12000);
+      const progress2 = setTimeout(() => {
+        if (message) message.textContent = 'Google is taking a little longer than usual. We are still confirming your account securely.';
+      }, 40000);
 
       try {
-        let result;
-        if (cfg.demoMode) {
-          result = {
-            ok: true,
-            data: {
-              applicationId: 'TFC-DEMO',
-              name,
-              email,
-              status: 'Account Created',
-              statements: 0,
-              documents: []
+        const result = cfg.demoMode
+          ? {
+              ok: true,
+              data: {
+                applicationId: 'TFC-DEMO',
+                name,
+                email,
+                status: 'Account Created',
+                statements: 0,
+                documents: []
+              }
             }
-          };
-        } else {
-          result = await createAccount(application);
-        }
+          : await createAccount(application);
 
         saveClientSession(result.data);
         createButton.textContent = 'Account Created';
@@ -221,7 +182,8 @@
         createButton.disabled = false;
         createButton.textContent = 'Create Account';
       } finally {
-        clearTimeout(progressTimer);
+        clearTimeout(progress1);
+        clearTimeout(progress2);
       }
     };
   }
