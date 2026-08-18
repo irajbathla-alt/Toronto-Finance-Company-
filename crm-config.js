@@ -3,10 +3,11 @@ window.TFC_CONFIG={
   minimumStatements:6,
   demoMode:false,
   requestTimeout:30000,
-  build:"20260812-decision4"
+  build:"20260818-signup2"
 };
 
 (function warmCrm(){
+  if(!/(?:admin|client-dashboard)\.html/i.test(location.pathname))return;
   const url=window.TFC_CONFIG&&window.TFC_CONFIG.apiUrl;
   if(!url)return;
   const callback='tfc_warm_'+Date.now()+'_'+Math.random().toString(36).slice(2);
