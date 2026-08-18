@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Toronto Finance Company — fast, transparent business financing." />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Toronto Finance Company</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,10 +19,16 @@
   <main id="app"></main>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="motion.js?v=20260806-2" data-tfc-motion defer></script>
-  <script src="crm-config.js?v=20260818-endpoint1"></script>
+  <script>
+    /* CRM files are intentionally cache-busted on every public visit.
+       This prevents a returning applicant's browser from keeping an obsolete Apps Script endpoint. */
+    document.write('<script src="crm-config.js?v=' + Date.now() + '"><\/script>');
+  </script>
   <script src="app.js?v=20260811-company-pages1"></script>
   <script src="eligibility-launch.js"></script>
-  <script src="crm-integration.js?v=20260818-signup2"></script>
+  <script>
+    document.write('<script src="crm-integration.js?v=' + Date.now() + '"><\/script>');
+  </script>
   <script src="legal-links.js"></script>
 </body>
 </html>
