@@ -44,45 +44,7 @@ function landing() {
 }
 
 function apply() {
-  app.innerHTML = `
-    <section class="page">
-      <nav class="lightnav">
-        <span>TORONTO FINANCE COMPANY</span>
-        <div class="steps"><span class="step active">Create Account</span></div>
-        <button class="linkbtn" data-go="landing">Exit</button>
-      </nav>
-
-      <div class="formwrap">
-        <h2>Create Your Account</h2>
-        <p>Create your secure client account. After account creation, you will be guided through two steps: review and sign your application, then upload six bank statements.</p>
-
-        <div class="grid">
-          <div class="field full">
-            <label>Full Name</label>
-            <input id="name" autocomplete="name" placeholder="Your full legal name" required>
-          </div>
-          <div class="field full">
-            <label>Email Address</label>
-            <input id="email" type="email" autocomplete="email" placeholder="name@company.com" required>
-          </div>
-          <div class="field full">
-            <label>Create Password</label>
-            <input id="password" type="password" autocomplete="new-password" placeholder="Minimum 8 characters" minlength="8" required>
-          </div>
-        </div>
-
-        <p style="font-size:12px;line-height:1.6;color:#786f65;margin-top:18px">
-          By creating an account, you agree to Toronto Finance Company’s Terms & Conditions and acknowledge its Privacy Policy.
-        </p>
-
-        <div class="form-actions">
-          <button class="linkbtn" data-go="landing">Back Home</button>
-          <button class="darkbtn" id="createAccountBtn">Create Account</button>
-        </div>
-        <div id="accountMessage" style="font-size:12px;margin-top:14px"></div>
-      </div>
-    </section>`;
-  wire();
+  window.location.href = 'apply.html?v=20260818-apply1';
 }
 
 function wire() {
@@ -94,7 +56,7 @@ function wire() {
     element.onclick = () => {
       const destination = element.dataset.go;
       if (destination === 'apply') apply();
-      else if (destination === 'dashboard') window.location.href = 'client-dashboard.html?login=1';
+      else if (destination === 'dashboard') window.location.href = 'client-dashboard.html?login=1&v=20260818-endpoint2';
       else landing();
     };
   });
