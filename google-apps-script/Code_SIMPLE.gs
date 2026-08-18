@@ -18,6 +18,7 @@ const REQUIRED_HEADERS = [
 ];
 
 const APPROVAL_STATUSES = ['Conditional Approval','Approved'];
+const SCHEMA_CACHE_KEY = 'tfc-schema-20260818-v1';
 
 function doGet(e) {
   try {
@@ -99,48 +100,32 @@ function json(value) {
 }
 
 function health() {
-  const out = {
+  return {
     ok:true,
-    service:'Toronto Finance Company CRM Simple 1.1',
-    schemaSafe:true,
-    minimumStatements:CONFIG.MIN_STATEMENTS
+    service:'Toronto Finance Company CRM Simple 1.2',
+    minimumStatements:CONFIG.MIN_STATEMENTS,
+    adminPasswordConfigured:CONFIG.ADMIN_PASSWORD !== 'CHANGE_THIS_PASSWORD'
   };
-
-  try {
-    const sh = applicationsSheet();
-    out.spreadsheetName = sh.getParent().getName();
-    out.applicationsSheet = sh.getName();
-    out.schemaColumns = getHeaders(sh).length;
-    out.sheetWritable = true;
-  } catch (err) {
-    out.ok = false;
-    out.sheetError = err.message || String(err);
-  }
-
-  try {
-    out.rootFolderName = DriveApp.getFolderById(CONFIG.ROOT_FOLDER_ID).getName();
-    out.driveWritable = true;
-  } catch (err) {
-    out.ok = false;
-    out.driveError = err.message || String(err);
-  }
-
-  out.adminPasswordConfigured = CONFIG.ADMIN_PASSWORD !== 'CHANGE_THIS_PASSWORD';
-  return out;
 }
 
 function applicationsSheet() {
   const ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
   let sh = ss.getSheetByName('Applications');
+  const cache = CacheService.getScriptCache();
 
   if (!sh) {
     sh = ss.insertSheet('Applications');
     ensureColumnCapacity(sh, REQUIRED_HEADERS.length);
     sh.getRange(1,1,1,REQUIRED_HEADERS.length).setValues([REQUIRED_HEADERS]);
+    cache.put(SCHEMA_CACHE_KEY,'1',21600);
     return sh;
   }
 
-  ensureSchema(sh);
+  if (cache.get(SCHEMA_CACHE_KEY) !== '1') {
+    ensureSchema(sh);
+    cache.put(SCHEMA_CACHE_KEY,'1',21600);
+  }
+
   return sh;
 }
 
@@ -176,7 +161,9 @@ function ensureSchema(sh) {
 }
 
 function getHeaders(sh) {
-  return ensureSchema(sh);
+  const width = Math.max(1, sh.getLastColumn());
+  return sh.getRange(1,1,1,width).getValues()[0]
+    .map(value => String(value || '').trim());
 }
 
 function rowToObject(headers, row) {
@@ -198,11 +185,8 @@ function allRows() {
     .map(row => rowToObject(headers,row));
 }
 
-function findRow(field, value) {
-  const sh = applicationsSheet();
-  const headers = getHeaders(sh);
+function findRowInSheet(sh, headers, field, value) {
   const columnIndex = headers.indexOf(field);
-
   if (columnIndex < 0 || sh.getLastRow() < 2) return null;
 
   const found = sh
@@ -213,6 +197,12 @@ function findRow(field, value) {
     .findNext();
 
   return found ? { sh, headers, rowNumber:found.getRow() } : null;
+}
+
+function findRow(field, value) {
+  const sh = applicationsSheet();
+  const headers = getHeaders(sh);
+  return findRowInSheet(sh, headers, field, value);
 }
 
 function readRecord(found) {
@@ -235,22 +225,39 @@ function hash(value) {
   return bytes.map(byte => ('0'+((byte+256)%256).toString(16)).slice(-2)).join('');
 }
 
-function nextApplicationId() {
+function nextApplicationIdInSheet(sh, headers) {
+  const idIndex = headers.indexOf('applicationId');
+  if (idIndex < 0) throw new Error('Application ID column is missing');
+
   let max = 0;
-  allRows().forEach(row => {
-    const match = String(row.applicationId || '').match(/TFC-(\d+)/i);
-    if (match) max = Math.max(max, Number(match[1]));
-  });
+  const lastRow = sh.getLastRow();
+  if (lastRow >= 2) {
+    sh.getRange(2,idIndex+1,lastRow-1,1).getDisplayValues().forEach(row => {
+      const match = String(row[0] || '').match(/TFC-(\d+)/i);
+      if (match) max = Math.max(max, Number(match[1]));
+    });
+  }
+
   return 'TFC-' + String(max + 1).padStart(6,'0');
+}
+
+function nextApplicationId() {
+  const sh = applicationsSheet();
+  const headers = getHeaders(sh);
+  return nextApplicationIdInSheet(sh, headers);
+}
+
+function appendRecordToSheet(sh, headers, record) {
+  const width = headers.length;
+  ensureColumnCapacity(sh,width);
+  const row = headers.map(header => record[header] ?? '');
+  sh.getRange(sh.getLastRow()+1,1,1,width).setValues([row]);
 }
 
 function appendRecord(record) {
   const sh = applicationsSheet();
   const headers = getHeaders(sh);
-  const width = headers.length;
-  ensureColumnCapacity(sh,width);
-  const row = headers.map(header => record[header] ?? '');
-  sh.getRange(sh.getLastRow()+1,1,1,width).setValues([row]);
+  appendRecordToSheet(sh, headers, record);
 }
 
 function updateRecord(applicationId, patch) {
@@ -285,13 +292,16 @@ function createAccount(p) {
   lock.waitLock(10000);
 
   try {
-    if (findRow('email',email)) {
+    const sh = applicationsSheet();
+    const headers = getHeaders(sh);
+
+    if (findRowInSheet(sh,headers,'email',email)) {
       throw new Error('An account already exists for this email');
     }
 
     const now = new Date();
     const record = {
-      applicationId:nextApplicationId(),
+      applicationId:nextApplicationIdInSheet(sh,headers),
       created:now,
       updated:now,
       name,
@@ -332,7 +342,7 @@ function createAccount(p) {
       lastNotificationError:''
     };
 
-    appendRecord(record);
+    appendRecordToSheet(sh,headers,record);
     return { ok:true, data:safe({ ...record, documents:[] }) };
   } finally {
     lock.releaseLock();
@@ -349,12 +359,12 @@ function clientLogin(p) {
     throw new Error('Invalid email or password');
   }
 
-  return { ok:true, data:safe({ ...record, documents:listDocuments(record) }) };
+  return { ok:true, data:safe({ ...record, documents:[] }) };
 }
 
 function getClient(p) {
   const record = findApplication(p.applicationId);
-  return { ok:true, data:safe({ ...record, documents:listDocuments(record) }) };
+  return { ok:true, data:safe({ ...record, documents:[] }) };
 }
 
 function clientDecision(p) {
