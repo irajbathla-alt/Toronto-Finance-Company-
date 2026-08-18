@@ -1,9 +1,9 @@
 window.TFC_CONFIG={
-  apiUrl:"https://script.google.com/macros/s/AKfycbwsvfl21rZo5Cn2FGdcn9JqqMvz5XWegU8_CrGqOPnJirAGV7XUH-p9kfWCqJnuPTL9/exec",
+  apiUrl:"https://script.google.com/macros/s/AKfycbxvkD5U6shFqseYlralB4VTQ_MbK42HbiPHXmZvAqgj1NXkwcMGkvkimcsYu2VNd7m-/exec",
   minimumStatements:6,
   demoMode:false,
   requestTimeout:30000,
-  build:"20260818-signup2"
+  build:"20260818-endpoint1"
 };
 
 (function warmCrm(){
