@@ -8,6 +8,13 @@ function notify(message) {
   setTimeout(() => toast.classList.remove('show'), 2200);
 }
 
+function replayMotion() {
+  if (!app) return;
+  app.classList.remove('tfc-spa-enter');
+  void app.offsetWidth;
+  requestAnimationFrame(() => app.classList.add('tfc-spa-enter'));
+}
+
 function landing() {
   app.innerHTML = `
     <section class="landing">
@@ -41,6 +48,7 @@ function landing() {
       </div>
     </section>`;
   wire();
+  replayMotion();
 }
 
 function apply() {
@@ -83,6 +91,7 @@ function apply() {
       </div>
     </section>`;
   wire();
+  replayMotion();
 }
 
 function wire() {
