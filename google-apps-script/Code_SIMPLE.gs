@@ -695,3 +695,26 @@ function safe(record) {
   delete result.password;
   return result;
 }
+
+/*
+ * RUN THIS ONCE MANUALLY AFTER PASTING THE FILE:
+ * Select authorizeGmailAlias in the Apps Script function dropdown and click Run.
+ * Approve the requested Gmail permissions.
+ */
+function authorizeGmailAlias() {
+  const target = String(CONFIG.CLIENT_NOTIFICATION_FROM || '').trim().toLowerCase();
+  const aliases = GmailApp.getAliases();
+  const normalized = aliases.map(alias => String(alias || '').trim().toLowerCase());
+
+  Logger.log('Available Gmail aliases: ' + aliases.join(', '));
+
+  if (!normalized.includes(target)) {
+    throw new Error(
+      CONFIG.CLIENT_NOTIFICATION_FROM +
+      ' is not available under Gmail > Settings > Accounts and Import > Send mail as.'
+    );
+  }
+
+  Logger.log('AUTHORIZED: ' + CONFIG.CLIENT_NOTIFICATION_FROM);
+  return 'AUTHORIZED: ' + CONFIG.CLIENT_NOTIFICATION_FROM;
+}
