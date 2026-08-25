@@ -4,6 +4,7 @@ const CONFIG = {
   ADMIN_EMAIL: 'admin@torontofinance.ca',
   ADMIN_PASSWORD: 'CHANGE_THIS_PASSWORD',
   CLIENT_PORTAL_URL: 'https://irajbathla-alt.github.io/Toronto-Finance-Company-/client-dashboard.html',
+  CLIENT_NOTIFICATION_FROM: 'info@torontofinancecompany.com',
   COMPANY_NAME: 'Toronto Finance Company Inc.',
   MIN_STATEMENTS: 6
 };
@@ -102,9 +103,10 @@ function json(value) {
 function health() {
   return {
     ok:true,
-    service:'Toronto Finance Company CRM Simple 1.2',
+    service:'Toronto Finance Company CRM Simple 1.3',
     minimumStatements:CONFIG.MIN_STATEMENTS,
-    adminPasswordConfigured:CONFIG.ADMIN_PASSWORD !== 'CHANGE_THIS_PASSWORD'
+    adminPasswordConfigured:CONFIG.ADMIN_PASSWORD !== 'CHANGE_THIS_PASSWORD',
+    clientNotificationFrom:CONFIG.CLIENT_NOTIFICATION_FROM
   };
 }
 
@@ -413,7 +415,7 @@ function adminList() {
 }
 
 function adminUpdate(p) {
-  const before = findApplication(p.applicationId);
+  findApplication(p.applicationId);
   const patch = {};
 
   ['status','advisor','messageTitle','messageBody','approvedAmount','quote','term','paymentFrequency',
@@ -424,13 +426,11 @@ function adminUpdate(p) {
 
   updateRecord(p.applicationId,patch);
   let saved = findApplication(p.applicationId);
-
-  const nextStatus = String(saved.status || '');
-  const alreadyNotified = String(before.lastNotificationStatus || '') === nextStatus;
   let notification = { attempted:false, sent:false };
+  const shouldNotify = ['true','1','yes'].includes(String(p.notifyClient || '').toLowerCase());
 
-  if (APPROVAL_STATUSES.includes(nextStatus) && !alreadyNotified) {
-    notification = sendApprovalEmail(saved);
+  if (shouldNotify) {
+    notification = sendClientUpdateEmail(saved);
     saved = findApplication(p.applicationId);
   }
 
@@ -573,7 +573,7 @@ function countFiles(folder) {
   return count;
 }
 
-function sendApprovalEmail(record) {
+function sendClientUpdateEmail(record) {
   const email = String(record.email || '').trim();
 
   if (!/^\S+@\S+\.\S+$/.test(email)) {
@@ -582,45 +582,88 @@ function sendApprovalEmail(record) {
     return { attempted:true, sent:false, error };
   }
 
-  const status = String(record.status || 'Approved');
-  const clientName = String(record.name || 'Client').trim();
-  const subject = status === 'Approved'
-    ? 'Financing is available for your review'
-    : 'Conditional financing is available for your review';
+  const from = String(CONFIG.CLIENT_NOTIFICATION_FROM || '').trim().toLowerCase();
+  const aliases = GmailApp.getAliases().map(alias => String(alias || '').trim().toLowerCase());
+  if (!from || !aliases.includes(from)) {
+    const error = `${CONFIG.CLIENT_NOTIFICATION_FROM} is not available as a Gmail Send mail as alias for the Apps Script account.`;
+    updateRecord(record.applicationId,{lastNotificationError:error});
+    return { attempted:true, sent:false, error };
+  }
 
+  const clientName = String(record.name || 'Client').trim();
+  const subject = 'Update Available – Toronto Finance Company';
+  const portalUrl = String(CONFIG.CLIENT_PORTAL_URL || '').trim();
   const body = [
     `Hello ${clientName},`,
     '',
-    'There is an important update regarding your financing application with Toronto Finance Company.',
+    'There has been an update to your financing application with Toronto Finance Company.',
     '',
-    'Please log in to your secure client dashboard to review the financing details and choose Proceed or Request More Information:',
-    CONFIG.CLIENT_PORTAL_URL,
+    'Please log in to your secure client portal to review the latest information and any action required:',
+    portalUrl,
     '',
-    'Any financing shown in the portal is indicative only and is not a commitment to lend. Final financing remains subject to lender review, underwriting, documentation, conditions and execution of final agreements.',
+    `Application: ${record.applicationId || ''}`,
     '',
     'For your privacy, financing details are not included in this email.',
     '',
-    CONFIG.COMPANY_NAME
+    'Toronto Finance Company Inc.'
   ].join('\n');
 
+  const safeName = escapeEmailHtml(clientName);
+  const safeApplicationId = escapeEmailHtml(record.applicationId || '');
+  const safePortalUrl = escapeEmailHtml(portalUrl);
+  const htmlBody = `
+    <div style="font-family:Arial,sans-serif;color:#1f1f1f;line-height:1.6;max-width:620px;margin:0 auto;padding:24px">
+      <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#8a6a38;margin-bottom:22px">Toronto Finance Company</div>
+      <h2 style="font-size:24px;font-weight:500;margin:0 0 18px">An update is available</h2>
+      <p>Hello ${safeName},</p>
+      <p>There has been an update to your financing application. Please sign in to your secure client portal to review the latest information and any action required.</p>
+      <p style="margin:28px 0">
+        <a href="${safePortalUrl}" style="display:inline-block;background:#171717;color:#ffffff;text-decoration:none;padding:13px 22px;border-radius:6px;font-weight:600">Review Your File</a>
+      </p>
+      <p style="font-size:13px;color:#6f675f">Application: ${safeApplicationId}</p>
+      <p style="font-size:13px;color:#6f675f">For your privacy, financing details are not included in this email.</p>
+      <p style="margin-top:28px">Toronto Finance Company Inc.</p>
+    </div>`;
+
   try {
-    MailApp.sendEmail(email,subject,body,{
+    GmailApp.sendEmail(email,subject,body,{
+      from:CONFIG.CLIENT_NOTIFICATION_FROM,
       name:CONFIG.COMPANY_NAME,
-      replyTo:CONFIG.ADMIN_EMAIL
+      replyTo:CONFIG.CLIENT_NOTIFICATION_FROM,
+      htmlBody
     });
 
     updateRecord(record.applicationId,{
-      lastNotificationStatus:status,
+      lastNotificationStatus:String(record.status || 'Update Sent'),
       lastNotificationAt:new Date(),
       lastNotificationError:''
     });
 
-    return { attempted:true, sent:true, status };
+    return {
+      attempted:true,
+      sent:true,
+      status:String(record.status || ''),
+      sender:CONFIG.CLIENT_NOTIFICATION_FROM
+    };
   } catch (err) {
     const error = err.message || String(err);
     updateRecord(record.applicationId,{lastNotificationError:error});
     return { attempted:true, sent:false, error };
   }
+}
+
+function sendApprovalEmail(record) {
+  return sendClientUpdateEmail(record);
+}
+
+function escapeEmailHtml(value) {
+  return String(value || '').replace(/[&<>"']/g,character => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[character]));
 }
 
 function sendClientDecisionEmail(record) {
