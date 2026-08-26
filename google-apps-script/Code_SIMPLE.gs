@@ -684,13 +684,29 @@ function sendNewClientSignupEmail(record) {
   ].join('\n');
 
   try {
-    MailApp.sendEmail(CONFIG.SIGNUP_NOTIFICATION_EMAIL,subject,body,{
+    GmailApp.sendEmail(CONFIG.SIGNUP_NOTIFICATION_EMAIL,subject,body,{
+      from:CONFIG.CLIENT_NOTIFICATION_FROM,
       name:CONFIG.COMPANY_NAME,
       replyTo:String(record.email || CONFIG.SIGNUP_NOTIFICATION_EMAIL)
     });
-  } catch (_) {
-    // Signup must succeed even if the internal alert cannot be sent.
+    return { sent:true, recipient:CONFIG.SIGNUP_NOTIFICATION_EMAIL };
+  } catch (err) {
+    console.error('Signup notification failed:', err.message || String(err));
+    return { sent:false, error:err.message || String(err) };
   }
+}
+
+function testSignupNotification() {
+  const testRecord = {
+    applicationId:'TFC-TEST',
+    name:'Signup Notification Test',
+    email:CONFIG.SIGNUP_NOTIFICATION_EMAIL,
+    phone:'Test'
+  };
+  const result = sendNewClientSignupEmail(testRecord);
+  Logger.log(JSON.stringify(result));
+  if (!result.sent) throw new Error(result.error || 'Signup notification test failed');
+  return result;
 }
 
 function sendClientDecisionEmail(record) {
