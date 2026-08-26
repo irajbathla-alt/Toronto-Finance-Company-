@@ -285,9 +285,11 @@ function createAccount(p) {
   const email = String(p.email || '').trim().toLowerCase();
   const password = String(p.password || '');
   const name = String(p.name || '').trim();
+  const phone = String(p.phone || '').trim();
 
   if (!name) throw new Error('Name is required');
   if (!/^\S+@\S+\.\S+$/.test(email)) throw new Error('A valid email address is required');
+  if (phone.replace(/\D/g,'').length < 7) throw new Error('A valid phone number is required');
   if (password.length < 8) throw new Error('Password must contain at least 8 characters');
 
   const lock = LockService.getScriptLock();
@@ -309,7 +311,7 @@ function createAccount(p) {
       name,
       email,
       passwordHash:hash(password),
-      phone:p.phone || '',
+      phone,
       business:p.business || '',
       address:p.address || '',
       city:p.city || '',
@@ -345,6 +347,7 @@ function createAccount(p) {
     };
 
     appendRecordToSheet(sh,headers,record);
+    sendNewClientSignupEmail(record);
     return { ok:true, data:safe({ ...record, documents:[] }) };
   } finally {
     lock.releaseLock();
@@ -664,6 +667,29 @@ function escapeEmailHtml(value) {
     '"':'&quot;',
     "'":'&#39;'
   }[character]));
+}
+
+function sendNewClientSignupEmail(record) {
+  const subject = `New Client Signup: ${record.applicationId} - ${record.name || 'Client'}`;
+  const body = [
+    'A new client account has been created on the Toronto Finance Company website.',
+    '',
+    `Application: ${record.applicationId || ''}`,
+    `Client: ${record.name || ''}`,
+    `Email: ${record.email || ''}`,
+    `Phone: ${record.phone || ''}`,
+    '',
+    'Open the Admin CRM to review the new client file.'
+  ].join('\n');
+
+  try {
+    MailApp.sendEmail(CONFIG.ADMIN_EMAIL,subject,body,{
+      name:CONFIG.COMPANY_NAME,
+      replyTo:String(record.email || CONFIG.ADMIN_EMAIL)
+    });
+  } catch (_) {
+    // Signup must succeed even if the internal alert cannot be sent.
+  }
 }
 
 function sendClientDecisionEmail(record) {
