@@ -5,7 +5,7 @@ const CONFIG = {
   ADMIN_PASSWORD: 'CHANGE_THIS_PASSWORD',
   CLIENT_PORTAL_URL: 'https://irajbathla-alt.github.io/Toronto-Finance-Company-/client-dashboard.html',
   CLIENT_NOTIFICATION_FROM: 'info@torontofinancecompany.com',
-  COMPANY_NAME: 'Toronto Finance Company Inc.',
+  COMPANY_NAME: 'Toronto Finance Company',
   MIN_STATEMENTS: 6
 };
 
@@ -605,7 +605,7 @@ function sendClientUpdateEmail(record) {
     '',
     'For your privacy, financing details are not included in this email.',
     '',
-    'Toronto Finance Company Inc.'
+    'Toronto Finance Company'
   ].join('\n');
 
   const safeName = escapeEmailHtml(clientName);
@@ -622,7 +622,7 @@ function sendClientUpdateEmail(record) {
       </p>
       <p style="font-size:13px;color:#6f675f">Application: ${safeApplicationId}</p>
       <p style="font-size:13px;color:#6f675f">For your privacy, financing details are not included in this email.</p>
-      <p style="margin-top:28px">Toronto Finance Company Inc.</p>
+      <p style="margin-top:28px">Toronto Finance Company</p>
     </div>`;
 
   try {
