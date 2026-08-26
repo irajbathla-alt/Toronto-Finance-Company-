@@ -2,6 +2,7 @@ const CONFIG = {
   SHEET_ID: '1pRN82iNCVpU31DJQA3xUrMVkMcPRPv1Rl69WH3VRco4',
   ROOT_FOLDER_ID: '1ao4Tlk65yxtr8yHGJaNGqyKPOHYFfXjb',
   ADMIN_EMAIL: 'admin@torontofinance.ca',
+  SIGNUP_NOTIFICATION_EMAIL: 'info@torontofinancecompany.com',
   ADMIN_PASSWORD: 'CHANGE_THIS_PASSWORD',
   CLIENT_PORTAL_URL: 'https://irajbathla-alt.github.io/Toronto-Finance-Company-/client-dashboard.html',
   CLIENT_NOTIFICATION_FROM: 'info@torontofinancecompany.com',
@@ -683,9 +684,9 @@ function sendNewClientSignupEmail(record) {
   ].join('\n');
 
   try {
-    MailApp.sendEmail(CONFIG.ADMIN_EMAIL,subject,body,{
+    MailApp.sendEmail(CONFIG.SIGNUP_NOTIFICATION_EMAIL,subject,body,{
       name:CONFIG.COMPANY_NAME,
-      replyTo:String(record.email || CONFIG.ADMIN_EMAIL)
+      replyTo:String(record.email || CONFIG.SIGNUP_NOTIFICATION_EMAIL)
     });
   } catch (_) {
     // Signup must succeed even if the internal alert cannot be sent.
