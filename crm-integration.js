@@ -89,8 +89,6 @@
     } catch (error) {
       if (!['CRM_TIMEOUT', 'CRM_UNREACHABLE'].includes(error.message || '')) throw error;
 
-      // The browser can time out even when Apps Script finishes server-side.
-      // Verify once before showing a failure to the applicant.
       const recovered = await verifyCreatedAccount(application);
       if (recovered?.ok) return recovered;
 
@@ -124,6 +122,7 @@
     createButton.onclick = async () => {
       const name = document.getElementById('name')?.value.trim() || '';
       const email = document.getElementById('email')?.value.trim().toLowerCase() || '';
+      const phone = document.getElementById('phone')?.value.trim() || '';
       const password = document.getElementById('password')?.value || '';
       const message = document.getElementById('accountMessage');
 
@@ -135,6 +134,10 @@
         if (message) message.textContent = 'Please enter a valid email address.';
         return;
       }
+      if (phone.replace(/\D/g, '').length < 7) {
+        if (message) message.textContent = 'Please enter a valid phone number.';
+        return;
+      }
       if (password.length < 8) {
         if (message) message.textContent = 'Your password must contain at least 8 characters.';
         return;
@@ -144,7 +147,7 @@
         return;
       }
 
-      const application = { name, email, password };
+      const application = { name, email, phone, password };
       clearClientSession();
       createButton.disabled = true;
       createButton.textContent = 'Creating Account...';
@@ -165,6 +168,7 @@
                 applicationId: 'TFC-DEMO',
                 name,
                 email,
+                phone,
                 status: 'Account Created',
                 statements: 0,
                 documents: []
