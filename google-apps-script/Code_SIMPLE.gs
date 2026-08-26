@@ -54,6 +54,7 @@ function doPost(e) {
       clientLogin,
       getClient,
       clientDecision,
+      sendSignupNotification,
       uploadDocument,
       adminLogin,
       adminList,
@@ -104,7 +105,7 @@ function json(value) {
 function health() {
   return {
     ok:true,
-    service:'Toronto Finance Company CRM Simple 1.3',
+    service:'Toronto Finance Company CRM Simple 1.4',
     minimumStatements:CONFIG.MIN_STATEMENTS,
     adminPasswordConfigured:CONFIG.ADMIN_PASSWORD !== 'CHANGE_THIS_PASSWORD',
     clientNotificationFrom:CONFIG.CLIENT_NOTIFICATION_FROM
@@ -348,7 +349,6 @@ function createAccount(p) {
     };
 
     appendRecordToSheet(sh,headers,record);
-    sendNewClientSignupEmail(record);
     return { ok:true, data:safe({ ...record, documents:[] }) };
   } finally {
     lock.releaseLock();
@@ -394,6 +394,29 @@ function clientDecision(p) {
   const fresh = findApplication(record.applicationId);
   sendClientDecisionEmail(fresh);
   return { ok:true, data:safe({ ...fresh, documents:[] }) };
+}
+
+function sendSignupNotification(p) {
+  const record = findApplication(p.applicationId);
+  const email = String(p.email || '').trim().toLowerCase();
+
+  if (!email || email !== String(record.email || '').trim().toLowerCase()) {
+    throw new Error('Account verification failed');
+  }
+
+  const cache = CacheService.getScriptCache();
+  const cacheKey = `signup-notified-${record.applicationId}`;
+  if (cache.get(cacheKey) === '1') {
+    return { ok:true, sent:true, alreadySent:true };
+  }
+
+  const result = sendNewClientSignupEmail(record);
+  if (result.sent) {
+    cache.put(cacheKey,'1',21600);
+    return { ok:true, ...result };
+  }
+
+  return { ok:false, ...result };
 }
 
 function adminLogin(p) {
