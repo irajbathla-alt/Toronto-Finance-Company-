@@ -18,6 +18,26 @@
     localStorage.setItem(LEGACY_KEY, JSON.stringify(data));
   }
 
+  function queueSignupNotification(data) {
+    if (cfg.demoMode || !cfg.apiUrl || !data?.applicationId || !data?.email) return;
+
+    const body = JSON.stringify({
+      action: 'sendSignupNotification',
+      applicationId: data.applicationId,
+      email: data.email
+    });
+
+    try {
+      fetch(cfg.apiUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        keepalive: true,
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body
+      }).catch(() => {});
+    } catch (_) {}
+  }
+
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
   function jsonp(action, payload = {}, timeout = DEFAULT_TIMEOUT) {
@@ -177,6 +197,7 @@
           : await createAccount(application);
 
         saveClientSession(result.data);
+        queueSignupNotification(result.data);
         createButton.textContent = 'Account Created';
         if (message) message.textContent = 'Success. Opening your client dashboard...';
         window.location.replace('client-dashboard.html');
