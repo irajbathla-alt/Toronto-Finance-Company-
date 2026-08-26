@@ -74,6 +74,10 @@ function apply() {
             <input id="email" type="email" autocomplete="email" placeholder="name@company.com" required>
           </div>
           <div class="field full">
+            <label>Phone Number</label>
+            <input id="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+1 416-555-0123" required>
+          </div>
+          <div class="field full">
             <label>Create Password</label>
             <input id="password" type="password" autocomplete="new-password" placeholder="Minimum 8 characters" minlength="8" required>
           </div>
