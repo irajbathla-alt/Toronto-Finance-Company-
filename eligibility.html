@@ -10,17 +10,21 @@
 <style>
 :root{--ink:#17130f;--cream:#f7f0e6;--paper:#f4eadc;--gold:#c6964e;--muted:#786f65;--line:rgba(23,19,15,.16);--green:#2f855a;--amber:#b7791f;--red:#b44336}
 *{box-sizing:border-box}html,body{min-height:100%}body{margin:0;background:radial-gradient(circle at 70% 15%,rgba(198,150,78,.18),transparent 32%),linear-gradient(135deg,#17130f,#211a13 58%,#110e0b);font-family:"DM Sans",sans-serif;color:var(--ink);padding:28px 16px}
-.shell{width:min(520px,100%);margin:auto;background:rgba(247,240,230,.98);border:1px solid rgba(255,255,255,.18);box-shadow:0 28px 80px rgba(0,0,0,.35);border-radius:18px;overflow:hidden}
+.shell{width:min(560px,100%);margin:auto;background:rgba(247,240,230,.98);border:1px solid rgba(255,255,255,.18);box-shadow:0 28px 80px rgba(0,0,0,.35);border-radius:18px;overflow:hidden}
 .top{padding:24px 26px 18px;text-align:center;border-bottom:1px solid var(--line)}
 .brand{font-family:"Cormorant Garamond",serif;font-size:31px;line-height:.92;font-weight:300;letter-spacing:.01em;text-transform:uppercase}.brand span{display:block}.tag{margin-top:12px;color:#9b763f;font-size:10px;letter-spacing:.18em;text-transform:uppercase}
 .container{padding:22px 26px 30px;text-align:center}.progress{display:flex;justify-content:center;gap:10px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#a99e91;margin-bottom:23px}.progress span{padding:7px 10px;border-bottom:1px solid transparent}.progress .active{color:var(--ink);border-color:var(--gold)}
 h2{font-family:"Cormorant Garamond",serif;font-size:34px;line-height:1;font-weight:400;margin:8px 0 12px;text-transform:uppercase;letter-spacing:.025em}p{font-size:12px;line-height:1.6;color:var(--muted)}
 .products{margin:24px 0}.product{padding:12px 0}.product strong{font-family:"Cormorant Garamond",serif;font-size:20px;font-weight:500;text-transform:uppercase;letter-spacing:.03em}.product p{margin:4px 0 0}.divider{width:52%;height:1px;background:var(--line);margin:auto}
-label{display:block;text-align:left;margin-top:15px;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#665e55}select,input{width:100%;padding:13px 12px;margin-top:7px;border:1px solid #cfc3b5;background:#fbf7f0;border-radius:6px;color:var(--ink);outline:none}select:focus,input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(198,150,78,.12)}
+.form-note{margin:0 0 12px;font-size:11px;color:var(--muted)}
+label{display:block;text-align:left;margin-top:15px;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#665e55}
+select,input{width:100%;padding:13px 12px;margin-top:7px;border:1px solid #cfc3b5;background:#fbf7f0;border-radius:6px;color:var(--ink);outline:none;font-family:inherit}
+select:focus,input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(198,150,78,.12)}
+.inline-help{display:block;text-align:left;margin-top:5px;font-size:10px;line-height:1.45;color:#95897c}
 button{width:100%;margin-top:20px;padding:14px 18px;background:var(--ink);color:#fff;border:0;border-radius:999px;font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;cursor:pointer;transition:.2s}button:hover{transform:translateY(-1px);background:#2a2119}button:disabled{opacity:.65;cursor:not-allowed;transform:none}.back{margin-top:10px;background:transparent;color:var(--ink);border:1px solid var(--line)}.back:hover{background:#eee3d6}.hidden{display:none}.section{opacity:0;transform:translateY(12px);transition:.32s ease}.section.active{opacity:1;transform:none}
-.tier-box{border:1px solid var(--line);border-radius:10px;padding:17px;margin-top:20px;text-align:left;background:#fbf7f0}.tier-a{border-left:4px solid var(--green)}.tier-b{border-left:4px solid var(--amber)}.tier-c{border-left:4px solid var(--red)}.tier-box strong{font-family:"Cormorant Garamond",serif;font-size:20px;text-transform:uppercase}.status{margin-top:18px;font-size:11px;color:var(--muted)}
+.tier-box{border:1px solid var(--line);border-radius:10px;padding:18px;margin-top:20px;text-align:left;background:#fbf7f0}.tier-a{border-left:4px solid var(--green)}.tier-b{border-left:4px solid var(--amber)}.tier-c,.tier-d{border-left:4px solid var(--red)}.tier-box strong{font-family:"Cormorant Garamond",serif;font-size:21px;text-transform:uppercase;line-height:1.05}.result-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:15px 0}.metric{border:1px solid var(--line);border-radius:7px;padding:10px;background:#f7f0e6}.metric span{display:block;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:#8a7e72}.metric b{display:block;margin-top:4px;font-size:14px;font-weight:600}.result-list{margin:13px 0 0;padding-left:18px}.result-list li{font-size:11px;line-height:1.55;color:#645b52;margin:4px 0}.disclaimer{margin-top:13px;padding-top:12px;border-top:1px solid var(--line);font-size:10px;line-height:1.55;color:#8a7e72}.status{margin-top:18px;font-size:11px;color:var(--muted)}
 .confirm-overlay{position:fixed;inset:0;background:rgba(10,8,6,.76);backdrop-filter:blur(8px);display:grid;place-items:center;padding:18px;z-index:100;opacity:0;visibility:hidden;transition:.28s ease}.confirm-overlay.show{opacity:1;visibility:visible}.confirm-card{width:min(440px,94vw);background:var(--cream);border:1px solid rgba(198,150,78,.38);box-shadow:0 28px 90px rgba(0,0,0,.45);border-radius:18px;padding:34px 28px 28px;text-align:center;transform:translateY(18px) scale(.98);transition:.28s ease}.confirm-overlay.show .confirm-card{transform:none}.confirm-icon{width:58px;height:58px;margin:0 auto 18px;border:1px solid var(--gold);border-radius:50%;display:grid;place-items:center;color:var(--gold);font-size:25px}.confirm-card h3{font-family:"Cormorant Garamond",serif;font-size:32px;font-weight:400;line-height:1;margin:0 0 14px;text-transform:uppercase;letter-spacing:.025em}.confirm-card p{font-size:13px;line-height:1.7;margin:8px 0}.confirm-card .response{margin:18px 0 2px;color:#9b763f;font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase}.confirm-card button{margin-top:22px}.confirm-card .close-confirm{margin-top:10px;background:transparent;color:var(--ink);border:1px solid var(--line)}
-@media(max-width:520px){body{padding:0}.shell{min-height:100vh;border-radius:0}.container,.top{padding-left:20px;padding-right:20px}.brand{font-size:28px}.progress{gap:2px}.confirm-card{padding:30px 22px 24px}}
+@media(max-width:520px){body{padding:0}.shell{min-height:100vh;border-radius:0}.container,.top{padding-left:20px;padding-right:20px}.brand{font-size:28px}.progress{gap:2px}.result-meta{grid-template-columns:1fr}.confirm-card{padding:30px 22px 24px}}
 </style>
 </head>
 <body>
@@ -36,23 +40,103 @@ button{width:100%;margin-top:20px;padding:14px 18px;background:var(--ink);color:
         <div class="product"><strong>Flex Funds</strong><p>Payments based on business sales</p></div><div class="divider"></div>
         <div class="product"><strong>Merchant Cash Advance</strong><p>Fast working-capital solution</p></div>
       </div>
-      <p><strong>Potential initial response within 24–48 hours.</strong></p>
+      <p><strong>Check your preliminary business-financing eligibility in about two minutes.</strong></p>
       <button id="startBtn">Check Eligibility</button>
     </div>
 
     <div id="page1" class="section hidden">
       <div class="progress"><span>Intro</span><span class="active">Eligibility</span><span>Details</span></div>
       <h2>Eligibility Check</h2>
+      <p class="form-note">This preliminary review uses cash-flow and banking-risk factors commonly seen in our financing assessments.</p>
       <form id="eligibilityForm">
         <label for="industry">Business Industry</label>
-        <select id="industry" required><option value="">Select</option><option value="restaurant">Restaurant / Café</option><option value="retail">Retail</option><option value="construction">Construction / Trades</option><option value="medical">Medical / Clinic</option><option value="professional">Professional Services</option><option value="travel">Travel Agency</option><option value="financial">Financial Services</option><option value="trucking">Owner-Operator Trucking</option></select>
-        <label for="time">Time in Business</label>
-        <select id="time" required><option value="">Select</option><option value="12+">12+ months</option><option value="6-11">6–11 months</option><option value="under-6">Under 6 months</option></select>
-        <label for="revenue">Monthly Revenue</label>
-        <select id="revenue" required><option value="">Select</option><option value="25+">$25,000+</option><option value="10-24">$10,000–$24,999</option><option value="under-10">Below $10,000</option></select>
-        <label for="credit">Estimated Credit Score</label>
-        <select id="credit" required><option value="">Select</option><option value="600+">600+</option><option value="500-599">500–599</option><option value="below-500">Below 500</option></select>
-        <button type="submit">Check Eligibility</button><button type="button" class="back" id="backToIntro">Back</button>
+        <select id="industry" required>
+          <option value="">Select</option>
+          <option value="restaurant">Restaurant / Café / Food Service</option>
+          <option value="retail">Retail / Convenience / Liquor</option>
+          <option value="construction">Construction / Trades</option>
+          <option value="trucking">Trucking / Transportation</option>
+          <option value="automotive">Automotive / Repair / Welding</option>
+          <option value="medical">Medical / Clinic / Health</option>
+          <option value="professional">Professional Services</option>
+          <option value="manufacturing">Manufacturing / Wholesale</option>
+          <option value="beauty">Beauty / Personal Care</option>
+          <option value="cleaning">Cleaning / Janitorial</option>
+          <option value="travel">Travel / Tourism</option>
+          <option value="financial">Financial Services</option>
+          <option value="other">Other</option>
+        </select>
+
+        <label for="timeMonths">Time in Business</label>
+        <input id="timeMonths" type="number" min="0" max="600" step="1" inputmode="numeric" placeholder="Months in business" required>
+
+        <label for="monthlyDeposits">Average Monthly Business Deposits</label>
+        <input id="monthlyDeposits" type="number" min="0" step="500" inputmode="decimal" placeholder="$ e.g. 35000" required>
+        <span class="inline-help">Use average business-bank deposits, not gross annual revenue.</span>
+
+        <label for="requestedAmount">Financing Requested</label>
+        <input id="requestedAmount" type="number" min="1000" step="500" inputmode="decimal" placeholder="$ e.g. 30000" required>
+
+        <label for="credit">Estimated Personal Credit Score</label>
+        <select id="credit" required>
+          <option value="">Select</option>
+          <option value="700+">700+</option>
+          <option value="650-699">650–699</option>
+          <option value="600-649">600–649</option>
+          <option value="550-599">550–599</option>
+          <option value="500-549">500–549</option>
+          <option value="below-500">Below 500</option>
+          <option value="unknown">Not Sure</option>
+        </select>
+
+        <label for="nsf3m">NSFs / Returned Payments in Last 3 Months</label>
+        <select id="nsf3m" required>
+          <option value="">Select</option>
+          <option value="0">None</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3–4</option>
+          <option value="5">5+</option>
+        </select>
+
+        <label for="negativeBalances">Recent Negative / Overdrawn Balances</label>
+        <select id="negativeBalances" required>
+          <option value="">Select</option>
+          <option value="none">None</option>
+          <option value="occasional">Occasional</option>
+          <option value="frequent">Frequent</option>
+        </select>
+
+        <label for="activeFinancing">Active Business Financing Facilities</label>
+        <select id="activeFinancing" required>
+          <option value="">Select</option>
+          <option value="0">None</option>
+          <option value="1">One</option>
+          <option value="2">Two or More</option>
+        </select>
+
+        <label for="monthlyDebt">Approx. Monthly Business Financing Payments</label>
+        <input id="monthlyDebt" type="number" min="0" step="100" inputmode="decimal" placeholder="$ enter 0 if none" required>
+
+        <label for="depositTrend">Recent Sales / Deposit Trend</label>
+        <select id="depositTrend" required>
+          <option value="">Select</option>
+          <option value="increasing">Increasing</option>
+          <option value="stable">Stable</option>
+          <option value="decreasing">Decreasing</option>
+        </select>
+
+        <label for="statementMonths">Business Bank Statements Available</label>
+        <select id="statementMonths" required>
+          <option value="">Select</option>
+          <option value="6">6+ months</option>
+          <option value="5">4–5 months</option>
+          <option value="3">3 months</option>
+          <option value="2">1–2 months</option>
+        </select>
+
+        <button type="submit">Check Eligibility</button>
+        <button type="button" class="back" id="backToIntro">Back</button>
       </form>
       <div id="result" class="hidden"></div>
     </div>
@@ -61,12 +145,14 @@ button{width:100%;margin-top:20px;padding:14px 18px;background:var(--ink);color:
       <div class="progress"><span>Intro</span><span>Eligibility</span><span class="active">Details</span></div>
       <h2>Your Details</h2>
       <form id="leadForm">
-        <input type="hidden" id="tier"><input type="hidden" id="score">
+        <input type="hidden" id="tier">
+        <input type="hidden" id="score">
         <label for="business">Business Name</label><input id="business" required>
         <label for="name">Name</label><input id="name" required>
         <label for="phone">Phone</label><input id="phone" required>
         <label for="email">Email</label><input id="email" type="email" required>
-        <button type="submit" id="submitBtn">Submit</button><button type="button" class="back" id="backToEligibility">Back</button>
+        <button type="submit" id="submitBtn">Submit for Review</button>
+        <button type="button" class="back" id="backToEligibility">Back</button>
       </form>
       <div id="submitStatus" class="status"></div>
     </div>
@@ -78,7 +164,7 @@ button{width:100%;margin-top:20px;padding:14px 18px;background:var(--ink);color:
     <div class="confirm-icon">✓</div>
     <h3 id="confirmTitle">Thank You</h3>
     <p>Your financing inquiry has been successfully submitted.</p>
-    <p>One of our Business Financing Advisors will carefully review your information and contact you to discuss the financing solutions best suited to your business.</p>
+    <p>One of our Business Financing Advisors will review the information and contact you to discuss the financing solutions best suited to your business.</p>
     <div class="response">Typical response time: 24–48 business hours</div>
     <button id="returnHome">Return to Home</button>
     <button class="close-confirm" id="closeConfirm">Close</button>
@@ -87,16 +173,279 @@ button{width:100%;margin-top:20px;padding:14px 18px;background:var(--ink);color:
 
 <script src="crm-config.js?v=20260806-1"></script>
 <script>
+const ELIGIBILITY_MODEL_VERSION="TFC-PREQUAL-2.0";
 const scriptURL="https://script.google.com/macros/s/AKfycbxqvRdFTUynTIhWn0h2aU5W1jouIs369XrmkZGGKBPkeursr4_UBIrlwtmdzsdBjStO/exec";
-const frontPage=document.getElementById("frontPage"),page1=document.getElementById("page1"),page2=document.getElementById("page2"),result=document.getElementById("result"),tierInput=document.getElementById("tier"),scoreInput=document.getElementById("score"),confirmOverlay=document.getElementById("confirmOverlay");
-function go(from,to){from.classList.remove("active");setTimeout(()=>{from.classList.add("hidden");to.classList.remove("hidden");requestAnimationFrame(()=>to.classList.add("active"));},280)}
+
+const frontPage=document.getElementById("frontPage");
+const page1=document.getElementById("page1");
+const page2=document.getElementById("page2");
+const result=document.getElementById("result");
+const tierInput=document.getElementById("tier");
+const scoreInput=document.getElementById("score");
+const confirmOverlay=document.getElementById("confirmOverlay");
+let latestAssessment=null;
+
+function go(from,to){
+  from.classList.remove("active");
+  setTimeout(()=>{
+    from.classList.add("hidden");
+    to.classList.remove("hidden");
+    requestAnimationFrame(()=>to.classList.add("active"));
+    window.scrollTo({top:0,behavior:"smooth"});
+  },280);
+}
 function showConfirmation(){confirmOverlay.classList.add("show");document.body.style.overflow="hidden"}
 function closeConfirmation(){confirmOverlay.classList.remove("show");document.body.style.overflow=""}
 function returnHome(){if(window.opener&&!window.opener.closed){window.opener.focus();window.close()}else{window.location.href="index.html"}}
-document.getElementById("returnHome").onclick=returnHome;document.getElementById("closeConfirm").onclick=closeConfirmation;confirmOverlay.addEventListener("click",e=>{if(e.target===confirmOverlay)closeConfirmation()});
-document.getElementById("startBtn").onclick=()=>go(frontPage,page1);document.getElementById("backToIntro").onclick=()=>go(page1,frontPage);document.getElementById("backToEligibility").onclick=()=>go(page2,page1);
-document.getElementById("eligibilityForm").addEventListener("submit",e=>{e.preventDefault();let score=0,tier="C";const industry=document.getElementById("industry").value,time=document.getElementById("time").value,revenue=document.getElementById("revenue").value,credit=document.getElementById("credit").value;const restricted=["travel","financial","trucking"];if(restricted.includes(industry)){result.innerHTML="<div class='tier-box tier-c'><strong>Limited Pre-Qualification</strong><p>This industry is not eligible for this specific program. A financing advisor may still review alternative options.</p></div>";result.classList.remove("hidden");return}if(credit==="600+")score+=3;if(credit==="500-599")score+=1;if(revenue==="25+")score+=3;if(revenue==="10-24")score+=2;if(time==="12+")score+=2;if(time==="6-11")score+=1;tier=score>=7?"A":score>=4?"B":"C";tierInput.value=tier;scoreInput.value=score;result.innerHTML=`<div class="tier-box tier-${tier.toLowerCase()}"><strong>${tier==="A"?"Strong":"Conditional"} Pre-Qualification · Tier ${tier}</strong><p>Continue to submit your contact information for review.</p><button id="continueBtn">Continue</button></div>`;result.classList.remove("hidden");document.getElementById("continueBtn").onclick=()=>go(page1,page2)});
-document.getElementById("leadForm").addEventListener("submit",async e=>{e.preventDefault();const btn=document.getElementById("submitBtn"),status=document.getElementById("submitStatus");btn.disabled=true;btn.textContent="Submitting...";status.textContent="";const data=new URLSearchParams({business:document.getElementById("business").value,name:document.getElementById("name").value,phone:document.getElementById("phone").value,email:document.getElementById("email").value,tier:tierInput.value,score:scoreInput.value});try{await fetch(scriptURL,{method:"POST",body:data,mode:"no-cors"});document.getElementById("leadForm").reset();showConfirmation()}catch(error){status.textContent="Your information could not be submitted. Please try again."}finally{btn.disabled=false;btn.textContent="Submit"}});
+function clamp(value,min,max){return Math.max(min,Math.min(max,value))}
+function round500(value){return Math.round(Math.max(0,value||0)/500)*500}
+function escapeHtml(value){return String(value||"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[char]))}
+
+function calculateEligibility(input){
+  const strengths=[];
+  const risks=[];
+  const deposits=Math.max(0,input.monthlyDeposits);
+  const requested=Math.max(0,input.requestedAmount);
+  const debt=Math.max(0,input.monthlyDebt);
+  const nsf=Math.max(0,input.nsf3m);
+  const time=Math.max(0,input.timeMonths);
+  const statementMonths=Math.max(0,input.statementMonths);
+
+  let cashFlowScore=20;
+  if(deposits>=100000)cashFlowScore=100;
+  else if(deposits>=50000)cashFlowScore=92;
+  else if(deposits>=25000)cashFlowScore=82;
+  else if(deposits>=15000)cashFlowScore=70;
+  else if(deposits>=10000)cashFlowScore=58;
+  else if(deposits>=5000)cashFlowScore=42;
+  else cashFlowScore=25;
+  if(input.depositTrend==="increasing"){cashFlowScore=clamp(cashFlowScore+7,0,100);strengths.push("Recent deposits are increasing.")}
+  if(input.depositTrend==="stable"){cashFlowScore=clamp(cashFlowScore+3,0,100);strengths.push("Recent deposits are reported as stable.")}
+  if(input.depositTrend==="decreasing"){cashFlowScore=clamp(cashFlowScore-14,0,100);risks.push("Recent deposits are decreasing.")}
+
+  let nsfScore=100;
+  if(nsf===1)nsfScore=78;
+  else if(nsf===2)nsfScore=58;
+  else if(nsf>=3&&nsf<5)nsfScore=35;
+  else if(nsf>=5)nsfScore=15;
+  if(nsf===0)strengths.push("No recent NSF or returned-payment activity reported.");
+  else risks.push(nsf+" recent NSF / returned-payment event"+(nsf===1?"":"s")+" reported.");
+
+  let balanceScore=100;
+  if(input.negativeBalances==="occasional"){balanceScore=62;risks.push("Occasional negative or overdrawn balances reported.")}
+  if(input.negativeBalances==="frequent"){balanceScore=25;risks.push("Frequent negative or overdrawn balances reported.")}
+  if(input.negativeBalances==="none")strengths.push("No recent negative balances reported.");
+
+  const debtRatio=deposits>0?debt/deposits:1;
+  let debtScore=100;
+  if(debtRatio>0.35)debtScore=20;
+  else if(debtRatio>0.25)debtScore=38;
+  else if(debtRatio>0.18)debtScore=55;
+  else if(debtRatio>0.12)debtScore=70;
+  else if(debtRatio>0.07)debtScore=84;
+  if(input.activeFinancing==="1")debtScore-=8;
+  if(input.activeFinancing==="2"){debtScore-=22;risks.push("Multiple active business financing facilities reported.")}
+  debtScore=clamp(debtScore,0,100);
+  if(debtRatio<=0.07&&input.activeFinancing==="0")strengths.push("No material existing business-financing burden reported.");
+  else if(debtRatio>0.18)risks.push("Existing financing payments are high relative to stated monthly deposits.");
+
+  let coverageScore=35;
+  if(statementMonths>=6)coverageScore=100;
+  else if(statementMonths>=4)coverageScore=82;
+  else if(statementMonths>=3)coverageScore=68;
+  else if(statementMonths>=2)coverageScore=50;
+  if(statementMonths>=6)strengths.push("Six or more months of business banking can be provided.");
+  else risks.push("Limited bank-statement history may reduce underwriting confidence.");
+
+  let operatingHistoryScore=30;
+  if(time>=36)operatingHistoryScore=100;
+  else if(time>=24)operatingHistoryScore=92;
+  else if(time>=12)operatingHistoryScore=80;
+  else if(time>=6)operatingHistoryScore=55;
+  if(time>=24)strengths.push("Established operating history.");
+  if(time<6)risks.push("Very short time in business may limit lender options.");
+
+  const creditScores={"700+":100,"650-699":90,"600-649":78,"550-599":62,"500-549":45,"below-500":25,"unknown":60};
+  const creditScore=creditScores[input.credit]||60;
+  if(creditScore>=90)strengths.push("Strong estimated personal credit profile.");
+  if(creditScore<45)risks.push("Estimated personal credit may materially limit lender options.");
+
+  const requestRatio=deposits>0?requested/deposits:10;
+  let requestFitScore=15;
+  if(requestRatio<=0.50)requestFitScore=100;
+  else if(requestRatio<=0.80)requestFitScore=90;
+  else if(requestRatio<=1.00)requestFitScore=80;
+  else if(requestRatio<=1.25)requestFitScore=68;
+  else if(requestRatio<=1.50)requestFitScore=55;
+  else if(requestRatio<=2.00)requestFitScore=38;
+  if(requestRatio<=1)strengths.push("Requested amount is proportionate to stated monthly deposits.");
+  if(requestRatio>1.5)risks.push("Requested amount is aggressive relative to stated monthly deposits.");
+
+  let score=Math.round(
+    cashFlowScore*0.25+
+    nsfScore*0.16+
+    balanceScore*0.13+
+    debtScore*0.17+
+    coverageScore*0.08+
+    operatingHistoryScore*0.09+
+    creditScore*0.06+
+    requestFitScore*0.06
+  );
+
+  const specialReview=["financial","travel"].includes(input.industry);
+  if(specialReview){
+    score=clamp(score-4,0,100);
+    risks.push("This industry may require product-specific manual review.");
+  }
+
+  let tier="D",status="Manual Review Recommended";
+  if(score>=78){tier="A";status="Strong Pre-Eligibility"}
+  else if(score>=62){tier="B";status="Conditional Pre-Eligibility"}
+  else if(score>=45){tier="C";status="Manual Review Recommended"}
+  else{tier="D";status="Alternative Options Review"}
+
+  const confidence=statementMonths>=6?"High":statementMonths>=3?"Moderate":"Low";
+  const capacityMultiplier=score>=82?0.95:score>=70?0.80:score>=58?0.65:score>=45?0.45:0.30;
+  const debtAdjustment=clamp(1-(debtRatio*0.70),0.45,1);
+  const preliminaryCapacity=round500(deposits*capacityMultiplier*debtAdjustment);
+  const requestWithinCapacity=preliminaryCapacity>0&&requested<=preliminaryCapacity;
+  if(!requestWithinCapacity&&requested>0)risks.push("The requested amount may need to be reduced or structured differently after full review.");
+
+  return {
+    modelVersion:ELIGIBILITY_MODEL_VERSION,
+    score,tier,status,confidence,
+    cashFlowScore,nsfScore,balanceScore,debtScore,coverageScore,operatingHistoryScore,creditScore,requestFitScore,
+    debtServiceToDepositsRatio:debtRatio,
+    requestToDepositsRatio:requestRatio,
+    preliminaryCapacity,
+    requestWithinCapacity,
+    specialReview,
+    strengths:[...new Set(strengths)].slice(0,5),
+    risks:[...new Set(risks)].slice(0,6)
+  };
+}
+
+function collectEligibilityInput(){
+  return {
+    industry:document.getElementById("industry").value,
+    timeMonths:Number(document.getElementById("timeMonths").value||0),
+    monthlyDeposits:Number(document.getElementById("monthlyDeposits").value||0),
+    requestedAmount:Number(document.getElementById("requestedAmount").value||0),
+    credit:document.getElementById("credit").value,
+    nsf3m:Number(document.getElementById("nsf3m").value||0),
+    negativeBalances:document.getElementById("negativeBalances").value,
+    activeFinancing:document.getElementById("activeFinancing").value,
+    monthlyDebt:Number(document.getElementById("monthlyDebt").value||0),
+    depositTrend:document.getElementById("depositTrend").value,
+    statementMonths:Number(document.getElementById("statementMonths").value||0)
+  };
+}
+
+function renderAssessment(assessment,input){
+  const strengths=assessment.strengths.length
+    ?`<ul class="result-list">${assessment.strengths.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul>`:"";
+  const risks=assessment.risks.length
+    ?`<ul class="result-list">${assessment.risks.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul>`:"";
+  const capacityText=assessment.requestWithinCapacity
+    ?"Requested amount appears within the preliminary cash-flow range."
+    :"Requested amount may require a lower amount, different structure, or manual lender review.";
+
+  result.innerHTML=`
+    <div class="tier-box tier-${assessment.tier.toLowerCase()}">
+      <strong>${escapeHtml(assessment.status)}</strong>
+      <div class="result-meta">
+        <div class="metric"><span>Eligibility Fit</span><b>${assessment.score}/100</b></div>
+        <div class="metric"><span>Review Confidence</span><b>${escapeHtml(assessment.confidence)}</b></div>
+      </div>
+      <p>${escapeHtml(capacityText)}</p>
+      ${strengths?`<p><b>Key strengths</b></p>${strengths}`:""}
+      ${risks?`<p><b>Items for review</b></p>${risks}`:""}
+      <div class="disclaimer">Pre-eligibility only. This is not a lender approval, commitment, or guarantee. Final eligibility and amount depend on verified bank statements, documents, lender criteria, and underwriting.</div>
+      <button id="continueBtn">Continue for Review</button>
+    </div>`;
+  result.classList.remove("hidden");
+  document.getElementById("continueBtn").onclick=()=>go(page1,page2);
+}
+
+document.getElementById("returnHome").onclick=returnHome;
+document.getElementById("closeConfirm").onclick=closeConfirmation;
+confirmOverlay.addEventListener("click",e=>{if(e.target===confirmOverlay)closeConfirmation()});
+document.getElementById("startBtn").onclick=()=>go(frontPage,page1);
+document.getElementById("backToIntro").onclick=()=>go(page1,frontPage);
+document.getElementById("backToEligibility").onclick=()=>go(page2,page1);
+
+document.getElementById("eligibilityForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const input=collectEligibilityInput();
+  latestAssessment={input,assessment:calculateEligibility(input)};
+  tierInput.value=latestAssessment.assessment.tier;
+  scoreInput.value=latestAssessment.assessment.score;
+  renderAssessment(latestAssessment.assessment,input);
+});
+
+document.getElementById("leadForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const btn=document.getElementById("submitBtn");
+  const status=document.getElementById("submitStatus");
+  if(!latestAssessment){
+    status.textContent="Please complete the eligibility check first.";
+    return;
+  }
+  btn.disabled=true;
+  btn.textContent="Submitting...";
+  status.textContent="";
+  const i=latestAssessment.input;
+  const a=latestAssessment.assessment;
+
+  const data=new URLSearchParams({
+    business:document.getElementById("business").value,
+    name:document.getElementById("name").value,
+    phone:document.getElementById("phone").value,
+    email:document.getElementById("email").value,
+    tier:a.tier,
+    score:String(a.score),
+    eligibility_status:a.status,
+    eligibility_confidence:a.confidence,
+    eligibility_model_version:a.modelVersion,
+    industry:i.industry,
+    time_in_business_months:String(i.timeMonths),
+    monthly_deposits:String(i.monthlyDeposits),
+    requested_amount:String(i.requestedAmount),
+    estimated_credit:i.credit,
+    nsf_last_3_months:String(i.nsf3m),
+    negative_balances:i.negativeBalances,
+    active_financing_facilities:i.activeFinancing,
+    monthly_financing_payments:String(i.monthlyDebt),
+    deposit_trend:i.depositTrend,
+    statement_months_available:String(i.statementMonths),
+    debt_service_to_deposits_ratio:(a.debtServiceToDepositsRatio*100).toFixed(1)+"%",
+    request_to_deposits_ratio:(a.requestToDepositsRatio*100).toFixed(1)+"%",
+    preliminary_capacity:String(a.preliminaryCapacity),
+    request_within_preliminary_capacity:a.requestWithinCapacity?"Yes":"No",
+    cash_flow_score:String(a.cashFlowScore),
+    nsf_score:String(a.nsfScore),
+    balance_score:String(a.balanceScore),
+    debt_score:String(a.debtScore),
+    coverage_score:String(a.coverageScore),
+    operating_history_score:String(a.operatingHistoryScore),
+    credit_score_component:String(a.creditScore),
+    request_fit_score:String(a.requestFitScore),
+    strengths:a.strengths.join(" | "),
+    risks:a.risks.join(" | "),
+    source:"Toronto Finance Company Website Eligibility"
+  });
+
+  try{
+    await fetch(scriptURL,{method:"POST",body:data,mode:"no-cors"});
+    document.getElementById("leadForm").reset();
+    showConfirmation();
+  }catch(error){
+    status.textContent="Your information could not be submitted. Please try again.";
+  }finally{
+    btn.disabled=false;
+    btn.textContent="Submit for Review";
+  }
+});
 </script>
 </body>
 </html>
