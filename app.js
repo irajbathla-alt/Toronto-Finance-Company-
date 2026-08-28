@@ -40,16 +40,16 @@ function landing() {
           <button class="btn btn-gold">Check Eligibility</button>
           <button class="btn btn-ghost" data-go="apply">Apply Now</button>
         </div>
-        <div class="metrics">
-          <div class="metric"><strong>$2M+</strong><span>Funding solutions available</span></div>
-          <div class="metric"><strong>65+</strong><span>Canadian financing partners</span></div>
-          <div class="metric"><strong>24 HRS</strong><span>Potential initial response</span></div>
-        </div>
         <div class="contact-strip" aria-label="Contact Toronto Finance Company">
           <span class="contact-label">Contact Us</span>
           <a href="tel:+16044459624">+1 604 445 9624</a>
           <span class="contact-divider">|</span>
           <a href="mailto:info@torontofinancecompany.com">info@torontofinancecompany.com</a>
+        </div>
+        <div class="metrics">
+          <div class="metric"><strong>$2M+</strong><span>Funding solutions available</span></div>
+          <div class="metric"><strong>65+</strong><span>Canadian financing partners</span></div>
+          <div class="metric"><strong>24 HRS</strong><span>Potential initial response</span></div>
         </div>
       </div>
     </section>`;
