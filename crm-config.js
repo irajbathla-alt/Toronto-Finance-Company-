@@ -3,7 +3,7 @@ window.TFC_CONFIG={
   minimumStatements:6,
   demoMode:false,
   requestTimeout:30000,
-  build:"20260828-adobesign-a4"
+  build:"20260828-adobesign-a4-centered"
 };
 
 (function updateAdobeSignWidget(){
@@ -11,22 +11,41 @@ window.TFC_CONFIG={
   const iframe=document.querySelector('#signPanel .adobe-wrap iframe');
   if(!iframe)return;
   const wrap=iframe.closest('.adobe-wrap');
+  const panel=document.getElementById('signPanel');
+  const panels=panel&&panel.parentElement;
+
   iframe.src='https://na4.documents.adobe.com/public/esignWidget?wid=CBFCIBAA3AAABLblqZhBgCTXn5u_TlQ7fvxZVQRsrOtRGUybq5Exlw8eHr4geWAx9Ptarkd-XwhkIlxmWwlk*&hosted=false';
   iframe.width='100%';
   iframe.height='100%';
   iframe.frameBorder='0';
-  iframe.style.border='0';
-  iframe.style.overflow='hidden';
-  iframe.style.width='100%';
-  iframe.style.height='100%';
-  iframe.style.minHeight='0';
-  iframe.style.minWidth='0';
+  iframe.style.setProperty('border','0','important');
+  iframe.style.setProperty('overflow','hidden','important');
+  iframe.style.setProperty('width','100%','important');
+  iframe.style.setProperty('height','100%','important');
+  iframe.style.setProperty('min-height','0','important');
+  iframe.style.setProperty('min-width','0','important');
+
+  if(panels){
+    panels.style.setProperty('justify-items','center','important');
+  }
+  if(panel){
+    panel.style.setProperty('width','min(100%, 840px)','important');
+    panel.style.setProperty('max-width','840px','important');
+    panel.style.setProperty('justify-self','center','important');
+    panel.style.setProperty('margin-left','auto','important');
+    panel.style.setProperty('margin-right','auto','important');
+    panel.style.setProperty('left','0','important');
+    panel.style.setProperty('right','0','important');
+    panel.style.setProperty('transform','none','important');
+  }
   if(wrap){
-    wrap.style.width='min(100%, 794px)';
-    wrap.style.aspectRatio='210 / 297';
-    wrap.style.height='auto';
-    wrap.style.minHeight='0';
-    wrap.style.margin='0 auto';
+    wrap.style.setProperty('width','min(100%, 794px)','important');
+    wrap.style.setProperty('max-width','794px','important');
+    wrap.style.setProperty('aspect-ratio','210 / 297','important');
+    wrap.style.setProperty('height','auto','important');
+    wrap.style.setProperty('min-height','0','important');
+    wrap.style.setProperty('margin-left','auto','important');
+    wrap.style.setProperty('margin-right','auto','important');
   }
 })();
 
