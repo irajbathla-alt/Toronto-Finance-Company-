@@ -1,161 +1,94 @@
-# Toronto Finance Company — Apps Script CRM v2
+# Toronto Finance Company — Current CRM Setup
 
-This project runs on the existing stack only:
+This document describes the CRM architecture that is actually in use now.
 
-- GitHub Pages — website, admin CRM and client portal
-- Google Apps Script — secure API/controller
-- Google Sheets — application database, documents metadata, activity and notification queue
+## Current stack
+
+- GitHub Pages — public website, admin CRM and client portal
+- Google Apps Script — CRM/API controller
+- Google Sheets — application records
 - Google Drive — client folders and uploaded documents
-- MailApp — approval alert emails
+- Gmail / Mail services — signup, client-update and client-response notifications
 
-## 1. Apps Script configuration
+## Current backend reference
 
-The repository `google-apps-script/Code.gs` already contains:
+Use `google-apps-script/Code_SIMPLE.gs` as the repository reference for the currently deployed backend.
 
-- Spreadsheet ID: `1pRN82iNCVpU31DJQA3xUrMVkMcPRPv1Rl69WH3VRco4`
-- Root Drive folder ID: `1ao4Tlk65yxtr8yHGJaNGqyKPOHYFfXjb`
-- Admin email: `admin@torontofinance.ca`
-- Client portal URL
+Important: the GitHub copy intentionally contains a placeholder `ADMIN_PASSWORD`. Do not replace the real password in the deployed Apps Script with that placeholder.
 
-Do not store the real admin password in GitHub.
+The deployed endpoint currently used by the frontend is defined in `crm-config.js`.
 
-After replacing `Code.gs`, run this once from the Apps Script editor with your preferred admin password:
+Frontend-only GitHub changes do not require an Apps Script deployment.
 
-```javascript
-setAdminPassword('YOUR-PRIVATE-ADMIN-PASSWORD')
-```
+## Current frontend files
 
-The password is saved in Apps Script Script Properties rather than the public repository.
+### Public website
 
-## 2. Initialize the CRM
+- `index.html`
+- `app.js`
+- `crm-integration.js`
+- `eligibility.html`
 
-Run this once from Apps Script:
+`apply.html` now redirects to the account-creation flow in `index.html?apply=1`, so there is only one signup implementation to maintain.
 
-```javascript
-setupSystem()
-```
+### Client portal
 
-It automatically:
+`client-dashboard.html` is the single current client portal implementation. It contains:
 
-- adds any missing Applications columns without deleting existing data
-- creates the `Documents` sheet
-- creates the `Activity` sheet
-- creates the `Notifications` sheet
-- initializes the application number sequence
-- creates a private session-signing secret in Script Properties
-- installs one time-driven trigger for `processNotificationQueue`
+- client login
+- Adobe Sign embed
+- Step 1 signing confirmation
+- Step 2 bank-statement upload
+- financing decision display
+- client Proceed / Request More Information response
+- requested-document uploads
+- automatic client refresh
 
-The notification trigger runs every minute. Approval emails are therefore separated from admin saves, so the admin receives an immediate save result instead of waiting for MailApp.
+`client-portal.html` remains only as a compatibility redirect.
 
-## 3. Deploy the web app
+### Admin CRM
 
-Apps Script → **Deploy → Manage deployments → Edit**
+The current admin frontend is:
 
-Choose:
+- `admin.html`
+- `admin.js`
+- `admin-extensions.js`
 
-- **New version**
-- **Execute as:** Me
-- **Who has access:** Anyone
+`admin-extensions.js` consolidates the previous notification/session helper and Drive activity helper into one file.
 
-Deploy the new version.
+Dynamic client-entered data displayed by `admin.js` is HTML-escaped before being inserted into admin CRM markup.
 
-The website is currently configured to use:
+## Current workflow
 
-`https://script.google.com/macros/s/AKfycby6bmKACh-ddzZ9_Qy20pZgIhr-xJkxtH8q3Y0X9TxX3OVbXUeIkpGsiL6Jya4fwClX/exec`
+1. Client creates an account from the public website.
+2. The client is opened into `client-dashboard.html`.
+3. The client reviews and signs through Adobe Acrobat Sign.
+4. The client confirms the signing step in the portal.
+5. The client uploads the required business bank statements.
+6. Uploaded documents are stored in the application's Google Drive folder.
+7. Admin reviews the file in `admin.html`.
+8. Admin can update status, advisor message, financing terms and requested documents.
+9. Admin can save silently or save and notify the client.
+10. Client sees updated information in the portal and can respond to available financing.
 
-If a future Apps Script deployment produces a different `/exec` URL, update only `crm-config.js`.
+## Known security limitation — future backend phase
 
-## 4. Architecture
+The present backend verifies credentials at login but does not yet issue a signed, expiring token that must accompany every protected admin/client request.
 
-### Applications
+As a result, browser session state is useful for the interface but is not a complete server-side authorization layer.
 
-One row per financing application. Important fields include:
+A future Apps Script security upgrade should be staged separately:
 
-- status
-- statements
-- advisor
-- messageTitle / messageBody
-- approvedAmount / quote
-- notes
-- driveFolderId / driveUrl
-- revision
-- nextAction
-- stageUpdatedAt
-- signatureConfirmed / signatureConfirmedAt
-- approval notification tracking
+1. Add signed expiring admin/client tokens while temporarily retaining compatibility with the current frontend.
+2. Deploy that backend version.
+3. Update frontend requests to send the tokens.
+4. Verify admin, client, uploads and notification workflows.
+5. Enforce token validation server-side and retire the compatibility path.
 
-### Documents
+Do not attempt that migration by changing only one side at a time on the live system.
 
-Document metadata is stored separately so the CRM does not recursively scan Google Drive during every page load.
+## Legacy files
 
-Existing Drive folders are indexed automatically the first time their documents are requested.
+Other `.gs` files in `google-apps-script/` are older architecture experiments/reference copies. They are not the current deployment source and should not be copied over the working Apps Script deployment during normal frontend maintenance.
 
-### Activity
-
-Records meaningful events such as:
-
-- account creation
-- signature confirmation
-- document upload
-- stage change
-- client-facing update
-- Drive folder creation
-- approval email sent
-
-### Notifications
-
-Approval alerts are queued instead of being sent inside `adminUpdate`.
-
-`processNotificationQueue()` handles pending alerts through MailApp and retries failed sends up to three times.
-
-## 5. Performance principles
-
-The CRM v2 intentionally:
-
-- batches Sheet reads/writes
-- caches application and admin-list reads briefly
-- reads only one application row for client requests
-- does not crawl Drive during `adminList`
-- creates Drive folders only when required
-- stores document metadata separately
-- uses revision numbers to prevent accidental overwrite from two admin sessions
-- uses signed, expiring sessions instead of trusting cached application IDs
-- returns admin saves before email delivery
-
-## 6. Health check
-
-After deployment, open the Apps Script `/exec` URL directly or add `?action=health`.
-
-A healthy response should show:
-
-- `ok: true`
-- `service: Toronto Finance Company CRM v2`
-- `sheetWritable: true`
-- `driveWritable: true`
-- `notificationTriggerInstalled: true`
-- `sessionSecretConfigured: true`
-- `adminPasswordConfigured: true`
-
-## 7. Client workflow
-
-1. Client creates an account.
-2. Apps Script returns a signed client session and the website opens the dashboard.
-3. Client completes Adobe Sign and confirms completion.
-4. Signature completion is stored in Google Sheets, not browser local storage.
-5. Client uploads PDF statements.
-6. Files are stored in the application Drive folder and metadata is added to `Documents`.
-7. The file automatically moves to `Ready for Review` after the required statements are received, unless it has already progressed to a later stage.
-8. Admin changes the stage and client message.
-9. Client dashboard sees the updated stage, next action, advisor message and approval information.
-10. Conditional Approval / Approved queues an email alert without slowing the admin save.
-
-## 8. Admin workflow
-
-The admin CRM now uses one implementation only:
-
-- `crm-api.js` — communication/session layer
-- `admin-app.js` — admin workflow
-- `client-app.js` — client workflow
-- `google-apps-script/Code.gs` — backend
-
-The previous admin patch/save-fix scripts are intentionally removed.
+The old standalone `adobe-sign-embed.js`, `client-decision.js`, `admin-notify.js` and `admin-doc-activity.js` implementations have been removed from the current frontend to prevent duplicate logic.
