@@ -99,6 +99,12 @@
     return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString('en-CA', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
   }
 
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, character => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+    }[character]));
+  }
+
   function render() {
     const query = $('#search').value.trim().toLowerCase();
     const filter = $('#filter').value;
@@ -107,17 +113,26 @@
       return (!filter || app.status === filter) && (!query || text.includes(query));
     });
 
-    $('#rows').innerHTML = data.map(app => `
+    $('#rows').innerHTML = data.map(app => {
+      const appId = escapeHtml(app.applicationId || '—');
+      const name = escapeHtml(app.name || 'Unnamed client');
+      const email = escapeHtml(app.email || '');
+      const business = app.business ? escapeHtml(app.business) : '<span class="subtle">Not provided</span>';
+      const status = escapeHtml(app.status || 'Account Created');
+      const decision = app.clientDecision ? `<div class="subtle" style="margin-top:5px">Client: ${escapeHtml(app.clientDecision)}</div>` : '';
+      const advisor = app.advisor ? escapeHtml(app.advisor) : '<span class="subtle">Unassigned</span>';
+      return `
       <tr>
-        <td><strong>${app.applicationId || '—'}</strong><div class="subtle">${formatDate(app.created)}</div></td>
-        <td><strong>${app.name || 'Unnamed client'}</strong><div class="subtle">${app.email || ''}</div></td>
-        <td>${app.business || '<span class="subtle">Not provided</span>'}</td>
-        <td><span class="status ${statusClass(app.status)}">${app.status || 'Account Created'}</span>${app.clientDecision ? `<div class="subtle" style="margin-top:5px">Client: ${app.clientDecision}</div>` : ''}</td>
+        <td><strong>${appId}</strong><div class="subtle">${escapeHtml(formatDate(app.created))}</div></td>
+        <td><strong>${name}</strong><div class="subtle">${email}</div></td>
+        <td>${business}</td>
+        <td><span class="status ${statusClass(app.status)}">${status}</span>${decision}</td>
         <td>${Number(app.statements || 0)}/${minimumStatements}</td>
-        <td>${app.advisor || '<span class="subtle">Unassigned</span>'}</td>
-        <td>${formatDate(app.updated)}</td>
-        <td><button class="quick" data-open="${app.applicationId}">Open File</button></td>
-      </tr>`).join('');
+        <td>${advisor}</td>
+        <td>${escapeHtml(formatDate(app.updated))}</td>
+        <td><button class="quick" data-open="${escapeHtml(app.applicationId || '')}">Open File</button></td>
+      </tr>`;
+    }).join('');
 
     $('#empty').classList.toggle('hidden', Boolean(data.length));
     document.querySelectorAll('[data-open]').forEach(button => button.onclick = () => openFile(button.dataset.open));
@@ -147,7 +162,7 @@
   function renderDocs(docs = []) {
     $('#documentCount').textContent = `${docs.length} file${docs.length === 1 ? '' : 's'}`;
     $('#documents').innerHTML = docs.length
-      ? docs.map(doc => `<li><span>${doc.name || 'Document'}</span><span>${formatDate(doc.date || doc.created)}</span></li>`).join('')
+      ? docs.map(doc => `<li><span>${escapeHtml(doc.name || 'Document')}</span><span>${escapeHtml(formatDate(doc.date || doc.created))}</span></li>`).join('')
       : '<li><span class="subtle">No documents uploaded yet.</span></li>';
   }
 
@@ -173,13 +188,25 @@
   function renderClientResponse(record) {
     const box = $('#clientResponse');
     if (!box) return;
+    box.replaceChildren();
+    const heading = document.createElement('strong');
+    const note = document.createElement('p');
     if (!record?.clientDecision) {
       box.className = 'client-response';
-      box.innerHTML = '<strong>Awaiting Response</strong><p>When the client chooses Proceed or Request More Information, the response will appear here.</p>';
+      heading.textContent = 'Awaiting Response';
+      note.textContent = 'When the client chooses Proceed or Request More Information, the response will appear here.';
+      box.append(heading, note);
       return;
     }
     box.className = 'client-response has-response';
-    box.innerHTML = `<strong>${record.clientDecision}</strong><p>${record.clientDecisionNote || 'No additional note from the client.'}</p><p>${record.clientDecisionAt ? `Received ${formatDate(record.clientDecisionAt)}` : ''}</p>`;
+    heading.textContent = record.clientDecision;
+    note.textContent = record.clientDecisionNote || 'No additional note from the client.';
+    box.append(heading, note);
+    if (record.clientDecisionAt) {
+      const received = document.createElement('p');
+      received.textContent = `Received ${formatDate(record.clientDecisionAt)}`;
+      box.append(received);
+    }
   }
 
   function openFile(id) {
@@ -195,7 +222,7 @@
       ['Client', selected.name], ['Email', selected.email], ['Phone', selected.phone], ['Business', selected.business],
       ['Requested Amount', selected.requested ? `CA$${Number(selected.requested).toLocaleString()}` : '—'],
       ['Created', formatDate(selected.created)], ['Updated', formatDate(selected.updated)]
-    ].map(([key, value]) => `<div class="kv"><b>${key}</b><span>${value || '—'}</span></div>`).join('');
+    ].map(([key, value]) => `<div class="kv"><b>${escapeHtml(key)}</b><span>${escapeHtml(value || '—')}</span></div>`).join('');
     ['status', 'advisor', 'messageTitle', 'messageBody', 'approvedAmount', 'quote', 'term', 'paymentFrequency', 'paymentAmount', 'numberPayments', 'totalRepayment', 'documentsRequested', 'notes'].forEach(key => {
       const field = $('#' + key);
       if (field) field.value = selected[key] || '';
