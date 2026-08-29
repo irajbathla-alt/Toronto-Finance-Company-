@@ -3,8 +3,22 @@ window.TFC_CONFIG={
   minimumStatements:6,
   demoMode:false,
   requestTimeout:30000,
-  build:"20260818-endpoint1"
+  build:"20260828-adobesign2"
 };
+
+(function updateAdobeSignWidget(){
+  if(!/client-dashboard\.html/i.test(location.pathname))return;
+  const iframe=document.querySelector('#signPanel .adobe-wrap iframe');
+  if(!iframe)return;
+  iframe.src='https://na4.documents.adobe.com/public/esignWidget?wid=CBFCIBAA3AAABLblqZhBgCTXn5u_TlQ7fvxZVQRsrOtRGUybq5Exlw8eHr4geWAx9Ptarkd-XwhkIlxmWwlk*&hosted=false';
+  iframe.width='100%';
+  iframe.height='100%';
+  iframe.frameBorder='0';
+  iframe.style.border='0';
+  iframe.style.overflow='hidden';
+  iframe.style.minHeight='500px';
+  iframe.style.minWidth='600px';
+})();
 
 (function warmCrm(){
   if(!/(?:admin|client-dashboard)\.html/i.test(location.pathname))return;
