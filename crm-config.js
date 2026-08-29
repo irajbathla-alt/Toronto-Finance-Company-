@@ -3,7 +3,7 @@ window.TFC_CONFIG={
   minimumStatements:6,
   demoMode:false,
   requestTimeout:30000,
-  build:"20260828-adobesign-no-scroll"
+  build:"20260828-adobesign-hide-scrollbar"
 };
 
 (function updateAdobeSignWidget(){
@@ -21,10 +21,12 @@ window.TFC_CONFIG={
   iframe.scrolling='no';
   iframe.style.setProperty('border','0','important');
   iframe.style.setProperty('overflow','hidden','important');
-  iframe.style.setProperty('width','100%','important');
+  iframe.style.setProperty('width','calc(100% + 18px)','important');
+  iframe.style.setProperty('max-width','none','important');
   iframe.style.setProperty('height','100%','important');
   iframe.style.setProperty('min-height','100%','important');
   iframe.style.setProperty('min-width','0','important');
+  iframe.style.setProperty('margin-right','-18px','important');
 
   if(panels){
     panels.style.setProperty('justify-items','stretch','important');
