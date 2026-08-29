@@ -3,95 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<title>Create Account | Toronto Finance Company</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260818-apply1">
-<style>
-body{background:#f4eadc;color:#17130f}.apply-shell{min-height:100vh}.apply-nav{height:72px;padding:0 5vw;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(23,19,15,.12)}.apply-brand{font-size:12px;letter-spacing:.12em;text-transform:uppercase}.apply-nav a{color:#17130f;text-decoration:none;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.apply-wrap{width:min(920px,90vw);margin:70px auto 90px}.apply-wrap h1{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:clamp(48px,6vw,76px);line-height:.95;margin:0 0 28px}.apply-intro{max-width:820px;color:#786f65;font-size:18px;line-height:1.55;margin-bottom:56px}.apply-grid{display:grid;grid-template-columns:1fr;gap:28px}.apply-field label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#786f65;margin-bottom:10px}.apply-field input{width:100%;border:0;border-bottom:1px solid rgba(23,19,15,.28);background:transparent;padding:15px 4px;font-size:22px;outline:none}.apply-field input:focus{border-bottom-color:#17130f}.terms{font-size:13px;line-height:1.65;color:#786f65;margin:38px 0}.apply-actions{display:flex;align-items:center;justify-content:space-between;gap:18px}.back{color:#786f65;text-decoration:none;font-size:16px}.create{border:0;background:#17130f;color:#fff;border-radius:999px;padding:17px 34px;min-width:220px;text-transform:uppercase;letter-spacing:.1em;font-size:11px;cursor:pointer}.create:disabled{opacity:.6;cursor:not-allowed}.msg{font-size:13px;line-height:1.6;margin-top:20px;color:#a13f33}.msg.success{color:#2f855a}@media(max-width:620px){.apply-wrap{margin-top:44px}.apply-intro{font-size:15px;margin-bottom:40px}.apply-field input{font-size:18px}.apply-actions{align-items:stretch;flex-direction:column-reverse}.back{text-align:center}.create{width:100%}}
-</style>
+<meta http-equiv="refresh" content="0;url=index.html?apply=1">
+<title>Apply | Toronto Finance Company</title>
+<script>window.location.replace('index.html?apply=1');</script>
 </head>
 <body>
-<div class="apply-shell">
-  <header class="apply-nav"><div class="apply-brand">Toronto Finance Company</div><a href="client-dashboard.html?login=1&v=20260818-endpoint2">Log In</a></header>
-  <main class="apply-wrap">
-    <h1>Create Your Account</h1>
-    <p class="apply-intro">Create your secure client account. After account creation, you will be guided through two steps: review and sign your application, then upload six bank statements.</p>
-    <div class="apply-grid">
-      <div class="apply-field"><label for="name">Full Name</label><input id="name" autocomplete="name" placeholder="Your full legal name"></div>
-      <div class="apply-field"><label for="email">Email Address</label><input id="email" type="email" autocomplete="email" placeholder="name@company.com"></div>
-      <div class="apply-field"><label for="password">Create Password</label><input id="password" type="password" autocomplete="new-password" placeholder="Minimum 8 characters"></div>
-    </div>
-    <p class="terms">By creating an account, you agree to Toronto Finance Company’s Terms &amp; Conditions and acknowledge its Privacy Policy.</p>
-    <div class="apply-actions"><a class="back" href="index.html?v=20260818-apply1">Back Home</a><button class="create" id="createAccountBtn">Create Account</button></div>
-    <div class="msg" id="accountMessage" aria-live="polite"></div>
-  </main>
-</div>
-<script>
-(() => {
-  'use strict';
-  const API='https://script.google.com/macros/s/AKfycbxvkD5U6shFqseYlralB4VTQ_MbK42HbiPHXmZvAqgj1NXkwcMGkvkimcsYu2VNd7m-/exec';
-  const SESSION_KEY='tfc-client-auth';
-  const LEGACY_KEY='tfc-current-application';
-  const $=s=>document.querySelector(s);
-  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-
-  function jsonp(action,payload={},timeout=90000){
-    return new Promise((resolve,reject)=>{
-      const cb='tfc_apply_'+Date.now()+'_'+Math.random().toString(36).slice(2);
-      const script=document.createElement('script');
-      const params=new URLSearchParams({action,callback:cb,_:String(Date.now())});
-      Object.entries(payload).forEach(([k,v])=>params.set(k,String(v ?? '')));
-      const timer=setTimeout(()=>{cleanup();reject(new Error('TIMEOUT'))},timeout);
-      function cleanup(){clearTimeout(timer);try{delete window[cb]}catch(_){window[cb]=undefined}script.remove()}
-      window[cb]=data=>{cleanup();resolve(data)};
-      script.onerror=()=>{cleanup();reject(new Error('UNREACHABLE'))};
-      script.src=API+'?'+params.toString();
-      document.head.appendChild(script);
-    });
-  }
-
-  function save(data){
-    sessionStorage.setItem(SESSION_KEY,JSON.stringify({applicationId:data.applicationId,email:data.email||'',authenticatedAt:new Date().toISOString()}));
-    localStorage.setItem(LEGACY_KEY,JSON.stringify(data));
-  }
-
-  async function verify(email,password){
-    try{const r=await jsonp('clientLogin',{email,password},30000);return r?.ok?r:null}catch(_){return null}
-  }
-
-  async function create(){
-    const name=$('#name').value.trim();
-    const email=$('#email').value.trim().toLowerCase();
-    const password=$('#password').value;
-    const button=$('#createAccountBtn');
-    const msg=$('#accountMessage');
-    if(!name){msg.textContent='Please enter your full name.';return}
-    if(!/^\S+@\S+\.\S+$/.test(email)){msg.textContent='Please enter a valid email address.';return}
-    if(password.length<8){msg.textContent='Your password must contain at least 8 characters.';return}
-    button.disabled=true;button.textContent='Creating Account…';msg.className='msg';msg.textContent='Creating your secure account. Please keep this page open.';
-    try{
-      let result;
-      try{result=await jsonp('createAccount',{name,email,password},90000)}catch(_){result=null}
-      if(!result?.ok){
-        const recovered=await verify(email,password);
-        if(recovered?.ok) result=recovered;
-      }
-      if(!result?.ok){
-        if(/already exists/i.test(result?.error||'')) throw new Error('An account already exists for this email. Please use Log In instead.');
-        throw new Error(result?.error||'We could not connect to the secure application service. Please try again in a moment.');
-      }
-      save(result.data);msg.className='msg success';msg.textContent='Account created. Opening your secure client portal…';button.textContent='Account Created';
-      await sleep(300);window.location.replace('client-dashboard.html?v=20260818-endpoint2');
-    }catch(err){msg.className='msg';msg.textContent=err.message||'Account creation could not be completed.';button.disabled=false;button.textContent='Create Account'}
-  }
-  $('#createAccountBtn').onclick=create;
-  $('#password').addEventListener('keydown',e=>{if(e.key==='Enter')create()});
-})();
-</script>
+<p>Opening the Toronto Finance Company application…</p>
 </body>
 </html>
