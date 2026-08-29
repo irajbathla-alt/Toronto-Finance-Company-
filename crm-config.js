@@ -3,7 +3,7 @@ window.TFC_CONFIG={
   minimumStatements:6,
   demoMode:false,
   requestTimeout:30000,
-  build:"20260828-adobesign-a4-viewport"
+  build:"20260828-adobesign-align-cards"
 };
 
 (function updateAdobeSignWidget(){
@@ -12,6 +12,7 @@ window.TFC_CONFIG={
   if(!iframe)return;
   const wrap=iframe.closest('.adobe-wrap');
   const panel=document.getElementById('signPanel');
+  const panels=panel&&panel.parentElement;
 
   iframe.src='https://na4.documents.adobe.com/public/esignWidget?wid=CBFCIBAA3AAABLblqZhBgCTXn5u_TlQ7fvxZVQRsrOtRGUybq5Exlw8eHr4geWAx9Ptarkd-XwhkIlxmWwlk*&hosted=false';
   iframe.width='100%';
@@ -24,11 +25,17 @@ window.TFC_CONFIG={
   iframe.style.setProperty('min-height','0','important');
   iframe.style.setProperty('min-width','0','important');
 
+  if(panels){
+    panels.style.setProperty('justify-items','stretch','important');
+  }
   if(panel){
-    panel.style.setProperty('width','min(840px, calc(100vw - 32px))','important');
-    panel.style.setProperty('max-width','840px','important');
-    panel.style.setProperty('margin-left','auto','important');
-    panel.style.setProperty('margin-right','auto','important');
+    panel.style.setProperty('width','100%','important');
+    panel.style.setProperty('max-width','none','important');
+    panel.style.setProperty('justify-self','stretch','important');
+    panel.style.setProperty('margin-left','0','important');
+    panel.style.setProperty('margin-right','0','important');
+    panel.style.setProperty('left','auto','important');
+    panel.style.setProperty('right','auto','important');
     panel.style.setProperty('transform','none','important');
   }
   if(wrap){
@@ -39,29 +46,6 @@ window.TFC_CONFIG={
     wrap.style.setProperty('min-height','0','important');
     wrap.style.setProperty('margin-left','auto','important');
     wrap.style.setProperty('margin-right','auto','important');
-  }
-
-  if(!document.getElementById('tfc-a4-viewport-center')){
-    const style=document.createElement('style');
-    style.id='tfc-a4-viewport-center';
-    style.textContent=`
-      .panels:has(#signPanel.active){
-        width:100vw!important;
-        max-width:100vw!important;
-        margin-left:calc(50% - 50vw)!important;
-        margin-right:0!important;
-        display:flex!important;
-        justify-content:center!important;
-      }
-      .panels:has(#signPanel.active) #signPanel.active{
-        flex:0 0 auto!important;
-        width:min(840px,calc(100vw - 32px))!important;
-        max-width:840px!important;
-        margin-left:auto!important;
-        margin-right:auto!important;
-      }
-    `;
-    document.head.appendChild(style);
   }
 })();
 
