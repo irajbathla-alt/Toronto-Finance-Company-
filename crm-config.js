@@ -3,7 +3,7 @@ window.TFC_CONFIG={
   minimumStatements:6,
   demoMode:false,
   requestTimeout:30000,
-  build:"20260828-adobesign3"
+  build:"20260828-adobesign2"
 };
 
 (function updateAdobeSignWidget(){
@@ -16,49 +16,8 @@ window.TFC_CONFIG={
   iframe.frameBorder='0';
   iframe.style.border='0';
   iframe.style.overflow='hidden';
-  iframe.style.minHeight='100%';
+  iframe.style.minHeight='500px';
   iframe.style.minWidth='600px';
-
-  if(!document.getElementById('tfc-adobe-fullscreen-style')){
-    const style=document.createElement('style');
-    style.id='tfc-adobe-fullscreen-style';
-    style.textContent=`
-      #signPanel.active{
-        width:calc(100vw - 24px)!important;
-        max-width:none!important;
-        margin-left:calc(50% - 50vw + 12px)!important;
-        border-radius:0!important;
-        padding:18px clamp(12px,2vw,28px) 26px!important;
-      }
-      #signPanel .adobe-wrap{
-        width:100%!important;
-        height:calc(100vh - 185px)!important;
-        min-height:720px!important;
-        border-radius:0!important;
-        overflow:auto!important;
-        -webkit-overflow-scrolling:touch;
-      }
-      #signPanel .adobe-wrap iframe{
-        display:block!important;
-        width:100%!important;
-        height:100%!important;
-        min-height:100%!important;
-        border:0!important;
-      }
-      @media(max-width:780px){
-        #signPanel.active{
-          width:100vw!important;
-          margin-left:calc(50% - 50vw)!important;
-          padding:12px 8px 20px!important;
-        }
-        #signPanel .adobe-wrap{
-          height:calc(100vh - 145px)!important;
-          min-height:650px!important;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-  }
 })();
 
 (function warmCrm(){
