@@ -3,7 +3,7 @@ window.TFC_CONFIG={
   minimumStatements:6,
   demoMode:false,
   requestTimeout:30000,
-  build:"20260828-adobesign-hide-scrollbar"
+  build:"20260828-adobesign-wide-scroll"
 };
 
 (function updateAdobeSignWidget(){
@@ -17,16 +17,14 @@ window.TFC_CONFIG={
   iframe.src='https://na4.documents.adobe.com/public/esignWidget?wid=CBFCIBAA3AAABLblqZhBgCTXn5u_TlQ7fvxZVQRsrOtRGUybq5Exlw8eHr4geWAx9Ptarkd-XwhkIlxmWwlk*&hosted=false';
   iframe.width='100%';
   iframe.frameBorder='0';
-  iframe.setAttribute('scrolling','no');
-  iframe.scrolling='no';
+  iframe.removeAttribute('scrolling');
   iframe.style.setProperty('border','0','important');
-  iframe.style.setProperty('overflow','hidden','important');
-  iframe.style.setProperty('width','calc(100% + 18px)','important');
-  iframe.style.setProperty('max-width','none','important');
+  iframe.style.setProperty('width','100%','important');
+  iframe.style.setProperty('max-width','100%','important');
   iframe.style.setProperty('height','100%','important');
   iframe.style.setProperty('min-height','100%','important');
   iframe.style.setProperty('min-width','0','important');
-  iframe.style.setProperty('margin-right','-18px','important');
+  iframe.style.setProperty('margin-right','0','important');
 
   if(panels){
     panels.style.setProperty('justify-items','stretch','important');
@@ -42,13 +40,13 @@ window.TFC_CONFIG={
     panel.style.setProperty('transform','none','important');
   }
   if(wrap){
-    wrap.style.setProperty('width','min(100%, 794px)','important');
-    wrap.style.setProperty('max-width','794px','important');
+    wrap.style.setProperty('width','100%','important');
+    wrap.style.setProperty('max-width','none','important');
     wrap.style.setProperty('aspect-ratio','auto','important');
     wrap.style.setProperty('height','clamp(900px, 85vh, 1180px)','important');
     wrap.style.setProperty('min-height','900px','important');
-    wrap.style.setProperty('margin-left','auto','important');
-    wrap.style.setProperty('margin-right','auto','important');
+    wrap.style.setProperty('margin-left','0','important');
+    wrap.style.setProperty('margin-right','0','important');
     wrap.style.setProperty('overflow','hidden','important');
   }
 })();
