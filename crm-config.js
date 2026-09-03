@@ -3,7 +3,7 @@ window.TFC_CONFIG={
   minimumStatements:6,
   demoMode:false,
   requestTimeout:30000,
-  build:"20260903-client-workflow-state"
+  build:"20260903-signature-cross-device"
 };
 
 (function warmCrm(){
@@ -65,7 +65,7 @@ window.TFC_CONFIG={
   if(!/client-dashboard\.html/i.test(location.pathname))return;
   if(document.querySelector('script[data-tfc-client-workflow-state]'))return;
   const script=document.createElement('script');
-  script.src='client-workflow-state.js?v=20260903-1';
+  script.src='client-workflow-state.js?v=20260903-cross-device-1';
   script.dataset.tfcClientWorkflowState='true';
   document.head.appendChild(script);
 })();
