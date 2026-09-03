@@ -29,7 +29,7 @@ Frontend-only GitHub changes do not require an Apps Script deployment.
 - `crm-integration.js`
 - `eligibility.html`
 
-`apply.html` now redirects to the account-creation flow in `index.html?apply=1`, so there is only one signup implementation to maintain.
+`apply.html` redirects to the account-creation flow in `index.html?apply=1`, so there is only one signup implementation to maintain.
 
 ### Client portal
 
@@ -38,6 +38,7 @@ Frontend-only GitHub changes do not require an Apps Script deployment.
 - client login
 - Adobe Sign embed
 - Step 1 signing confirmation
+- persistent Step 1 workflow state through `client-workflow-state.js`
 - Step 2 bank-statement upload
 - financing decision display
 - client Proceed / Request More Information response
@@ -45,6 +46,19 @@ Frontend-only GitHub changes do not require an Apps Script deployment.
 - automatic client refresh
 
 `client-portal.html` remains only as a compatibility redirect.
+
+### Cross-device signature state
+
+The current backend schema includes:
+
+- `signatureConfirmed`
+- `signatureConfirmedAt`
+
+When the client presses **I Have Finished Signing**, the portal keeps the immediate browser confirmation for responsiveness and also calls `clientConfirmSignature` to save the confirmation against the application record.
+
+On later logins, including a different browser or device, `clientLogin` / `getClient` returns the saved signature state. The portal then keeps Step 1 marked complete and Step 2 unlocked.
+
+Existing clients who already have a browser-only Step 1 confirmation are migrated automatically when they next open the portal after the updated backend is deployed. Existing bank-statement progress can also restore the signing workflow state.
 
 ### Admin CRM
 
@@ -64,12 +78,13 @@ Dynamic client-entered data displayed by `admin.js` is HTML-escaped before being
 2. The client is opened into `client-dashboard.html`.
 3. The client reviews and signs through Adobe Acrobat Sign.
 4. The client confirms the signing step in the portal.
-5. The client uploads the required business bank statements.
-6. Uploaded documents are stored in the application's Google Drive folder.
-7. Admin reviews the file in `admin.html`.
-8. Admin can update status, advisor message, financing terms and requested documents.
-9. Admin can save silently or save and notify the client.
-10. Client sees updated information in the portal and can respond to available financing.
+5. The confirmation is saved to the application record for cross-device persistence.
+6. The client uploads the required business bank statements.
+7. Uploaded documents are stored in the application's Google Drive folder.
+8. Admin reviews the file in `admin.html`.
+9. Admin can update status, advisor message, financing terms and requested documents.
+10. Admin can save silently or save and notify the client.
+11. Client sees updated information in the portal and can respond to available financing.
 
 ## Known security limitation — future backend phase
 
