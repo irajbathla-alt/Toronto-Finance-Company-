@@ -13,14 +13,14 @@ const CONFIG = {
 const REQUIRED_HEADERS = [
   'applicationId','created','updated','name','email','passwordHash','phone','business',
   'address','city','province','postal','industry','revenue','requested','years','purpose',
-  'status','statements','advisor','messageTitle','messageBody','approvedAmount','quote',
+  'status','statements','signatureConfirmed','signatureConfirmedAt','advisor','messageTitle','messageBody','approvedAmount','quote',
   'term','paymentFrequency','paymentAmount','numberPayments','totalRepayment','documentsRequested',
   'clientDecision','clientDecisionNote','clientDecisionAt','notes',
   'driveFolderId','driveUrl','lastNotificationStatus','lastNotificationAt','lastNotificationError'
 ];
 
 const APPROVAL_STATUSES = ['Conditional Approval','Approved'];
-const SCHEMA_CACHE_KEY = 'tfc-schema-20260818-v1';
+const SCHEMA_CACHE_KEY = 'tfc-schema-20260903-signature-v2';
 
 function doGet(e) {
   try {
@@ -31,6 +31,7 @@ function doGet(e) {
       createAccount,
       clientLogin,
       getClient,
+      clientConfirmSignature,
       clientDecision,
       adminLogin,
       adminList,
@@ -53,6 +54,7 @@ function doPost(e) {
       createAccount,
       clientLogin,
       getClient,
+      clientConfirmSignature,
       clientDecision,
       sendSignupNotification,
       uploadDocument,
@@ -105,7 +107,7 @@ function json(value) {
 function health() {
   return {
     ok:true,
-    service:'Toronto Finance Company CRM Simple 1.4',
+    service:'Toronto Finance Company CRM Simple 1.5',
     minimumStatements:CONFIG.MIN_STATEMENTS,
     adminPasswordConfigured:CONFIG.ADMIN_PASSWORD !== 'CHANGE_THIS_PASSWORD',
     clientNotificationFrom:CONFIG.CLIENT_NOTIFICATION_FROM
@@ -326,6 +328,8 @@ function createAccount(p) {
       purpose:p.purpose || '',
       status:'Account Created',
       statements:0,
+      signatureConfirmed:false,
+      signatureConfirmedAt:'',
       advisor:'',
       messageTitle:'Welcome',
       messageBody:'Your account has been created. Please complete your application and upload six recent bank statements.',
@@ -371,6 +375,24 @@ function clientLogin(p) {
 function getClient(p) {
   const record = findApplication(p.applicationId);
   return { ok:true, data:safe({ ...record, documents:[] }) };
+}
+
+function clientConfirmSignature(p) {
+  const record = findApplication(p.applicationId);
+  const email = String(p.email || '').trim().toLowerCase();
+  const recordEmail = String(record.email || '').trim().toLowerCase();
+
+  if (!email || email !== recordEmail) {
+    throw new Error('Account verification failed');
+  }
+
+  updateRecord(record.applicationId,{
+    signatureConfirmed:true,
+    signatureConfirmedAt:record.signatureConfirmedAt || new Date()
+  });
+
+  const fresh = findApplication(record.applicationId);
+  return { ok:true, data:safe({ ...fresh, documents:[] }) };
 }
 
 function clientDecision(p) {
