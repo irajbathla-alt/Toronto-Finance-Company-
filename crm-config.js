@@ -3,7 +3,7 @@ window.TFC_CONFIG={
   minimumStatements:6,
   demoMode:false,
   requestTimeout:30000,
-  build:"20260906-debug1"
+  build:"20260906-debug2"
 };
 
 (function warmCrm(){
@@ -22,37 +22,6 @@ window.TFC_CONFIG={
   script.onerror=cleanup;
   script.src=url+'?action=health&callback='+encodeURIComponent(callback)+'&_='+Date.now();
   timer=setTimeout(cleanup,12000);
-  document.head.appendChild(script);
-})();
-
-(function keepClientDecisionOpen(){
-  if(!/client-dashboard\.html/i.test(location.pathname))return;
-  const timer=setInterval(()=>{
-    const proceed=document.getElementById('decisionProceed');
-    const moreInfo=document.getElementById('decisionMoreInfo');
-    const status=document.getElementById('decisionStatus');
-    if(!proceed||!moreInfo)return;
-
-    const sending=Boolean(status&&/^Sending your response/i.test(String(status.textContent||'').trim()));
-    if(!sending){
-      proceed.disabled=false;
-      moreInfo.disabled=false;
-    }
-
-    if(status&&status.classList.contains('show')&&!sending&&/Your response has been sent:/i.test(status.textContent||'')){
-      const current=String(status.textContent||'').replace(/\s*You can respond again.*$/i,'').trim();
-      status.textContent=current+' You can respond again after reviewing any new advisor update.';
-    }
-  },500);
-  window.addEventListener('pagehide',()=>clearInterval(timer),{once:true});
-})();
-
-(function loadClientWorkflowState(){
-  if(!/client-dashboard\.html/i.test(location.pathname))return;
-  if(document.querySelector('script[data-tfc-client-workflow-state]'))return;
-  const script=document.createElement('script');
-  script.src='client-workflow-state.js?v=20260906-debug1';
-  script.dataset.tfcClientWorkflowState='true';
   document.head.appendChild(script);
 })();
 
