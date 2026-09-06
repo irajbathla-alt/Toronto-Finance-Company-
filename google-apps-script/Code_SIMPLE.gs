@@ -231,6 +231,13 @@ function findApplication(applicationId) {
   return readRecord(found);
 }
 
+function requireClientEmail(record, emailValue) {
+  const email = String(emailValue || '').trim().toLowerCase();
+  const recordEmail = String(record.email || '').trim().toLowerCase();
+  if (!email || email !== recordEmail) throw new Error('Account verification failed');
+  return email;
+}
+
 function hash(value) {
   const bytes = Utilities.computeDigest(
     Utilities.DigestAlgorithm.SHA_256,
@@ -382,17 +389,13 @@ function clientLogin(p) {
 
 function getClient(p) {
   const record = findApplication(p.applicationId);
+  requireClientEmail(record,p.email);
   return { ok:true, data:safeClient({ ...record, documents:[] }) };
 }
 
 function clientConfirmSignature(p) {
   const record = findApplication(p.applicationId);
-  const email = String(p.email || '').trim().toLowerCase();
-  const recordEmail = String(record.email || '').trim().toLowerCase();
-
-  if (!email || email !== recordEmail) {
-    throw new Error('Account verification failed');
-  }
+  requireClientEmail(record,p.email);
 
   updateRecord(record.applicationId,{
     signatureConfirmed:true,
@@ -405,11 +408,7 @@ function clientConfirmSignature(p) {
 
 function clientDecision(p) {
   const record = findApplication(p.applicationId);
-  const email = String(p.email || '').trim().toLowerCase();
-  const recordEmail = String(record.email || '').trim().toLowerCase();
-  if (!email || email !== recordEmail) {
-    throw new Error('Account verification failed');
-  }
+  requireClientEmail(record,p.email);
 
   const decision = String(p.decision || '').trim();
   if (!['Proceed','Request More Information'].includes(decision)) {
@@ -429,11 +428,7 @@ function clientDecision(p) {
 
 function sendSignupNotification(p) {
   const record = findApplication(p.applicationId);
-  const email = String(p.email || '').trim().toLowerCase();
-
-  if (!email || email !== String(record.email || '').trim().toLowerCase()) {
-    throw new Error('Account verification failed');
-  }
+  requireClientEmail(record,p.email);
 
   const cache = CacheService.getScriptCache();
   const cacheKey = `signup-notified-${record.applicationId}`;
@@ -512,6 +507,7 @@ function adminEnsureDrive(p) {
 
 function uploadDocument(p) {
   const record = findApplication(p.applicationId);
+  requireClientEmail(record,p.email);
   const type = String(p.type || '').trim().toLowerCase();
   const rootFolder = ensureDriveFolder(record);
   let folderName = 'Other Documents';
