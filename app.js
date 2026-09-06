@@ -23,7 +23,8 @@ function landing() {
         <div class="navlinks">
           <button data-page="experience.html">Experience</button>
           <button data-page="about.html">About</button>
-          <button data-go="apply">Privacy</button>
+          <button data-page="privacy.html">Privacy</button>
+          <button data-page="terms.html">Terms</button>
           <button data-go="dashboard">Log In</button>
           <button class="pill" data-go="apply">Apply</button>
         </div>
@@ -90,7 +91,7 @@ function apply() {
         </div>
 
         <p style="font-size:12px;line-height:1.6;color:#786f65;margin-top:18px">
-          By creating an account, you agree to Toronto Finance Company’s Terms & Conditions and acknowledge its Privacy Policy.
+          By creating an account, you agree to Toronto Finance Company’s <a href="terms.html">Terms & Conditions</a> and acknowledge its <a href="privacy.html">Privacy Policy</a>.
         </p>
 
         <div class="form-actions">
@@ -113,7 +114,7 @@ function wire() {
     element.onclick = () => {
       const destination = element.dataset.go;
       if (destination === 'apply') apply();
-      else if (destination === 'dashboard') window.location.href = 'client-dashboard.html?login=1&v=20260818-endpoint2';
+      else if (destination === 'dashboard') window.location.href = 'client-dashboard.html?login=1';
       else landing();
     };
   });
