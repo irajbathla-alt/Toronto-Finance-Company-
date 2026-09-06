@@ -5,17 +5,18 @@
       eligibilityButton.dataset.eligibilityReady = 'true';
       eligibilityButton.textContent = 'Check Eligibility';
       eligibilityButton.removeAttribute('data-go');
-      eligibilityButton.onclick = (event) => {
+      eligibilityButton.onclick = event => {
         event.preventDefault();
-        const width = Math.min(560, window.screen.availWidth - 30);
-        const height = Math.min(820, window.screen.availHeight - 40);
+        const width = Math.max(320, Math.min(560, window.screen.availWidth - 30));
+        const height = Math.max(560, Math.min(820, window.screen.availHeight - 40));
         const left = Math.max(0, Math.round((window.screen.availWidth - width) / 2));
         const top = Math.max(0, Math.round((window.screen.availHeight - height) / 2));
-        window.open(
+        const popup = window.open(
           'eligibility.html',
           'TorontoFinanceEligibility',
           `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
         );
+        if (!popup) window.location.href = 'eligibility.html';
       };
     }
 
@@ -24,9 +25,10 @@
       applyButton.dataset.applyReady = 'true';
       applyButton.textContent = 'Apply Now';
       applyButton.setAttribute('data-go', 'apply');
-      applyButton.onclick = (event) => {
+      applyButton.onclick = event => {
         event.preventDefault();
-        apply(1);
+        if (typeof window.apply === 'function') window.apply();
+        else window.location.href = 'index.html?apply=1';
       };
     }
   };
