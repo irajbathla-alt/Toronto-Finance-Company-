@@ -4,7 +4,7 @@ const CONFIG = {
   ADMIN_EMAIL: 'admin@torontofinance.ca',
   SIGNUP_NOTIFICATION_EMAIL: 'info@torontofinancecompany.com',
   ADMIN_PASSWORD: 'CHANGE_THIS_PASSWORD',
-  CLIENT_PORTAL_URL: 'https://irajbathla-alt.github.io/Toronto-Finance-Company-/client-dashboard.html',
+  CLIENT_PORTAL_URL: 'https://torontofinancecompany.com/client-dashboard.html',
   CLIENT_NOTIFICATION_FROM: 'info@torontofinancecompany.com',
   COMPANY_NAME: 'Toronto Finance Company',
   MIN_STATEMENTS: 6
@@ -19,6 +19,14 @@ const REQUIRED_HEADERS = [
   'driveFolderId','driveUrl','lastNotificationStatus','lastNotificationAt','lastNotificationError'
 ];
 
+const CLIENT_SAFE_FIELDS = [
+  'applicationId','created','updated','name','email','phone','business','status','statements',
+  'signatureConfirmed','signatureConfirmedAt','advisor','messageTitle','messageBody','approvedAmount',
+  'quote','term','paymentFrequency','paymentAmount','numberPayments','totalRepayment','documentsRequested',
+  'clientDecision','clientDecisionNote','clientDecisionAt','documents'
+];
+
+const EARLY_STATUSES = ['Account Created','Statements Required','Ready for Review'];
 const APPROVAL_STATUSES = ['Conditional Approval','Approved'];
 const SCHEMA_CACHE_KEY = 'tfc-schema-20260903-signature-v2';
 
@@ -107,7 +115,7 @@ function json(value) {
 function health() {
   return {
     ok:true,
-    service:'Toronto Finance Company CRM Simple 1.5',
+    service:'Toronto Finance Company CRM Simple 1.6',
     minimumStatements:CONFIG.MIN_STATEMENTS,
     adminPasswordConfigured:CONFIG.ADMIN_PASSWORD !== 'CHANGE_THIS_PASSWORD',
     clientNotificationFrom:CONFIG.CLIENT_NOTIFICATION_FROM
@@ -353,7 +361,7 @@ function createAccount(p) {
     };
 
     appendRecordToSheet(sh,headers,record);
-    return { ok:true, data:safe({ ...record, documents:[] }) };
+    return { ok:true, data:safeClient({ ...record, documents:[] }) };
   } finally {
     lock.releaseLock();
   }
@@ -369,12 +377,12 @@ function clientLogin(p) {
     throw new Error('Invalid email or password');
   }
 
-  return { ok:true, data:safe({ ...record, documents:[] }) };
+  return { ok:true, data:safeClient({ ...record, documents:[] }) };
 }
 
 function getClient(p) {
   const record = findApplication(p.applicationId);
-  return { ok:true, data:safe({ ...record, documents:[] }) };
+  return { ok:true, data:safeClient({ ...record, documents:[] }) };
 }
 
 function clientConfirmSignature(p) {
@@ -392,13 +400,14 @@ function clientConfirmSignature(p) {
   });
 
   const fresh = findApplication(record.applicationId);
-  return { ok:true, data:safe({ ...fresh, documents:[] }) };
+  return { ok:true, data:safeClient({ ...fresh, documents:[] }) };
 }
 
 function clientDecision(p) {
   const record = findApplication(p.applicationId);
   const email = String(p.email || '').trim().toLowerCase();
-  if (email && email !== String(record.email || '').trim().toLowerCase()) {
+  const recordEmail = String(record.email || '').trim().toLowerCase();
+  if (!email || email !== recordEmail) {
     throw new Error('Account verification failed');
   }
 
@@ -415,7 +424,7 @@ function clientDecision(p) {
 
   const fresh = findApplication(record.applicationId);
   sendClientDecisionEmail(fresh);
-  return { ok:true, data:safe({ ...fresh, documents:[] }) };
+  return { ok:true, data:safeClient({ ...fresh, documents:[] }) };
 }
 
 function sendSignupNotification(p) {
@@ -443,7 +452,7 @@ function sendSignupNotification(p) {
 
 function adminLogin(p) {
   if (CONFIG.ADMIN_PASSWORD === 'CHANGE_THIS_PASSWORD') {
-    throw new Error('Change ADMIN_PASSWORD in Code.gs before deploying.');
+    throw new Error('Change ADMIN_PASSWORD in the deployed Apps Script before using admin login.');
   }
 
   const email = String(p.email || '').trim().toLowerCase();
@@ -503,33 +512,51 @@ function adminEnsureDrive(p) {
 
 function uploadDocument(p) {
   const record = findApplication(p.applicationId);
+  const type = String(p.type || '').trim().toLowerCase();
   const rootFolder = ensureDriveFolder(record);
   let folderName = 'Other Documents';
-  if (p.type === 'statement') folderName = 'Bank Statements';
-  else if (p.type === 'identification') folderName = 'Identification';
-  else if (p.type === 'financial') folderName = 'Financial Statements';
+  if (type === 'statement') folderName = 'Bank Statements';
+  else if (type === 'identification') folderName = 'Identification';
+  else if (type === 'financial') folderName = 'Financial Statements';
   const targetFolder = childFolder(rootFolder,folderName);
 
-  if (!p.base64) throw new Error('Missing document data');
+  const base64 = String(p.base64 || '').trim();
+  if (!base64) throw new Error('Missing document data');
+
+  const fileName = String(p.fileName || 'document.pdf').trim() || 'document.pdf';
+  const mimeType = String(p.mimeType || 'application/pdf').trim() || 'application/pdf';
+
+  if (type === 'statement' && mimeType !== 'application/pdf' && !/\.pdf$/i.test(fileName)) {
+    throw new Error('Bank statements must be uploaded as PDF files');
+  }
+
+  const estimatedBytes = Math.ceil(base64.length * 3 / 4);
+  if (estimatedBytes > 20 * 1024 * 1024) {
+    throw new Error('This file is too large. Please upload files smaller than 20 MB each.');
+  }
 
   const blob = Utilities.newBlob(
-    Utilities.base64Decode(p.base64),
-    p.mimeType || 'application/pdf',
-    p.fileName || 'document.pdf'
+    Utilities.base64Decode(base64),
+    mimeType,
+    fileName
   );
 
   targetFolder.createFile(blob);
 
-  if (p.type === 'statement') {
+  if (type === 'statement') {
     const count = countFiles(childFolder(rootFolder,'Bank Statements'));
-    updateRecord(record.applicationId,{
-      statements:count,
-      status:count >= CONFIG.MIN_STATEMENTS ? 'Ready for Review' : 'Statements Required',
-      messageTitle:count >= CONFIG.MIN_STATEMENTS ? 'Documents Received' : 'Statements Required',
-      messageBody:count >= CONFIG.MIN_STATEMENTS
+    const patch = { statements:count };
+    const currentStatus = String(record.status || 'Account Created');
+
+    if (EARLY_STATUSES.includes(currentStatus)) {
+      patch.status = count >= CONFIG.MIN_STATEMENTS ? 'Ready for Review' : 'Statements Required';
+      patch.messageTitle = count >= CONFIG.MIN_STATEMENTS ? 'Documents Received' : 'Statements Required';
+      patch.messageBody = count >= CONFIG.MIN_STATEMENTS
         ? 'Thank you. Your statements have been received and your file is ready for review.'
-        : `Please upload ${CONFIG.MIN_STATEMENTS-count} more monthly statement(s).`
-    });
+        : `Please upload ${Math.max(0,CONFIG.MIN_STATEMENTS-count)} more monthly statement(s).`;
+    }
+
+    updateRecord(record.applicationId,patch);
   }
 
   return { ok:true };
@@ -775,6 +802,14 @@ function sendClientDecisionEmail(record) {
       replyTo:String(record.email || CONFIG.ADMIN_EMAIL)
     });
   } catch (_) {}
+}
+
+function safeClient(record) {
+  const result = {};
+  CLIENT_SAFE_FIELDS.forEach(field => {
+    if (Object.prototype.hasOwnProperty.call(record,field)) result[field] = record[field];
+  });
+  return result;
 }
 
 function safe(record) {
