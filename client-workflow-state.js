@@ -313,8 +313,7 @@
 
     const watched = [
       document.getElementById('appId'),
-      document.getElementById('statementCount'),
-      document.getElementById('workflowTitle')
+      document.getElementById('statementCount')
     ].filter(Boolean);
 
     if (watched.length) {
