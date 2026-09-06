@@ -12,13 +12,13 @@ This document describes the CRM architecture that is actually in use now.
 
 ## Current backend reference
 
-Use `google-apps-script/Code_SIMPLE.gs` as the repository reference for the currently deployed backend.
+Use `google-apps-script/Code_SIMPLE.gs` as the repository reference for the current backend.
 
 Important: the GitHub copy intentionally contains a placeholder `ADMIN_PASSWORD`. Do not replace the real password in the deployed Apps Script with that placeholder.
 
-The deployed endpoint currently used by the frontend is defined in `crm-config.js`.
+The deployed endpoint used by the frontend is defined in `crm-config.js`.
 
-Frontend-only GitHub changes do not require an Apps Script deployment.
+Frontend-only GitHub changes do not require an Apps Script deployment. Any change to `Code_SIMPLE.gs` requires a new Apps Script deployment version before that backend change is live.
 
 ## Current frontend files
 
@@ -31,6 +31,8 @@ Frontend-only GitHub changes do not require an Apps Script deployment.
 
 `apply.html` redirects to the account-creation flow in `index.html?apply=1`, so there is only one signup implementation to maintain.
 
+Privacy and Terms are now linked directly from `app.js`; the previous runtime legal-link repair script has been removed.
+
 ### Client portal
 
 `client-dashboard.html` is the single current client portal implementation. It contains:
@@ -38,27 +40,41 @@ Frontend-only GitHub changes do not require an Apps Script deployment.
 - client login
 - Adobe Sign embed
 - Step 1 signing confirmation
-- persistent Step 1 workflow state through `client-workflow-state.js`
+- cross-device Step 1 persistence using the CRM record
 - Step 2 bank-statement upload
 - financing decision display
 - client Proceed / Request More Information response
 - requested-document uploads
 - automatic client refresh
 
+The previous standalone client workflow-state patch has been removed. Signature state, Step 2 unlocking, workflow messaging and CRM synchronization now live directly in `client-dashboard.html` so there is one source of truth.
+
+Unused future/status placeholder cards are not rendered. Status-based sections such as financing details and additional-document requests remain hidden until the CRM record requires them.
+
 `client-portal.html` remains only as a compatibility redirect.
 
 ### Cross-device signature state
 
-The current backend schema includes:
+The backend schema includes:
 
 - `signatureConfirmed`
 - `signatureConfirmedAt`
 
-When the client presses **I Have Finished Signing**, the portal keeps the immediate browser confirmation for responsiveness and also calls `clientConfirmSignature` to save the confirmation against the application record.
+When the client presses **I Have Finished Signing**, the portal immediately retains the browser confirmation and also calls `clientConfirmSignature` to save the confirmation against the application record.
 
-On later logins, including a different browser or device, `clientLogin` / `getClient` returns the saved signature state. The portal then keeps Step 1 marked complete and Step 2 unlocked.
+On later logins, including from a different browser or device, `clientLogin` / `getClient` returns the saved signature state. Step 1 remains complete and Step 2 remains unlocked.
 
-Existing clients who already have a browser-only Step 1 confirmation are migrated automatically when they next open the portal after the updated backend is deployed. Existing bank-statement progress can also restore the signing workflow state.
+Existing clients with a previous browser-only Step 1 confirmation are migrated automatically when they next open the portal. Existing bank-statement progress can also restore and synchronize the signing workflow state.
+
+### Bank-statement uploads
+
+Bank statements are validated as PDF files in the portal and again in the backend. Individual uploads are limited to 20 MB.
+
+Statement uploads update the statement count. They may move early-stage files between `Statements Required` and `Ready for Review`, but they do not push a mature file such as `Under Review`, `Additional Documents Required`, `Conditional Approval`, `Approved`, `Funded` or `Declined` backward to an earlier status.
+
+### Client-safe CRM responses
+
+Client-facing actions return a limited field set needed by the client portal. Internal advisor notes, Drive folder IDs/URLs and notification bookkeeping are not returned in normal client account responses.
 
 ### Admin CRM
 
@@ -68,7 +84,7 @@ The current admin frontend is:
 - `admin.js`
 - `admin-extensions.js`
 
-`admin-extensions.js` consolidates the previous notification/session helper and Drive activity helper into one file.
+`admin-extensions.js` contains Save & Notify, browser-session persistence and Drive document activity.
 
 Dynamic client-entered data displayed by `admin.js` is HTML-escaped before being inserted into admin CRM markup.
 
@@ -90,7 +106,7 @@ Dynamic client-entered data displayed by `admin.js` is HTML-escaped before being
 
 The present backend verifies credentials at login but does not yet issue a signed, expiring token that must accompany every protected admin/client request.
 
-As a result, browser session state is useful for the interface but is not a complete server-side authorization layer.
+As a result, browser session state is useful for the interface but is not a complete server-side authorization layer. Application-ID-based endpoints should not be considered fully hardened authorization.
 
 A future Apps Script security upgrade should be staged separately:
 
@@ -104,6 +120,6 @@ Do not attempt that migration by changing only one side at a time on the live sy
 
 ## Legacy files
 
-Other `.gs` files in `google-apps-script/` are older architecture experiments/reference copies. They are not the current deployment source and should not be copied over the working Apps Script deployment during normal frontend maintenance.
+Other `.gs` files in `google-apps-script/` are older architecture experiments/reference copies. They are not the current deployment source and should not be copied over the working Apps Script deployment during normal maintenance.
 
-The old standalone `adobe-sign-embed.js`, `client-decision.js`, `admin-notify.js` and `admin-doc-activity.js` implementations have been removed from the current frontend to prevent duplicate logic.
+The old standalone `adobe-sign-embed.js`, `client-decision.js`, `admin-notify.js`, `admin-doc-activity.js`, `client-workflow-state.js` and `legal-links.js` implementations are not part of the current frontend.
