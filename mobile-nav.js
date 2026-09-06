@@ -17,7 +17,7 @@
     else if (destination === 'about') window.location.href = 'about.html';
     else if (destination === 'privacy') window.location.href = 'privacy.html';
     else if (destination === 'terms') window.location.href = 'terms.html';
-    else if (destination === 'login') window.location.href = 'client-dashboard.html?login=1&v=20260818-endpoint2';
+    else if (destination === 'login') window.location.href = 'client-dashboard.html?login=1';
     else if (destination === 'apply' && typeof window.apply === 'function') window.apply();
     else if (destination === 'apply') window.location.href = 'index.html?apply=1';
   };
