@@ -102,6 +102,33 @@ Dynamic client-entered data displayed by `admin.js` is HTML-escaped before being
 10. Admin can save silently or save and notify the client.
 11. Client sees updated information in the portal and can respond to available financing.
 
+## Audit trail
+
+The current backend reference includes an append-only application audit trail stored in a separate Google Sheet tab named `Audit Log`.
+
+The sheet is created automatically when the first audit event is written. Audit rows are appended and are not edited by the CRM code.
+
+Recorded application events include:
+
+- client account creation and portal login
+- signature-step confirmation
+- client document uploads
+- automatic statement/status progression
+- client financing responses
+- Admin status, advisor, financing-term, document-request and message updates
+- client update notifications sent or failed
+- client Drive-folder creation
+
+Each audit row includes an audit ID, timestamp, application ID, actor type, actor identifier, action, changed field, before/after values where appropriate, summary and optional metadata.
+
+Free-text internal notes and client message bodies are recorded as update events without retaining their historical contents in the Audit Log.
+
+The Admin CRM shows this history in the **Application Activity** section of each client file with filters for Admin, Client, Agent, Documents, Status, Financing, Notifications and System activity.
+
+Audit history starts when the updated Apps Script is deployed. Earlier changes are not reconstructed retroactively.
+
+The audit schema already supports `AGENT` as an actor type for the future Agent Portal.
+
 ## Known security limitation — future backend phase
 
 The present backend verifies credentials at login but does not yet issue a signed, expiring token that must accompany every protected admin/client request.
