@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="portal.css?v=20260812-decision1">
 <style>
 .client-response{border:1px solid rgba(198,150,78,.32);background:#fbf7f0;border-radius:10px;padding:16px}.client-response strong{display:block;font-size:11px;letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px}.client-response p{margin:4px 0;color:#786f65;font-size:12px;line-height:1.6}.client-response.has-response{background:#edf6f0;border-color:rgba(47,133,90,.25)}
+.audit-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.audit-controls select{border:1px solid #d9cdbf;border-radius:999px;padding:8px 11px;background:#fcf9f4;font-size:9px;text-transform:uppercase;letter-spacing:.07em}.audit-trail{position:relative;margin-top:14px}.audit-empty{padding:18px 0;color:#786f65;font-size:11px}.audit-event{display:grid;grid-template-columns:16px minmax(0,1fr);gap:11px;padding:0 0 17px;position:relative}.audit-event:not(:last-child)::after{content:'';position:absolute;left:7px;top:16px;bottom:0;width:1px;background:#e7ded4}.audit-dot{width:9px;height:9px;border-radius:50%;background:#c6964e;margin-top:4px;z-index:1;box-shadow:0 0 0 3px #fff}.audit-event.client .audit-dot{background:#406b8a}.audit-event.admin .audit-dot{background:#17130f}.audit-event.agent .audit-dot{background:#2f855a}.audit-event.system .audit-dot{background:#8b8176}.audit-line{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.audit-summary{font-size:11px;font-weight:600;line-height:1.45}.audit-time{font-size:9px;color:#8a8177;white-space:nowrap}.audit-meta{margin-top:4px;font-size:10px;color:#786f65;line-height:1.5}.audit-actor{display:inline-block;margin-top:6px;padding:4px 7px;border-radius:999px;background:#f2eee8;font-size:7px;text-transform:uppercase;letter-spacing:.08em;color:#786f65}@media(max-width:760px){.audit-line{display:block}.audit-time{display:block;margin-top:3px}.audit-controls{align-items:stretch}.audit-controls select,.audit-controls button{flex:1}}
 </style>
 </head>
 <body>
@@ -74,6 +75,28 @@
       <article class="summary-card card"><small>Advisor</small><strong id="summaryAdvisor">Unassigned</strong></article>
     </section>
 
+    <section class="section card" id="auditCard">
+      <div class="section-title">
+        <div><div class="eyebrow">Permanent History</div><h3>Application Activity</h3></div>
+        <span class="subtle" id="auditCount">0 events</span>
+      </div>
+      <div class="audit-controls">
+        <select id="auditFilter" aria-label="Filter application activity">
+          <option value="all">All Activity</option>
+          <option value="admin">Admin</option>
+          <option value="client">Client</option>
+          <option value="agent">Agent</option>
+          <option value="documents">Documents</option>
+          <option value="status">Status</option>
+          <option value="financing">Financing</option>
+          <option value="notifications">Notifications</option>
+          <option value="system">System</option>
+        </select>
+        <button class="quick" id="auditRefresh">Refresh Activity</button>
+      </div>
+      <div class="audit-trail" id="auditTrail"><div class="audit-empty">Open a client file to load its activity.</div></div>
+    </section>
+
     <section class="section card"><div class="section-title"><h3>Client & Application</h3><button class="quick" id="copyId">Copy ID</button></div><div id="details"></div></section>
 
     <section class="section card">
@@ -125,6 +148,6 @@
 
 <script src="crm-config.js?v=20260906-debug2"></script>
 <script src="admin.js?v=20260906-debug2"></script>
-<script src="admin-extensions.js?v=20260906-debug2"></script>
+<script src="admin-extensions.js?v=20260925-audit1"></script>
 </body>
 </html>
