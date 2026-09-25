@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent Portal Preview | Toronto Finance Company</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="portal.css?v=20260925-agent-preview1">
+<style>
+.agent-badge{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border-radius:999px;background:#edf6f0;color:#2f855a;font-size:9px;text-transform:uppercase;letter-spacing:.1em}
+.agent-badge:before{content:'';width:7px;height:7px;border-radius:50%;background:#2f855a}
+.agent-intro{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:14px}
+.agent-meta{font-size:11px;color:var(--muted);margin-top:5px}
+.agent-actions{display:flex;gap:8px;flex-wrap:wrap}
+.agent-metrics{grid-template-columns:repeat(5,1fr)}
+.agent-table table{min-width:960px}
+.status.info{background:#fff5e5;color:#87642f}.status.info:before{background:var(--gold)}
+.agent-note{background:#fbf7f0;border-left:3px solid var(--gold);padding:14px 16px;border-radius:8px;font-size:12px;line-height:1.6;color:var(--muted)}
+.offer-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.offer-mini div{background:#fbf7f0;border:1px solid var(--line);border-radius:10px;padding:12px}
+.offer-mini small{display:block;font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.offer-mini strong{display:block;margin-top:5px;font-size:13px}
+.demo-tag{margin-top:12px;text-align:center;font-size:10px;color:var(--muted)}
+.demo-tag strong{color:var(--gold)}
+@media(max-width:1000px){.agent-metrics{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.agent-intro{align-items:flex-start;flex-direction:column}.offer-mini{grid-template-columns:1fr}.agent-metrics{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header class="tfc-top">
+  <div class="tfc-brand">Toronto Finance Company · Agent Portal</div>
+  <nav class="tfc-nav">
+    <button id="websiteBtn">Website</button>
+    <button id="logoutBtn" class="hidden">Log Out</button>
+  </nav>
+</header>
+
+<section id="login" class="login-card card">
+  <div class="eyebrow" style="text-align:center">Secure Agent Access</div>
+  <h1>Agent Login</h1>
+  <p>Access your submitted client files, status updates, document requests and financing decisions.</p>
+  <div class="field"><label>Email Address</label><input id="email" type="email" value="raj@torontofinancecompany.com"></div>
+  <div class="field"><label>Password</label><input id="password" type="password" value="Preview123!"></div>
+  <button class="btn" id="loginBtn" style="width:100%;margin-top:20px">Preview Agent Portal</button>
+  <div class="demo-tag">Preview only · <strong>No live agent authentication yet</strong></div>
+</section>
+
+<main id="portal" class="shell hidden">
+  <section class="agent-intro">
+    <div>
+      <div class="eyebrow">Agent Workspace</div>
+      <h1 style="font-family:'Cormorant Garamond',serif;text-transform:uppercase;font-size:48px;font-weight:400;margin:5px 0 0">Welcome, Raj</h1>
+      <div class="agent-meta">Raj Bathla · TFC-AG-001 · raj@torontofinancecompany.com</div>
+    </div>
+    <div class="agent-actions">
+      <span class="agent-badge">Active Agent</span>
+      <button class="btn gold" id="newClient">+ Submit New Client</button>
+    </div>
+  </section>
+
+  <section class="metrics agent-metrics">
+    <article class="metric card"><span>My Applications</span><strong>12</strong></article>
+    <article class="metric card"><span>More Info Required</span><strong>2</strong></article>
+    <article class="metric card"><span>Under Review</span><strong>4</strong></article>
+    <article class="metric card"><span>Financing Available</span><strong>3</strong></article>
+    <article class="metric card"><span>Funded</span><strong>2</strong></article>
+  </section>
+
+  <section class="workspace card agent-table">
+    <div class="toolbar">
+      <input id="search" placeholder="Search client, business or application ID">
+      <select id="filter">
+        <option value="">All statuses</option>
+        <option>More Info Required</option>
+        <option>Under Review</option>
+        <option>Financing Available</option>
+        <option>Funded</option>
+      </select>
+      <button class="btn secondary" id="clear">Clear Filters</button>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Application</th><th>Client</th><th>Business</th><th>Status</th><th>Last Update</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<div class="backdrop" id="backdrop"></div>
+<aside class="drawer" id="drawer">
+  <header class="drawer-head">
+    <div><div class="eyebrow">My Client File</div><h2 id="dTitle">Application</h2></div>
+    <button class="close" id="close">×</button>
+  </header>
+  <div class="drawer-body">
+    <section class="summary-grid">
+      <article class="summary-card card"><small>Status</small><strong id="dStatus">—</strong></article>
+      <article class="summary-card card"><small>Client</small><strong id="dClient">—</strong></article>
+      <article class="summary-card card"><small>Business</small><strong id="dBusiness">—</strong></article>
+      <article class="summary-card card"><small>Submitted By</small><strong>Raj Bathla</strong></article>
+    </section>
+
+    <section class="section card">
+      <div class="section-title"><h3>Admin Update</h3></div>
+      <div class="agent-note" id="dMessage"></div>
+    </section>
+
+    <section class="section card" id="approvalBox">
+      <div class="section-title"><h3>Financing Details</h3></div>
+      <div class="offer-mini">
+        <div><small>Amount</small><strong id="dAmount">—</strong></div>
+        <div><small>Product</small><strong id="dProduct">—</strong></div>
+        <div><small>Term</small><strong id="dTerm">—</strong></div>
+      </div>
+    </section>
+
+    <section class="section card">
+      <div class="section-title"><h3>Agent Actions</h3></div>
+      <div class="quick-actions">
+        <button class="quick">Upload Documents</button>
+        <button class="quick">Add Note to Admin</button>
+        <button class="quick">View Client Details</button>
+      </div>
+    </section>
+  </div>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const applications=[
+  {id:'TFC-000142',client:'Aman Singh',business:'ABC Trucking Ltd.',status:'Under Review',updated:'Sep 25',message:'Your client file is under review. No additional information is required at this time.'},
+  {id:'TFC-000139',client:'John Patel',business:'Spice House Restaurant',status:'More Info Required',updated:'Sep 24',message:'Please provide the most recent 3 months of business bank statements and a copy of the current lease.'},
+  {id:'TFC-000134',client:'Harpreet Gill',business:'HG Welding Ltd.',status:'Financing Available',updated:'Sep 22',message:'Financing is available subject to final lender documentation and client acceptance.',amount:'$75,000',product:'Business Term Loan',term:'18 Months'},
+  {id:'TFC-000128',client:'Mike Wong',business:'Downtown Market',status:'Funded',updated:'Sep 18',message:'This financing file has been completed and funded.',amount:'$60,000',product:'Business Line of Credit',term:'Revolving'}
+];
+const $=s=>document.querySelector(s);
+function cls(status){if(status==='Funded'||status==='Financing Available')return'approved';if(status==='Under Review')return'review';if(status==='More Info Required')return'info';return''}
+function render(){
+  const q=$('#search').value.trim().toLowerCase(),f=$('#filter').value;
+  $('#rows').innerHTML=applications.filter(a=>(!f||a.status===f)&&(!q||[a.id,a.client,a.business].join(' ').toLowerCase().includes(q))).map(a=>`
+    <tr>
+      <td><strong>${a.id}</strong></td>
+      <td><strong>${a.client}</strong></td>
+      <td>${a.business}</td>
+      <td><span class="status ${cls(a.status)}">${a.status}</span></td>
+      <td>${a.updated}</td>
+      <td><button class="quick" data-open="${a.id}">Open File</button></td>
+    </tr>`).join('');
+  document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openFile(b.dataset.open));
+}
+function openFile(id){
+  const a=applications.find(x=>x.id===id); if(!a)return;
+  $('#dTitle').textContent=a.id+' · '+a.business;
+  $('#dStatus').textContent=a.status; $('#dClient').textContent=a.client; $('#dBusiness').textContent=a.business; $('#dMessage').textContent=a.message;
+  const has=Boolean(a.amount); $('#approvalBox').style.display=has?'block':'none';
+  $('#dAmount').textContent=a.amount||'—'; $('#dProduct').textContent=a.product||'—'; $('#dTerm').textContent=a.term||'—';
+  $('#drawer').classList.add('show'); $('#backdrop').classList.add('show');
+}
+function closeDrawer(){ $('#drawer').classList.remove('show'); $('#backdrop').classList.remove('show');}
+$('#loginBtn').onclick=()=>{ $('#login').classList.add('hidden'); $('#portal').classList.remove('hidden'); $('#logoutBtn').classList.remove('hidden'); render();};
+$('#logoutBtn').onclick=()=>location.reload();
+$('#websiteBtn').onclick=()=>location.href='index.html';
+$('#search').oninput=render; $('#filter').onchange=render; $('#clear').onclick=()=>{$('#search').value='';$('#filter').value='';render();};
+$('#close').onclick=closeDrawer; $('#backdrop').onclick=closeDrawer;
+$('#newClient').onclick=()=>{const t=$('#toast');t.textContent='New Client submission form will be the next build step.';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)};
+</script>
+</body>
+</html>
