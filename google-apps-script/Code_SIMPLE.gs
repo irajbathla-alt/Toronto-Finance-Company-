@@ -364,7 +364,7 @@ function appendAuditEvent(event) {
       metadata:auditValue(event.metadata || '')
     };
     const row = headers.map(header => Object.prototype.hasOwnProperty.call(record,header) ? record[header] : '');
-    sh.getRange(sh.getLastRow()+1,1,1,headers.length).setValues([row]);
+    sh.appendRow(row);
   } catch (error) {
     Logger.log('Audit event could not be written: ' + (error && error.message ? error.message : error));
   }
@@ -407,14 +407,15 @@ function auditAdminChange(applicationId,field,oldValue,newValue) {
     ? 'Status changed from ' + (oldText || 'Not set') + ' to ' + (newText || 'Not set')
     : label + ' updated';
 
+  const redactHistory = ['notes','messageBody'].includes(field);
   appendAuditEvent({
     applicationId,
     actorType:'ADMIN',
     actorId:CONFIG.ADMIN_EMAIL,
     action,
     field,
-    oldValue:oldText,
-    newValue:newText,
+    oldValue:redactHistory ? '' : oldText,
+    newValue:redactHistory ? '' : newText,
     summary
   });
 }
@@ -601,8 +602,7 @@ function clientDecision(p) {
     field:'clientDecision',
     oldValue:record.clientDecision || '',
     newValue:decision,
-    summary:'Client response: ' + decision,
-    metadata:{ note:String(p.note || '').trim() }
+    summary:'Client response: ' + decision
   });
   sendClientDecisionEmail(fresh);
   return { ok:true, data:safeClient({ ...fresh, documents:[] }) };
