@@ -24,8 +24,26 @@
 .offer-mini strong{display:block;margin-top:5px;font-size:13px}
 .demo-tag{margin-top:12px;text-align:center;font-size:10px;color:var(--muted)}
 .demo-tag strong{color:var(--gold)}
+.attention{margin:18px 0;overflow:hidden}
+.attention-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 20px;border-bottom:1px solid #eee}
+.attention-head h2{font-size:27px;margin:3px 0 0}
+.attention-head p{margin:4px 0 0;color:var(--muted);font-size:11px}
+.attention-count{min-width:32px;height:32px;padding:0 10px;border-radius:999px;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:10px}
+.attention-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0}
+.attention-item{padding:18px 20px;border-right:1px solid #eee;border-bottom:1px solid #eee;display:flex;flex-direction:column;gap:10px}
+.attention-item:nth-child(2n){border-right:0}
+.attention-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.attention-item strong{font-size:13px}
+.attention-item small{display:block;color:var(--muted);font-size:9px;margin-top:3px}
+.attention-item p{margin:0;color:var(--muted);font-size:11px;line-height:1.5}
+.attention-item .quick{align-self:flex-start}
+.notification-group{border-bottom:1px solid #eee}
+.notification-group:last-child{border-bottom:0}
+.notification-group-title{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#fcfaf7;font-size:8px;text-transform:uppercase;letter-spacing:.11em;color:var(--muted)}
+.notification-group-title strong{font-family:'DM Sans',sans-serif;font-size:8px;font-weight:600;color:var(--ink)}
+.notification-group .notification-item:last-child{border-bottom:0}
 @media(max-width:1000px){.agent-metrics{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:760px){.agent-intro{align-items:flex-start;flex-direction:column}.offer-mini{grid-template-columns:1fr}.agent-metrics{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.agent-intro{align-items:flex-start;flex-direction:column}.offer-mini{grid-template-columns:1fr}.agent-metrics{grid-template-columns:1fr 1fr}.attention-list{grid-template-columns:1fr}.attention-item{border-right:0}}
 </style>
 </head>
 <body>
@@ -76,6 +94,14 @@
     <article class="metric card"><span>Under Review</span><strong>4</strong></article>
     <article class="metric card"><span>Financing Available</span><strong>3</strong></article>
     <article class="metric card"><span>Funded</span><strong>2</strong></article>
+  </section>
+
+  <section class="attention card" id="needsAttention">
+    <div class="attention-head">
+      <div><div class="eyebrow">Priority Queue</div><h2>Needs Attention</h2><p>Files that currently need an agent action or review.</p></div>
+      <div class="attention-count" id="attentionCount">0</div>
+    </div>
+    <div class="attention-list" id="attentionList"></div>
   </section>
 
   <section class="workspace card agent-table">
@@ -148,9 +174,10 @@ const applications=[
   {id:'TFC-000128',client:'Mike Wong',business:'Downtown Market',status:'Funded',updated:'Sep 18',message:'This financing file has been completed and funded.',amount:'$60,000',product:'Business Line of Credit',term:'Revolving'}
 ];
 const notifications=[
-  {id:1,applicationId:'TFC-000139',client:'Spice House Restaurant',text:'More information required — current lease and 3 months of bank statements requested.',time:'10 minutes ago',read:false},
-  {id:2,applicationId:'TFC-000134',client:'HG Welding Ltd.',text:'Financing available — $75,000 Business Term Loan added to the file.',time:'1 hour ago',read:false},
-  {id:3,applicationId:'TFC-000142',client:'ABC Trucking Ltd.',text:'Status updated — Ready for Review → Under Review.',time:'Yesterday',read:false}
+  {id:1,category:'Action Required',applicationId:'TFC-000139',client:'Spice House Restaurant',text:'Current lease and 3 months of bank statements requested.',time:'10 minutes ago',read:false},
+  {id:2,category:'Financing Updates',applicationId:'TFC-000134',client:'HG Welding Ltd.',text:'$75,000 Business Term Loan added to the file.',time:'1 hour ago',read:false},
+  {id:3,category:'Status Changes',applicationId:'TFC-000142',client:'ABC Trucking Ltd.',text:'Ready for Review → Under Review.',time:'Yesterday',read:false},
+  {id:4,category:'Status Changes',applicationId:'TFC-000128',client:'Downtown Market',text:'File status changed to Funded.',time:'Sep 18',read:true}
 ];
 const $=s=>document.querySelector(s);
 function cls(status){if(status==='Funded'||status==='Financing Available')return'approved';if(status==='Under Review')return'review';if(status==='More Info Required')return'info';return''}
@@ -171,11 +198,17 @@ function renderNotifications(){
   const unread=notifications.filter(n=>!n.read).length;
   $('#notificationCount').textContent=String(unread);
   $('#notificationCount').style.display=unread?'grid':'none';
-  $('#notificationList').innerHTML=notifications.length?notifications.map(n=>`
-    <button class="notification-item ${n.read?'read':''}" data-notification="${n.id}">
-      <span class="notification-dot"></span>
-      <span><span class="notification-client">${n.client}</span><span class="notification-text">${n.text}</span><span class="notification-time">${n.time}</span></span>
-    </button>`).join(''):'<div class="notification-empty">No notifications yet.</div>';
+  const order=['Action Required','Financing Updates','Status Changes'];
+  const groups=order.map(category=>({category,items:notifications.filter(n=>n.category===category)})).filter(group=>group.items.length);
+  $('#notificationList').innerHTML=groups.length?groups.map(group=>`
+    <section class="notification-group">
+      <div class="notification-group-title"><strong>${group.category}</strong><span>${group.items.filter(n=>!n.read).length} unread</span></div>
+      ${group.items.map(n=>`
+        <button class="notification-item ${n.read?'read':''}" data-notification="${n.id}">
+          <span class="notification-dot"></span>
+          <span><span class="notification-client">${n.client} · ${n.applicationId}</span><span class="notification-text">${n.text}</span><span class="notification-time">${n.time}</span></span>
+        </button>`).join('')}
+    </section>`).join(''):'<div class="notification-empty">No notifications yet.</div>';
   document.querySelectorAll('[data-notification]').forEach(button=>button.onclick=()=>{
     const n=notifications.find(item=>String(item.id)===String(button.dataset.notification));
     if(!n)return;
@@ -185,6 +218,21 @@ function renderNotifications(){
     $('#notificationBell').setAttribute('aria-expanded','false');
     openFile(n.applicationId);
   });
+}
+
+function renderAttention(){
+  const items=applications.filter(a=>['More Info Required','Financing Available'].includes(a.status));
+  $('#attentionCount').textContent=String(items.length);
+  $('#attentionList').innerHTML=items.length?items.map(a=>`
+    <article class="attention-item">
+      <div class="attention-item-top">
+        <div><strong>${a.business}</strong><small>${a.client} · ${a.id}</small></div>
+        <span class="status ${cls(a.status)}">${a.status}</span>
+      </div>
+      <p>${a.message}</p>
+      <button class="quick" data-attention-open="${a.id}">Open File</button>
+    </article>`).join(''):'<div class="empty">Nothing needs your attention right now.</div>';
+  document.querySelectorAll('[data-attention-open]').forEach(button=>button.onclick=()=>openFile(button.dataset.attentionOpen));
 }
 function openFile(id){
   const a=applications.find(x=>x.id===id); if(!a)return;
@@ -197,7 +245,7 @@ function openFile(id){
   $('#drawer').classList.add('show'); $('#backdrop').classList.add('show');
 }
 function closeDrawer(){ $('#drawer').classList.remove('show'); $('#backdrop').classList.remove('show');}
-$('#loginBtn').onclick=()=>{ $('#login').classList.add('hidden'); $('#portal').classList.remove('hidden'); $('#logoutBtn').classList.remove('hidden'); $('#notificationWrap').classList.remove('hidden'); render(); renderNotifications();};
+$('#loginBtn').onclick=()=>{ $('#login').classList.add('hidden'); $('#portal').classList.remove('hidden'); $('#logoutBtn').classList.remove('hidden'); $('#notificationWrap').classList.remove('hidden'); render(); renderNotifications(); renderAttention();};
 $('#logoutBtn').onclick=()=>location.reload();
 $('#websiteBtn').onclick=()=>location.href='index.html';
 $('#notificationBell').onclick=e=>{e.stopPropagation();const panel=$('#notificationPanel');const open=!panel.classList.contains('show');panel.classList.toggle('show',open);$('#notificationBell').setAttribute('aria-expanded',String(open));};
