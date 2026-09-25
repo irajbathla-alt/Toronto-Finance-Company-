@@ -32,6 +32,16 @@
 <header class="tfc-top">
   <div class="tfc-brand">Toronto Finance Company · Agent Portal</div>
   <nav class="tfc-nav">
+    <div class="notification-wrap hidden" id="notificationWrap">
+      <button class="notification-bell" id="notificationBell" aria-label="Agent notifications" aria-expanded="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg>
+        <span class="notification-count" id="notificationCount">3</span>
+      </button>
+      <div class="notification-panel" id="notificationPanel">
+        <div class="notification-head"><strong>Notifications</strong><button id="markAllRead">Mark all read</button></div>
+        <div class="notification-list" id="notificationList"></div>
+      </div>
+    </div>
     <button id="websiteBtn">Website</button>
     <button id="logoutBtn" class="hidden">Log Out</button>
   </nav>
@@ -137,6 +147,11 @@ const applications=[
   {id:'TFC-000134',client:'Harpreet Gill',business:'HG Welding Ltd.',status:'Financing Available',updated:'Sep 22',message:'Financing is available subject to final lender documentation and client acceptance.',amount:'$75,000',product:'Business Term Loan',term:'18 Months'},
   {id:'TFC-000128',client:'Mike Wong',business:'Downtown Market',status:'Funded',updated:'Sep 18',message:'This financing file has been completed and funded.',amount:'$60,000',product:'Business Line of Credit',term:'Revolving'}
 ];
+const notifications=[
+  {id:1,applicationId:'TFC-000139',client:'Spice House Restaurant',text:'More information required — current lease and 3 months of bank statements requested.',time:'10 minutes ago',read:false},
+  {id:2,applicationId:'TFC-000134',client:'HG Welding Ltd.',text:'Financing available — $75,000 Business Term Loan added to the file.',time:'1 hour ago',read:false},
+  {id:3,applicationId:'TFC-000142',client:'ABC Trucking Ltd.',text:'Status updated — Ready for Review → Under Review.',time:'Yesterday',read:false}
+];
 const $=s=>document.querySelector(s);
 function cls(status){if(status==='Funded'||status==='Financing Available')return'approved';if(status==='Under Review')return'review';if(status==='More Info Required')return'info';return''}
 function render(){
@@ -152,8 +167,29 @@ function render(){
     </tr>`).join('');
   document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openFile(b.dataset.open));
 }
+function renderNotifications(){
+  const unread=notifications.filter(n=>!n.read).length;
+  $('#notificationCount').textContent=String(unread);
+  $('#notificationCount').style.display=unread?'grid':'none';
+  $('#notificationList').innerHTML=notifications.length?notifications.map(n=>`
+    <button class="notification-item ${n.read?'read':''}" data-notification="${n.id}">
+      <span class="notification-dot"></span>
+      <span><span class="notification-client">${n.client}</span><span class="notification-text">${n.text}</span><span class="notification-time">${n.time}</span></span>
+    </button>`).join(''):'<div class="notification-empty">No notifications yet.</div>';
+  document.querySelectorAll('[data-notification]').forEach(button=>button.onclick=()=>{
+    const n=notifications.find(item=>String(item.id)===String(button.dataset.notification));
+    if(!n)return;
+    n.read=true;
+    renderNotifications();
+    $('#notificationPanel').classList.remove('show');
+    $('#notificationBell').setAttribute('aria-expanded','false');
+    openFile(n.applicationId);
+  });
+}
 function openFile(id){
   const a=applications.find(x=>x.id===id); if(!a)return;
+  $('#notificationPanel').classList.remove('show');
+  $('#notificationBell').setAttribute('aria-expanded','false');
   $('#dTitle').textContent=a.id+' · '+a.business;
   $('#dStatus').textContent=a.status; $('#dClient').textContent=a.client; $('#dBusiness').textContent=a.business; $('#dMessage').textContent=a.message;
   const has=Boolean(a.amount); $('#approvalBox').style.display=has?'block':'none';
@@ -161,9 +197,12 @@ function openFile(id){
   $('#drawer').classList.add('show'); $('#backdrop').classList.add('show');
 }
 function closeDrawer(){ $('#drawer').classList.remove('show'); $('#backdrop').classList.remove('show');}
-$('#loginBtn').onclick=()=>{ $('#login').classList.add('hidden'); $('#portal').classList.remove('hidden'); $('#logoutBtn').classList.remove('hidden'); render();};
+$('#loginBtn').onclick=()=>{ $('#login').classList.add('hidden'); $('#portal').classList.remove('hidden'); $('#logoutBtn').classList.remove('hidden'); $('#notificationWrap').classList.remove('hidden'); render(); renderNotifications();};
 $('#logoutBtn').onclick=()=>location.reload();
 $('#websiteBtn').onclick=()=>location.href='index.html';
+$('#notificationBell').onclick=e=>{e.stopPropagation();const panel=$('#notificationPanel');const open=!panel.classList.contains('show');panel.classList.toggle('show',open);$('#notificationBell').setAttribute('aria-expanded',String(open));};
+$('#markAllRead').onclick=e=>{e.stopPropagation();notifications.forEach(n=>n.read=true);renderNotifications();};
+document.addEventListener('click',e=>{if(!e.target.closest('#notificationWrap')){$('#notificationPanel').classList.remove('show');$('#notificationBell').setAttribute('aria-expanded','false');}});
 $('#search').oninput=render; $('#filter').onchange=render; $('#clear').onclick=()=>{$('#search').value='';$('#filter').value='';render();};
 $('#close').onclick=closeDrawer; $('#backdrop').onclick=closeDrawer;
 $('#newClient').onclick=()=>{const t=$('#toast');t.textContent='New Client submission form will be the next build step.';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)};
