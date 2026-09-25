@@ -29,6 +29,11 @@ const CLIENT_SAFE_FIELDS = [
 const EARLY_STATUSES = ['Account Created','Statements Required','Ready for Review'];
 const APPROVAL_STATUSES = ['Conditional Approval','Approved'];
 const SCHEMA_CACHE_KEY = 'tfc-schema-20260903-signature-v2';
+const AUDIT_SHEET_NAME = 'Audit Log';
+const AUDIT_HEADERS = [
+  'auditId','timestamp','applicationId','actorType','actorId',
+  'action','field','oldValue','newValue','summary','metadata'
+];
 
 function doGet(e) {
   try {
@@ -45,6 +50,7 @@ function doGet(e) {
       adminList,
       adminUpdate,
       adminEnsureDrive,
+      adminGetAudit,
       getDocuments
     };
 
@@ -70,6 +76,7 @@ function doPost(e) {
       adminList,
       adminUpdate,
       adminEnsureDrive,
+      adminGetAudit,
       getDocuments
     };
 
@@ -115,7 +122,7 @@ function json(value) {
 function health() {
   return {
     ok:true,
-    service:'Toronto Finance Company CRM Simple 1.6',
+    service:'Toronto Finance Company CRM Simple 1.7 Audit Trail',
     minimumStatements:CONFIG.MIN_STATEMENTS,
     adminPasswordConfigured:CONFIG.ADMIN_PASSWORD !== 'CHANGE_THIS_PASSWORD',
     clientNotificationFrom:CONFIG.CLIENT_NOTIFICATION_FROM
@@ -300,6 +307,139 @@ function updateRecord(applicationId, patch) {
   found.sh.getRange(found.rowNumber,1,1,width).setValues([row.slice(0,width)]);
 }
 
+function auditSheet() {
+  const ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
+  let sh = ss.getSheetByName(AUDIT_SHEET_NAME);
+
+  if (!sh) {
+    sh = ss.insertSheet(AUDIT_SHEET_NAME);
+    ensureColumnCapacity(sh,AUDIT_HEADERS.length);
+    sh.getRange(1,1,1,AUDIT_HEADERS.length).setValues([AUDIT_HEADERS]);
+    return sh;
+  }
+
+  if (sh.getLastRow() === 0 || sh.getLastColumn() === 0) {
+    ensureColumnCapacity(sh,AUDIT_HEADERS.length);
+    sh.getRange(1,1,1,AUDIT_HEADERS.length).setValues([AUDIT_HEADERS]);
+    return sh;
+  }
+
+  const width = Math.max(1,sh.getLastColumn());
+  const headers = sh.getRange(1,1,1,width).getValues()[0]
+    .map(value => String(value || '').trim());
+  const merged = headers.slice();
+  AUDIT_HEADERS.forEach(header => {
+    if (!merged.includes(header)) merged.push(header);
+  });
+  ensureColumnCapacity(sh,merged.length);
+  if (merged.length !== width) sh.getRange(1,1,1,merged.length).setValues([merged]);
+  return sh;
+}
+
+function auditValue(value) {
+  if (value === null || value === undefined) return '';
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === 'object') {
+    try { return JSON.stringify(value).slice(0,10000); } catch (_) {}
+  }
+  return String(value).slice(0,10000);
+}
+
+function appendAuditEvent(event) {
+  try {
+    const sh = auditSheet();
+    const headers = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0]
+      .map(value => String(value || '').trim());
+    const record = {
+      auditId:'AUD-' + Utilities.getUuid(),
+      timestamp:new Date(),
+      applicationId:String(event.applicationId || ''),
+      actorType:String(event.actorType || 'SYSTEM').toUpperCase(),
+      actorId:String(event.actorId || ''),
+      action:String(event.action || 'UPDATE').toUpperCase(),
+      field:String(event.field || ''),
+      oldValue:auditValue(event.oldValue),
+      newValue:auditValue(event.newValue),
+      summary:String(event.summary || ''),
+      metadata:auditValue(event.metadata || '')
+    };
+    const row = headers.map(header => Object.prototype.hasOwnProperty.call(record,header) ? record[header] : '');
+    sh.getRange(sh.getLastRow()+1,1,1,headers.length).setValues([row]);
+  } catch (error) {
+    Logger.log('Audit event could not be written: ' + (error && error.message ? error.message : error));
+  }
+}
+
+function auditFieldLabel(field) {
+  const labels = {
+    status:'Status',
+    advisor:'Assigned advisor',
+    messageTitle:'Client message title',
+    messageBody:'Client message',
+    approvedAmount:'Approved amount',
+    quote:'Product / terms',
+    term:'Term',
+    paymentFrequency:'Payment frequency',
+    paymentAmount:'Payment amount',
+    numberPayments:'Number of payments',
+    totalRepayment:'Total repayment',
+    documentsRequested:'Additional documents requested',
+    notes:'Internal / advisor notes'
+  };
+  return labels[field] || field;
+}
+
+function auditAdminChange(applicationId,field,oldValue,newValue) {
+  const oldText = auditValue(oldValue);
+  const newText = auditValue(newValue);
+  if (oldText === newText) return;
+
+  let action = 'ADMIN_FIELD_UPDATED';
+  if (field === 'status') action = 'STATUS_CHANGED';
+  else if (['approvedAmount','quote','term','paymentFrequency','paymentAmount','numberPayments','totalRepayment'].includes(field)) action = 'FINANCING_UPDATED';
+  else if (field === 'documentsRequested') action = 'DOCUMENTS_REQUESTED';
+  else if (['messageTitle','messageBody'].includes(field)) action = 'CLIENT_MESSAGE_UPDATED';
+  else if (field === 'advisor') action = 'ADVISOR_UPDATED';
+  else if (field === 'notes') action = 'INTERNAL_NOTES_UPDATED';
+
+  const label = auditFieldLabel(field);
+  const summary = field === 'status'
+    ? 'Status changed from ' + (oldText || 'Not set') + ' to ' + (newText || 'Not set')
+    : label + ' updated';
+
+  appendAuditEvent({
+    applicationId,
+    actorType:'ADMIN',
+    actorId:CONFIG.ADMIN_EMAIL,
+    action,
+    field,
+    oldValue:oldText,
+    newValue:newText,
+    summary
+  });
+}
+
+function adminGetAudit(p) {
+  const applicationId = String(p.applicationId || '').trim();
+  if (!applicationId) throw new Error('Application ID is required');
+  findApplication(applicationId);
+
+  const sh = auditSheet();
+  if (sh.getLastRow() < 2) return { ok:true, data:[] };
+
+  const headers = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0]
+    .map(value => String(value || '').trim());
+  const values = sh.getRange(2,1,sh.getLastRow()-1,headers.length).getValues();
+
+  const data = values
+    .map(row => rowToObject(headers,row))
+    .filter(record => String(record.applicationId || '') === applicationId)
+    .sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0,250);
+
+  return { ok:true, data };
+}
+
 function createAccount(p) {
   const email = String(p.email || '').trim().toLowerCase();
   const password = String(p.password || '');
@@ -368,6 +508,14 @@ function createAccount(p) {
     };
 
     appendRecordToSheet(sh,headers,record);
+    appendAuditEvent({
+      applicationId:record.applicationId,
+      actorType:'CLIENT',
+      actorId:record.email,
+      action:'ACCOUNT_CREATED',
+      summary:'Client account created',
+      metadata:{ name:record.name, business:record.business || '' }
+    });
     return { ok:true, data:safeClient({ ...record, documents:[] }) };
   } finally {
     lock.releaseLock();
@@ -384,6 +532,14 @@ function clientLogin(p) {
     throw new Error('Invalid email or password');
   }
 
+  appendAuditEvent({
+    applicationId:record.applicationId,
+    actorType:'CLIENT',
+    actorId:record.email,
+    action:'CLIENT_LOGIN',
+    summary:'Client signed in to the portal'
+  });
+
   return { ok:true, data:safeClient({ ...record, documents:[] }) };
 }
 
@@ -395,12 +551,27 @@ function getClient(p) {
 
 function clientConfirmSignature(p) {
   const record = findApplication(p.applicationId);
-  requireClientEmail(record,p.email);
+  const clientEmail = requireClientEmail(record,p.email);
+  const alreadyConfirmed = record.signatureConfirmed === true ||
+    ['true','1','yes'].includes(String(record.signatureConfirmed || '').toLowerCase());
 
   updateRecord(record.applicationId,{
     signatureConfirmed:true,
     signatureConfirmedAt:record.signatureConfirmedAt || new Date()
   });
+
+  if (!alreadyConfirmed) {
+    appendAuditEvent({
+      applicationId:record.applicationId,
+      actorType:'CLIENT',
+      actorId:clientEmail,
+      action:'SIGNATURE_CONFIRMED',
+      field:'signatureConfirmed',
+      oldValue:false,
+      newValue:true,
+      summary:'Client confirmed the signing step'
+    });
+  }
 
   const fresh = findApplication(record.applicationId);
   return { ok:true, data:safeClient({ ...fresh, documents:[] }) };
@@ -422,6 +593,17 @@ function clientDecision(p) {
   });
 
   const fresh = findApplication(record.applicationId);
+  appendAuditEvent({
+    applicationId:record.applicationId,
+    actorType:'CLIENT',
+    actorId:String(record.email || ''),
+    action:'CLIENT_DECISION',
+    field:'clientDecision',
+    oldValue:record.clientDecision || '',
+    newValue:decision,
+    summary:'Client response: ' + decision,
+    metadata:{ note:String(p.note || '').trim() }
+  });
   sendClientDecisionEmail(fresh);
   return { ok:true, data:safeClient({ ...fresh, documents:[] }) };
 }
@@ -439,6 +621,13 @@ function sendSignupNotification(p) {
   const result = sendNewClientSignupEmail(record);
   if (result.sent) {
     cache.put(cacheKey,'1',21600);
+    appendAuditEvent({
+      applicationId:record.applicationId,
+      actorType:'SYSTEM',
+      actorId:CONFIG.SIGNUP_NOTIFICATION_EMAIL,
+      action:'SIGNUP_NOTIFICATION_SENT',
+      summary:'New-client signup notification sent'
+    });
     return { ok:true, ...result };
   }
 
@@ -468,7 +657,7 @@ function adminList() {
 }
 
 function adminUpdate(p) {
-  findApplication(p.applicationId);
+  const before = findApplication(p.applicationId);
   const patch = {};
 
   ['status','advisor','messageTitle','messageBody','approvedAmount','quote','term','paymentFrequency',
@@ -479,11 +668,28 @@ function adminUpdate(p) {
 
   updateRecord(p.applicationId,patch);
   let saved = findApplication(p.applicationId);
+
+  Object.keys(patch).forEach(field => {
+    auditAdminChange(p.applicationId,field,before[field],saved[field]);
+  });
+
   let notification = { attempted:false, sent:false };
   const shouldNotify = ['true','1','yes'].includes(String(p.notifyClient || '').toLowerCase());
 
   if (shouldNotify) {
     notification = sendClientUpdateEmail(saved);
+    appendAuditEvent({
+      applicationId:p.applicationId,
+      actorType:'ADMIN',
+      actorId:CONFIG.ADMIN_EMAIL,
+      action:notification.sent ? 'CLIENT_NOTIFICATION_SENT' : 'CLIENT_NOTIFICATION_FAILED',
+      summary:notification.sent
+        ? 'Client update notification sent'
+        : 'Client update notification could not be sent',
+      metadata:notification.sent
+        ? { sender:notification.sender || CONFIG.CLIENT_NOTIFICATION_FROM }
+        : { error:notification.error || 'Unknown notification error' }
+    });
     saved = findApplication(p.applicationId);
   }
 
@@ -492,8 +698,19 @@ function adminUpdate(p) {
 
 function adminEnsureDrive(p) {
   const record = findApplication(p.applicationId);
+  const hadFolder = Boolean(record.driveFolderId);
   const folder = ensureDriveFolder(record);
   const fresh = findApplication(p.applicationId);
+
+  if (!hadFolder && fresh.driveFolderId) {
+    appendAuditEvent({
+      applicationId:p.applicationId,
+      actorType:'ADMIN',
+      actorId:CONFIG.ADMIN_EMAIL,
+      action:'DRIVE_FOLDER_CREATED',
+      summary:'Client Drive folder created'
+    });
+  }
 
   return {
     ok:true,
@@ -539,6 +756,17 @@ function uploadDocument(p) {
 
   targetFolder.createFile(blob);
 
+  appendAuditEvent({
+    applicationId:record.applicationId,
+    actorType:'CLIENT',
+    actorId:String(record.email || ''),
+    action:'DOCUMENT_UPLOADED',
+    field:'documents',
+    newValue:fileName,
+    summary:'Client uploaded ' + fileName,
+    metadata:{ type:type || 'document', mimeType, estimatedBytes }
+  });
+
   if (type === 'statement') {
     const count = countFiles(childFolder(rootFolder,'Bank Statements'));
     const patch = { statements:count };
@@ -553,6 +781,20 @@ function uploadDocument(p) {
     }
 
     updateRecord(record.applicationId,patch);
+
+    if (patch.status && String(patch.status) !== String(record.status || '')) {
+      appendAuditEvent({
+        applicationId:record.applicationId,
+        actorType:'SYSTEM',
+        actorId:'CRM',
+        action:'STATUS_CHANGED',
+        field:'status',
+        oldValue:record.status || '',
+        newValue:patch.status,
+        summary:'Status automatically changed from ' + (record.status || 'Not set') + ' to ' + patch.status,
+        metadata:{ statementCount:count }
+      });
+    }
   }
 
   return { ok:true };
