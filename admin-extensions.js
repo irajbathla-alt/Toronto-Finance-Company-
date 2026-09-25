@@ -371,3 +371,263 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once:true });
   else install();
 })();
+
+(() => {
+  'use strict';
+
+  if (window.__TFC_AUDIT_TRAIL__) return;
+  window.__TFC_AUDIT_TRAIL__ = true;
+
+  const cfg = window.TFC_CONFIG || {};
+  const $ = selector => document.querySelector(selector);
+  let currentApplicationId = '';
+  let events = [];
+  let loading = false;
+
+  function jsonp(action, payload = {}, timeout = 30000) {
+    return new Promise((resolve, reject) => {
+      if (!cfg.apiUrl) return reject(new Error('CRM endpoint is not configured.'));
+      const callback = `tfc_audit_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      const script = document.createElement('script');
+      const params = new URLSearchParams({ action, callback, _: String(Date.now()) });
+      Object.entries(payload).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) params.set(key, String(value));
+      });
+
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error('Audit trail request timed out.'));
+      }, timeout);
+
+      function cleanup() {
+        clearTimeout(timer);
+        try { delete window[callback]; } catch (_) { window[callback] = undefined; }
+        if (script.parentNode) script.parentNode.removeChild(script);
+      }
+
+      window[callback] = data => {
+        cleanup();
+        resolve(data);
+      };
+
+      script.onerror = () => {
+        cleanup();
+        reject(new Error('Audit trail service could not be reached.'));
+      };
+
+      script.src = `${cfg.apiUrl}?${params.toString()}`;
+      document.head.appendChild(script);
+    });
+  }
+
+  function formatDate(value) {
+    if (!value) return '—';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return date.toLocaleString('en-CA', {
+      month:'short',
+      day:'numeric',
+      year:'numeric',
+      hour:'numeric',
+      minute:'2-digit'
+    });
+  }
+
+  function short(value, limit = 150) {
+    const text = String(value ?? '').trim();
+    return text.length > limit ? text.slice(0, limit - 1) + '…' : text;
+  }
+
+  function matchesFilter(event, filter) {
+    if (!filter || filter === 'all') return true;
+    const actor = String(event.actorType || '').toLowerCase();
+    const action = String(event.action || '').toUpperCase();
+
+    if (['admin','client','agent','system'].includes(filter)) return actor === filter;
+    if (filter === 'documents') return action.includes('DOCUMENT') || action.includes('DRIVE');
+    if (filter === 'status') return action === 'STATUS_CHANGED';
+    if (filter === 'financing') return action.includes('FINANCING') || action === 'CLIENT_DECISION';
+    if (filter === 'notifications') return action.includes('NOTIFICATION');
+    return true;
+  }
+
+  function detailFor(event) {
+    const field = String(event.field || '');
+    const hiddenFields = ['notes','messageBody'];
+    if (hiddenFields.includes(field)) return '';
+
+    const oldValue = String(event.oldValue ?? '').trim();
+    const newValue = String(event.newValue ?? '').trim();
+
+    if (event.action === 'DOCUMENT_UPLOADED' && newValue) {
+      return 'File: ' + short(newValue, 180);
+    }
+
+    if (field && (oldValue || newValue)) {
+      const from = oldValue || 'Not set';
+      const to = newValue || 'Not set';
+      return short(from, 100) + ' → ' + short(to, 100);
+    }
+
+    if (event.action === 'CLIENT_NOTIFICATION_FAILED' && event.metadata) {
+      try {
+        const metadata = JSON.parse(event.metadata);
+        if (metadata?.error) return short(metadata.error, 180);
+      } catch (_) {}
+    }
+
+    return '';
+  }
+
+  function actorLabel(event) {
+    const type = String(event.actorType || 'SYSTEM').toUpperCase();
+    const id = String(event.actorId || '').trim();
+    if (type === 'ADMIN') return id ? 'Admin · ' + id : 'Admin';
+    if (type === 'CLIENT') return id ? 'Client · ' + id : 'Client';
+    if (type === 'AGENT') return id ? 'Agent · ' + id : 'Agent';
+    return id ? 'System · ' + id : 'System';
+  }
+
+  function render() {
+    const trail = $('#auditTrail');
+    const count = $('#auditCount');
+    if (!trail || !count) return;
+
+    const filter = $('#auditFilter')?.value || 'all';
+    const visible = events.filter(event => matchesFilter(event, filter));
+    count.textContent = `${events.length} event${events.length === 1 ? '' : 's'}`;
+    trail.replaceChildren();
+
+    if (!visible.length) {
+      const empty = document.createElement('div');
+      empty.className = 'audit-empty';
+      empty.textContent = events.length
+        ? 'No activity matches this filter.'
+        : 'No audit activity has been recorded for this application yet.';
+      trail.appendChild(empty);
+      return;
+    }
+
+    visible.forEach(event => {
+      const item = document.createElement('div');
+      const actorType = String(event.actorType || 'system').toLowerCase();
+      item.className = 'audit-event ' + actorType;
+
+      const dot = document.createElement('span');
+      dot.className = 'audit-dot';
+
+      const body = document.createElement('div');
+      const line = document.createElement('div');
+      line.className = 'audit-line';
+
+      const summary = document.createElement('div');
+      summary.className = 'audit-summary';
+      summary.textContent = event.summary || String(event.action || 'Activity').replace(/_/g,' ');
+
+      const time = document.createElement('time');
+      time.className = 'audit-time';
+      time.textContent = formatDate(event.timestamp);
+
+      line.append(summary, time);
+      body.appendChild(line);
+
+      const detail = detailFor(event);
+      if (detail) {
+        const meta = document.createElement('div');
+        meta.className = 'audit-meta';
+        meta.textContent = detail;
+        body.appendChild(meta);
+      }
+
+      const actor = document.createElement('span');
+      actor.className = 'audit-actor';
+      actor.textContent = actorLabel(event);
+      body.appendChild(actor);
+
+      item.append(dot, body);
+      trail.appendChild(item);
+    });
+  }
+
+  async function loadAudit(showLoading = true) {
+    if (!currentApplicationId || loading) return;
+    loading = true;
+
+    const trail = $('#auditTrail');
+    const refresh = $('#auditRefresh');
+    if (showLoading && trail) {
+      trail.innerHTML = '<div class="audit-empty">Loading application activity…</div>';
+    }
+    if (refresh) {
+      refresh.disabled = true;
+      refresh.textContent = 'Refreshing…';
+    }
+
+    try {
+      const result = await jsonp('adminGetAudit', { applicationId:currentApplicationId });
+      if (!result?.ok) throw new Error(result?.error || 'Audit history could not be loaded.');
+      events = Array.isArray(result.data) ? result.data : [];
+      render();
+    } catch (error) {
+      events = [];
+      if (trail) {
+        trail.replaceChildren();
+        const empty = document.createElement('div');
+        empty.className = 'audit-empty';
+        empty.textContent = /Unknown action/i.test(error.message || '')
+          ? 'Deploy the updated Apps Script to activate the audit trail.'
+          : (error.message || 'Audit history could not be loaded.');
+        trail.appendChild(empty);
+      }
+      if ($('#auditCount')) $('#auditCount').textContent = '0 events';
+    } finally {
+      loading = false;
+      if (refresh) {
+        refresh.disabled = false;
+        refresh.textContent = 'Refresh Activity';
+      }
+    }
+  }
+
+  function selectApplication(id) {
+    const clean = String(id || '').trim();
+    if (!/^TFC-/i.test(clean)) return;
+    const changed = clean !== currentApplicationId;
+    currentApplicationId = clean;
+    if (changed) {
+      events = [];
+      render();
+    }
+    setTimeout(() => loadAudit(true), 180);
+  }
+
+  document.addEventListener('click', event => {
+    const open = event.target.closest?.('[data-open]');
+    if (open?.dataset?.open) selectApplication(open.dataset.open);
+  }, true);
+
+  const auditRefresh = $('#auditRefresh');
+  if (auditRefresh) auditRefresh.onclick = () => loadAudit(true);
+
+  const auditFilter = $('#auditFilter');
+  if (auditFilter) auditFilter.onchange = render;
+
+  const title = $('#dTitle');
+  if (title) {
+    const titleObserver = new MutationObserver(() => {
+      const match = String(title.textContent || '').match(/TFC-[A-Z0-9-]+/i);
+      if (match) selectApplication(match[0]);
+    });
+    titleObserver.observe(title, { childList:true, subtree:true, characterData:true });
+  }
+
+  const saveMessage = $('#saveMsg');
+  if (saveMessage) {
+    const saveObserver = new MutationObserver(() => {
+      if (/Saved successfully/i.test(String(saveMessage.textContent || ''))) {
+        setTimeout(() => loadAudit(false), 500);
+      }
+    });
+    saveObserver.observe(saveMessage, { childList:true, subtree:true, characterData:true, attributes:true, attributeFilter:['class'] });
+  }
+})();
