@@ -87,30 +87,23 @@ function renderWorkflow(data){const status=String(data.status||'');if(data.docum
 function renderDecision(data){
   const status=String(data.status||'');
   const requested=String(data.documentsRequested||'').trim();
-  const conditional=status==='Conditional Approval';
 
-  // Once the admin marks the file Conditional Approval, remove the earlier intake steps.
-  $('#intakeFlowbar').style.display=conditional?'none':'';
-  $('#intakeFlow').style.display=conditional?'none':'';
-  $('#intakePanels').style.display=conditional?'none':'';
-  $('#finalNote').style.display=conditional?'none':'';
+  // Keep the original signing and bank-statement workflow visible at every stage.
+  $('#intakeFlowbar').style.display='';
+  $('#intakeFlow').style.display='';
+  $('#intakePanels').style.display='';
+  $('#finalNote').style.display='';
 
-  // Conditional Approval should show only documents specifically requested by admin.
-  $('#financingDecision').classList.remove('show');
-  $('#requestedDocs').classList.toggle('show',conditional&&Boolean(requested));
-  $('#requestedText').textContent=conditional?requested:'';
+  // Additional documents appear only after the admin moves the file to Conditional Approval.
+  const showRequested=status==='Conditional Approval' && Boolean(requested);
+  $('#requestedDocs').classList.toggle('show',showRequested);
+  $('#requestedText').textContent=showRequested?requested:'';
 
-  if(conditional){
-    $('#workflowTitle').textContent=requested?'Documents Required':'Conditional Approval';
-    $('#workflowBody').textContent=requested
-      ?'Please upload only the documents requested below so we can continue with final review.'
-      :'Your application is conditionally approved. There are currently no additional documents requested.';
-    return;
-  }
-
+  // Keep financing details available when an offer exists, as in the original portal.
   const hasOffer=Boolean(data.approvedAmount||data.quote||data.term||data.paymentAmount||data.totalRepayment);
-  const visible=status==='Approved'&&hasOffer;
+  const visible=['Conditional Approval','Approved'].includes(status)&&hasOffer;
   $('#financingDecision').classList.toggle('show',visible);
+
   if(visible){
     $('#offerProduct').textContent=data.quote||'Financing Available';
     $('#offerAmount').textContent=money(data.approvedAmount);
@@ -123,6 +116,7 @@ function renderDecision(data){
     $('#decisionNote').value=data.clientDecisionNote||'';
     $('#decisionProceed').disabled=false;
     $('#decisionMoreInfo').disabled=false;
+
     if(data.clientDecision){
       $('#decisionStatus').classList.add('show');
       $('#decisionStatus').textContent=`Your response has been sent: ${data.clientDecision}. You can respond again after reviewing any new advisor update.`;
