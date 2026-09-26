@@ -36,6 +36,62 @@
 @media(max-width:700px){.status-track{grid-template-columns:repeat(3,1fr)}.portal-progress-head{display:block}.outstanding-count{display:inline-block;margin-top:10px}}
 
 .client-command{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:16px}.command-card,.next-card{border-radius:14px;padding:20px 22px}.command-card{background:var(--ink);color:#fff}.command-card h2{font-size:30px;margin:4px 0 7px;color:#fff;text-transform:none}.command-card p,.next-card p{font-size:12px;line-height:1.6;margin:0}.command-card p{color:#ded7cf}.next-card{background:#fff;border:1px solid rgba(198,150,78,.32)}.next-card h3{font-family:'DM Sans',sans-serif;text-transform:none;font-size:16px;margin:2px 0 8px}.command-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.command-pill{border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:7px 10px;font-size:9px;text-transform:uppercase}.next-card .action{margin-top:14px}@media(max-width:780px){.client-command{grid-template-columns:1fr}}
+
+/* REFINED CLIENT PORTAL */
+.wrap{width:min(1040px,92vw);margin:30px auto 68px}
+.welcome{margin-bottom:14px;align-items:center}
+.welcome h1{font-size:38px;line-height:1;text-transform:none}
+#statusText{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);font-size:10px;font-weight:600}
+.client-command{grid-template-columns:minmax(0,1.7fr) minmax(290px,.8fr);gap:12px;margin-bottom:12px}
+.command-card,.next-card{border-radius:12px;padding:19px 20px}
+.command-card{background:#17130f}
+.command-card h2{font-size:28px;margin:4px 0 6px}
+.command-card p{font-size:12px;line-height:1.55;max-width:650px}
+.command-meta{margin-top:12px}
+.command-pill{font-size:8px;padding:6px 9px}
+.next-card h3{font-size:15px;margin:3px 0 6px}
+.next-card p{font-size:11px}
+.next-card .action{margin-top:12px;width:100%}
+.advisor-message{padding:15px 17px;margin-bottom:12px;border-radius:10px;grid-template-columns:1fr auto}
+.advisor-message h2{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;text-transform:none;margin:3px 0 3px}
+.advisor-message p{font-size:11.5px;line-height:1.5}
+.refresh-message{padding:8px 11px;font-size:8px}
+.portal-progress{padding:17px 18px;margin-bottom:12px;border-radius:10px}
+.portal-progress-head{margin-bottom:12px}
+.portal-progress-head h2{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;text-transform:none;margin:2px 0 0}
+.outstanding-count{font-size:8px;padding:7px 10px}
+.status-track{grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin-bottom:13px}
+.status-stage{padding:8px 5px;font-size:7px;border-radius:7px}
+.outstanding-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.outstanding-item{padding:9px 10px;font-size:11px;border-radius:8px;min-height:44px}
+.outstanding-icon{width:18px;height:18px;flex-basis:18px;font-size:10px}
+.received-docs{margin-top:13px;padding-top:12px}
+.received-docs h3{font-size:12px}
+.received-doc-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.received-doc{padding:8px 10px;font-size:10.5px}
+.flowbar{display:none}
+.flow{gap:10px}
+.stepcard{min-height:0;padding:18px 19px;border-radius:10px}
+.stepcard h2{font-size:24px;margin:6px 0 6px}
+.stepcard p{font-size:11.5px;line-height:1.55}
+.action{padding:11px 16px;font-size:9px}
+.complete-tag{font-size:10px}
+.finalnote{padding:17px;border-radius:10px}
+.decision,.requested{padding:20px;border-radius:12px}
+.decision h2,.requested h2{font-size:27px}
+.condition-list{gap:7px}
+.condition-row{padding:10px 11px;font-size:11.5px;border-radius:8px}
+.requested-row{grid-template-columns:180px 1fr}
+.requested-upload{margin-top:10px}
+.panel{padding:20px;border:1px solid rgba(23,19,15,.08)}
+.panel>h2{font-size:27px}
+@media(max-width:820px){
+  .client-command{grid-template-columns:1fr}
+  .outstanding-list,.received-doc-list{grid-template-columns:1fr}
+  .status-track{grid-template-columns:repeat(3,1fr)}
+  .advisor-message{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -49,12 +105,12 @@
   <div id="loginMsg" class="notice"></div>
 </section>
 <main id="dash" class="wrap">
-  <div class="welcome"><div><div class="muted">CLIENT PORTAL</div><h1 id="hello">Welcome</h1><div class="muted" id="appId"></div></div><div class="muted" id="statusText"></div></div>
+  <div class="welcome"><div><div class="muted">SECURE CLIENT PORTAL</div><h1 id="hello">Welcome</h1><div class="muted" id="appId"></div></div><div class="muted" id="statusText"></div></div>
   <section class="client-command"><div class="command-card"><div class="kicker">Your Application</div><h2 id="commandStatus">Application in Progress</h2><p id="commandSummary">Your current stage will appear here.</p><div class="command-meta"><span class="command-pill" id="commandApp">Application</span><span class="command-pill" id="commandUpdated">Live Status</span></div></div><div class="next-card"><div class="kicker">Next Action</div><h3 id="nextActionTitle">Continue your application</h3><p id="nextActionBody">Complete the next outstanding item.</p><button class="action" id="nextActionBtn" type="button">Continue</button></div></section><section class="workflow" style="display:none"><div class="muted" style="color:#bdb2a5">YOUR NEXT STEP</div><h2 id="workflowTitle">Complete Your Application</h2><p id="workflowBody">First review and sign the application, then upload six recent business bank statements.</p></section>
   <section class="advisor-message"><div><div class="muted">MESSAGE FROM YOUR ADVISOR</div><h2 id="advisorTitle">Welcome</h2><p id="advisorBody">Your Toronto Finance Company account has been created.</p></div><button class="refresh-message" id="refreshMessage">Refresh Updates</button></section>
 
   <section class="portal-progress" id="portalProgress">
-    <div class="portal-progress-head"><div><div class="kicker">Application Progress</div><h2>What happens next</h2></div><div class="outstanding-count" id="outstandingCount">Checking requirements...</div></div>
+    <div class="portal-progress-head"><div><div class="kicker">Progress & Requirements</div><h2>Application Overview</h2></div><div class="outstanding-count" id="outstandingCount">Checking requirements...</div></div>
     <div class="status-track" id="statusTrack"></div>
     <div class="outstanding-list" id="outstandingList"></div>
     <div class="received-docs" id="receivedDocs" style="display:none"><h3>Documents Received</h3><div class="received-doc-list" id="receivedDocList"></div></div>
@@ -62,8 +118,8 @@
 
   <div class="flowbar" id="intakeFlowbar"><div class="flowdot active" id="flow1">Step 1 · Review & Sign</div><div class="flowdot" id="flow2">Step 2 · Bank Statements</div></div>
   <section class="flow" id="intakeFlow">
-    <article class="stepcard" id="step1card"><div class="stepno">Step 1</div><h2>Review & Sign</h2><p>Complete the Toronto Finance Company application, review the information carefully, and provide your secure Adobe electronic signature.</p><button class="action" id="openSign">Open Review & Sign</button><div class="complete-tag">✓ Signature confirmed · Step 2 unlocked</div></article>
-    <article class="stepcard gated" id="step2card"><div class="gate"><span>🔒 Complete Step 1 First</span></div><div class="stepno">Step 2</div><h2>Upload Bank Statements</h2><p>Upload a minimum of six recent monthly business bank statements in PDF format.</p><button class="action" id="openUpload" disabled>Upload Statements</button><div class="complete-tag">✓ Six statements received</div></article>
+    <article class="stepcard" id="step1card"><div class="stepno">Application</div><h2>Review & Sign</h2><p>Complete the Toronto Finance Company application, review the information carefully, and provide your secure Adobe electronic signature.</p><button class="action" id="openSign">Open Review & Sign</button><div class="complete-tag">✓ Signature confirmed · Step 2 unlocked</div></article>
+    <article class="stepcard gated" id="step2card"><div class="gate"><span>🔒 Complete Step 1 First</span></div><div class="stepno">Banking</div><h2>Upload Bank Statements</h2><p>Upload a minimum of six recent monthly business bank statements in PDF format.</p><button class="action" id="openUpload" disabled>Upload Statements</button><div class="complete-tag">✓ Six statements received</div></article>
   </section>
 
   <section class="panels" id="intakePanels">
@@ -71,7 +127,7 @@
     <article class="panel" id="uploadPanel"><button class="backlink" data-close>← Back to Steps</button><h2>Upload Bank Statements</h2><p class="muted">A minimum of six monthly PDF bank statements is required.</p><div class="upload"><strong id="statementCount">0 of 6 uploaded</strong><div class="progress"><div class="bar" id="bar"></div></div><input type="file" id="files" accept="application/pdf,.pdf" multiple><button class="btn" id="uploadBtn">Upload Selected Statements</button><div id="uploadMsg" class="notice"></div></div></article>
   </section>
 
-  <section class="finalnote" id="finalNote"><h3>Required Steps Completed</h3><div class="muted">Thank you. Your signed application and bank statements have been received.</div></section>
+  <section class="finalnote" id="finalNote"><h3>Core Requirements Complete</h3><div class="muted">Your signed application and required bank statements have been received.</div></section>
 
   <section class="decision" id="financingDecision">
     <div class="kicker">Financing Available</div>
@@ -84,7 +140,7 @@
     <div class="decision-status" id="decisionStatus"></div>
   </section>
 
-  <section class="requested" id="requestedDocs"><div class="kicker">Additional Documents Requested</div><h2>Conditions to Complete</h2><div class="requested-box" id="requestedText" style="display:none"></div><div class="condition-list" id="conditionList"></div><div class="requested-row"><select id="requestedCategory"><option value="identification">Identification</option><option value="financial">Financial Statements</option><option value="other">Other Documents</option></select><input id="requestedFiles" type="file" multiple></div><button class="requested-upload" id="requestedUpload">Upload Selected Documents</button><div class="requested-msg" id="requestedMsg"></div></section>
+  <section class="requested" id="requestedDocs"><div class="kicker">Additional Documents Requested</div><h2>Outstanding Conditions</h2><div class="requested-box" id="requestedText" style="display:none"></div><div class="condition-list" id="conditionList"></div><div class="requested-row"><select id="requestedCategory"><option value="identification">Identification</option><option value="financial">Financial Statements</option><option value="other">Other Documents</option></select><input id="requestedFiles" type="file" multiple></div><button class="requested-upload" id="requestedUpload">Upload Documents</button><div class="requested-msg" id="requestedMsg"></div></section>
 </main>
 
 <script src="crm-config.js?v=20260906-debug2"></script>
