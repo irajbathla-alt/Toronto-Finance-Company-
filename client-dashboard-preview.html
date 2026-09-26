@@ -35,6 +35,7 @@
 .condition-box{width:19px;height:19px;border:1px solid #b8aa99;border-radius:5px;background:#fff;display:grid;place-items:center;flex:0 0 19px}
 @media(max-width:700px){.status-track{grid-template-columns:repeat(3,1fr)}.portal-progress-head{display:block}.outstanding-count{display:inline-block;margin-top:10px}}
 
+.client-command{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:16px}.command-card,.next-card{border-radius:14px;padding:20px 22px}.command-card{background:var(--ink);color:#fff}.command-card h2{font-size:30px;margin:4px 0 7px;color:#fff;text-transform:none}.command-card p,.next-card p{font-size:12px;line-height:1.6;margin:0}.command-card p{color:#ded7cf}.next-card{background:#fff;border:1px solid rgba(198,150,78,.32)}.next-card h3{font-family:'DM Sans',sans-serif;text-transform:none;font-size:16px;margin:2px 0 8px}.command-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.command-pill{border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:7px 10px;font-size:9px;text-transform:uppercase}.next-card .action{margin-top:14px}@media(max-width:780px){.client-command{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -49,7 +50,7 @@
 </section>
 <main id="dash" class="wrap">
   <div class="welcome"><div><div class="muted">CLIENT PORTAL</div><h1 id="hello">Welcome</h1><div class="muted" id="appId"></div></div><div class="muted" id="statusText"></div></div>
-  <section class="workflow"><div class="muted" style="color:#bdb2a5">YOUR NEXT STEP</div><h2 id="workflowTitle">Complete Your Application</h2><p id="workflowBody">First review and sign the application, then upload six recent business bank statements.</p></section>
+  <section class="client-command"><div class="command-card"><div class="kicker">Your Application</div><h2 id="commandStatus">Application in Progress</h2><p id="commandSummary">Your current stage will appear here.</p><div class="command-meta"><span class="command-pill" id="commandApp">Application</span><span class="command-pill" id="commandUpdated">Live Status</span></div></div><div class="next-card"><div class="kicker">Next Action</div><h3 id="nextActionTitle">Continue your application</h3><p id="nextActionBody">Complete the next outstanding item.</p><button class="action" id="nextActionBtn" type="button">Continue</button></div></section><section class="workflow" style="display:none"><div class="muted" style="color:#bdb2a5">YOUR NEXT STEP</div><h2 id="workflowTitle">Complete Your Application</h2><p id="workflowBody">First review and sign the application, then upload six recent business bank statements.</p></section>
   <section class="advisor-message"><div><div class="muted">MESSAGE FROM YOUR ADVISOR</div><h2 id="advisorTitle">Welcome</h2><p id="advisorBody">Your Toronto Finance Company account has been created.</p></div><button class="refresh-message" id="refreshMessage">Refresh Updates</button></section>
 
   <section class="portal-progress" id="portalProgress">
