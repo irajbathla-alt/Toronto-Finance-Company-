@@ -28,13 +28,13 @@
   <section class="workflow"><div class="muted" style="color:#bdb2a5">YOUR NEXT STEP</div><h2 id="workflowTitle">Complete Your Application</h2><p id="workflowBody">First review and sign the application, then upload six recent business bank statements.</p></section>
   <section class="advisor-message"><div><div class="muted">MESSAGE FROM YOUR ADVISOR</div><h2 id="advisorTitle">Welcome</h2><p id="advisorBody">Your Toronto Finance Company account has been created.</p></div><button class="refresh-message" id="refreshMessage">Refresh Updates</button></section>
 
-  <div class="flowbar"><div class="flowdot active" id="flow1">Step 1 · Review & Sign</div><div class="flowdot" id="flow2">Step 2 · Bank Statements</div></div>
-  <section class="flow">
+  <div class="flowbar" id="intakeFlowbar"><div class="flowdot active" id="flow1">Step 1 · Review & Sign</div><div class="flowdot" id="flow2">Step 2 · Bank Statements</div></div>
+  <section class="flow" id="intakeFlow">
     <article class="stepcard" id="step1card"><div class="stepno">Step 1</div><h2>Review & Sign</h2><p>Complete the Toronto Finance Company application, review the information carefully, and provide your secure Adobe electronic signature.</p><button class="action" id="openSign">Open Review & Sign</button><div class="complete-tag">✓ Signature confirmed · Step 2 unlocked</div></article>
     <article class="stepcard gated" id="step2card"><div class="gate"><span>🔒 Complete Step 1 First</span></div><div class="stepno">Step 2</div><h2>Upload Bank Statements</h2><p>Upload a minimum of six recent monthly business bank statements in PDF format.</p><button class="action" id="openUpload" disabled>Upload Statements</button><div class="complete-tag">✓ Six statements received</div></article>
   </section>
 
-  <section class="panels">
+  <section class="panels" id="intakePanels">
     <article class="panel" id="signPanel"><button class="backlink" data-close>← Back to Steps</button><h2>Review & Sign</h2><div class="adobe-note">By signing, you confirm that the information provided is true, accurate and complete, and authorize Toronto Finance Company to submit your application and supporting information to one or more lenders and financing partners.</div><div class="adobe-wrap"><iframe src="https://na4.documents.adobe.com/public/esignWidget?wid=CBFCIBAA3AAABLblqZhBgCTXn5u_TlQ7fvxZVQRsrOtRGUybq5Exlw8eHr4geWAx9Ptarkd-XwhkIlxmWwlk*&hosted=false" width="100%" height="100%" frameborder="0" style="border:0;min-width:0;" title="Toronto Finance Company Secure Electronic Signature" loading="lazy"></iframe></div><button class="btn" id="markSigned">I Have Finished Signing</button><div id="signMsg" class="notice"></div><p class="muted">Adobe Acrobat Sign maintains the signed agreement and its audit trail.</p></article>
     <article class="panel" id="uploadPanel"><button class="backlink" data-close>← Back to Steps</button><h2>Upload Bank Statements</h2><p class="muted">A minimum of six monthly PDF bank statements is required.</p><div class="upload"><strong id="statementCount">0 of 6 uploaded</strong><div class="progress"><div class="bar" id="bar"></div></div><input type="file" id="files" accept="application/pdf,.pdf" multiple><button class="btn" id="uploadBtn">Upload Selected Statements</button><div id="uploadMsg" class="notice"></div></div></article>
   </section>
@@ -84,7 +84,54 @@ function refreshFlow(){const signed=isSigned(),complete=statementTotal>=minimumS
 
 function renderWorkflow(data){const status=String(data.status||'');if(data.documentsRequested){$('#workflowTitle').textContent='Additional Documents Requested';$('#workflowBody').textContent='Please review the requested items below and upload the documents needed to continue.';return}if(['Conditional Approval','Approved'].includes(status)&&!data.clientDecision){$('#workflowTitle').textContent='Financing Available';$('#workflowBody').textContent='Review the financing details below and choose Proceed or Request More Information.';return}if(data.clientDecision==='Proceed'){$('#workflowTitle').textContent='Response Received';$('#workflowBody').textContent='Thank you. You asked us to proceed. Your advisor has been notified and will continue with the next step.';return}if(data.clientDecision==='Request More Information'){$('#workflowTitle').textContent='More Information Requested';$('#workflowBody').textContent='Your advisor has been notified and will follow up with the information you requested.';return}if(isSigned()&&statementTotal>=minimumStatements){$('#workflowTitle').textContent='Required Steps Completed';$('#workflowBody').textContent='Your signed application and required bank statements have been received.'}else if(isSigned()){$('#workflowTitle').textContent='Upload Your Bank Statements';$('#workflowBody').textContent='Your signature step is complete. Please upload six recent monthly business bank statements.'}else{$('#workflowTitle').textContent='Complete Your Application';$('#workflowBody').textContent='First review and sign the application, then upload six recent business bank statements.'}}
 
-function renderDecision(data){const status=String(data.status||'');const hasOffer=Boolean(data.approvedAmount||data.quote||data.term||data.paymentAmount||data.totalRepayment);const visible=['Conditional Approval','Approved'].includes(status)&&hasOffer;$('#financingDecision').classList.toggle('show',visible);if(visible){$('#offerProduct').textContent=data.quote||'Financing Available';$('#offerAmount').textContent=money(data.approvedAmount);$('#offerTerm').textContent=data.term||'—';$('#offerFrequency').textContent=data.paymentFrequency||'—';$('#offerPayment').textContent=money(data.paymentAmount);$('#offerCount').textContent=data.numberPayments||'—';$('#offerTotal').textContent=money(data.totalRepayment);$('#offerStatus').textContent=status;$('#decisionNote').value=data.clientDecisionNote||'';$('#decisionProceed').disabled=false;$('#decisionMoreInfo').disabled=false;if(data.clientDecision){$('#decisionStatus').classList.add('show');$('#decisionStatus').textContent=`Your response has been sent: ${data.clientDecision}. You can respond again after reviewing any new advisor update.`}else{$('#decisionStatus').classList.remove('show');$('#decisionStatus').textContent=''}}const requested=String(data.documentsRequested||'').trim();$('#requestedDocs').classList.toggle('show',Boolean(requested));$('#requestedText').textContent=requested}
+function renderDecision(data){
+  const status=String(data.status||'');
+  const requested=String(data.documentsRequested||'').trim();
+  const conditional=status==='Conditional Approval';
+
+  // Once the admin marks the file Conditional Approval, remove the earlier intake steps.
+  $('#intakeFlowbar').style.display=conditional?'none':'';
+  $('#intakeFlow').style.display=conditional?'none':'';
+  $('#intakePanels').style.display=conditional?'none':'';
+  $('#finalNote').style.display=conditional?'none':'';
+
+  // Conditional Approval should show only documents specifically requested by admin.
+  $('#financingDecision').classList.remove('show');
+  $('#requestedDocs').classList.toggle('show',conditional&&Boolean(requested));
+  $('#requestedText').textContent=conditional?requested:'';
+
+  if(conditional){
+    $('#workflowTitle').textContent=requested?'Documents Required':'Conditional Approval';
+    $('#workflowBody').textContent=requested
+      ?'Please upload only the documents requested below so we can continue with final review.'
+      :'Your application is conditionally approved. There are currently no additional documents requested.';
+    return;
+  }
+
+  const hasOffer=Boolean(data.approvedAmount||data.quote||data.term||data.paymentAmount||data.totalRepayment);
+  const visible=status==='Approved'&&hasOffer;
+  $('#financingDecision').classList.toggle('show',visible);
+  if(visible){
+    $('#offerProduct').textContent=data.quote||'Financing Available';
+    $('#offerAmount').textContent=money(data.approvedAmount);
+    $('#offerTerm').textContent=data.term||'—';
+    $('#offerFrequency').textContent=data.paymentFrequency||'—';
+    $('#offerPayment').textContent=money(data.paymentAmount);
+    $('#offerCount').textContent=data.numberPayments||'—';
+    $('#offerTotal').textContent=money(data.totalRepayment);
+    $('#offerStatus').textContent=status;
+    $('#decisionNote').value=data.clientDecisionNote||'';
+    $('#decisionProceed').disabled=false;
+    $('#decisionMoreInfo').disabled=false;
+    if(data.clientDecision){
+      $('#decisionStatus').classList.add('show');
+      $('#decisionStatus').textContent=`Your response has been sent: ${data.clientDecision}. You can respond again after reviewing any new advisor update.`;
+    }else{
+      $('#decisionStatus').classList.remove('show');
+      $('#decisionStatus').textContent='';
+    }
+  }
+}
 
 async function syncSignatureToServer(force=false){if(!client?.applicationId||!client?.email||isTrue(client.signatureConfirmed)||signatureSyncInFlight)return true;if(!force&&Date.now()-signatureSyncLastFailure<60000)return false;signatureSyncInFlight=true;try{let lastError=null;for(let attempt=0;attempt<3;attempt++){if(attempt)await delay(attempt===1?2500:6000);try{const result=await api('clientConfirmSignature',{applicationId:client.applicationId,email:client.email});if(!result?.ok)throw new Error(result?.error||'Signature confirmation could not be saved.');client={...client,...(result.data||{}),signatureConfirmed:true};localStorage.setItem('tfc-signed-'+client.applicationId,'yes');saveSession(client);$('#signMsg').className='notice success';$('#signMsg').textContent='Signature confirmation saved to your client file.';refreshFlow();renderWorkflow(client);return true}catch(error){lastError=error}}throw lastError||new Error('Signature confirmation could not be saved.')}catch(error){signatureSyncLastFailure=Date.now();$('#signMsg').className='notice';$('#signMsg').textContent='Your signature is confirmed on this device, but the CRM confirmation has not synced yet. It will retry automatically.';return false}finally{signatureSyncInFlight=false}}
 
