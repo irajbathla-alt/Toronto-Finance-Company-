@@ -1248,6 +1248,7 @@
       const result = await jsonp('adminSendLenderPackage',{
         adminToken:token,
         applicationId:currentApplicationId,
+        companyName:businessName,
         lenderIds:JSON.stringify(lenderIds),
         fileIds:JSON.stringify(fileIds),
         subject,
