@@ -7,7 +7,7 @@ Current production frontend for Toronto Finance Company.
 - `index.html` + `app.js` — public website and account-creation flow
 - `eligibility.html` — public pre-eligibility tool
 - `client-dashboard.html` — single client portal implementation, including Adobe Sign, statement uploads, requested documents and financing responses
-- `admin.html` + `admin.js` + `admin-extensions.js` — admin CRM, notifications, browser-session persistence and Drive activity
+- `admin.html` + `admin.js` + `admin-extensions.js` — admin CRM, notifications, browser-session persistence, Drive activity and lender submission
 - `apply.html` — compatibility redirect to the main account-creation flow
 - `client-portal.html` — compatibility redirect to the current client dashboard
 - `crm-config.js` — current Apps Script endpoint and shared frontend configuration
@@ -19,7 +19,7 @@ The currently used backend is maintained separately in Google Apps Script. The r
 
 `google-apps-script/Code_SIMPLE.gs`
 
-Frontend-only changes do not require an Apps Script deployment.
+Frontend-only changes do not require an Apps Script deployment. The lender-submission feature also requires the current `Code_SIMPLE.gs` backend to be deployed because it reads Drive attachments and sends lender emails.
 
 Do not overwrite the real deployed `ADMIN_PASSWORD` with the placeholder stored in GitHub.
 
