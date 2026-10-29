@@ -393,6 +393,7 @@ function appendAuditEvent(event) {
 
 function auditFieldLabel(field) {
   const labels = {
+    business:'Business name',
     status:'Status',
     advisor:'Assigned advisor',
     messageTitle:'Client message title',
@@ -416,7 +417,8 @@ function auditAdminChange(applicationId,field,oldValue,newValue) {
   if (oldText === newText) return;
 
   let action = 'ADMIN_FIELD_UPDATED';
-  if (field === 'status') action = 'STATUS_CHANGED';
+  if (field === 'business') action = 'BUSINESS_NAME_UPDATED';
+  else if (field === 'status') action = 'STATUS_CHANGED';
   else if (['approvedAmount','quote','term','paymentFrequency','paymentAmount','numberPayments','totalRepayment'].includes(field)) action = 'FINANCING_UPDATED';
   else if (field === 'documentsRequested') action = 'DOCUMENTS_REQUESTED';
   else if (['messageTitle','messageBody'].includes(field)) action = 'CLIENT_MESSAGE_UPDATED';
@@ -850,7 +852,7 @@ function adminUpdate(p) {
   const before = findApplication(p.applicationId);
   const patch = {};
 
-  ['status','advisor','messageTitle','messageBody','approvedAmount','quote','term','paymentFrequency',
+  ['business','status','advisor','messageTitle','messageBody','approvedAmount','quote','term','paymentFrequency',
    'paymentAmount','numberPayments','totalRepayment','documentsRequested','notes']
     .forEach(key => {
       if (Object.prototype.hasOwnProperty.call(p,key)) patch[key] = p[key];
