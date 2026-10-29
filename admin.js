@@ -223,7 +223,7 @@
       ['Requested Amount', selected.requested ? `CA$${Number(selected.requested).toLocaleString()}` : '—'],
       ['Created', formatDate(selected.created)], ['Updated', formatDate(selected.updated)]
     ].map(([key, value]) => `<div class="kv"><b>${escapeHtml(key)}</b><span>${escapeHtml(value || '—')}</span></div>`).join('');
-    ['status', 'advisor', 'messageTitle', 'messageBody', 'approvedAmount', 'quote', 'term', 'paymentFrequency', 'paymentAmount', 'numberPayments', 'totalRepayment', 'documentsRequested', 'notes'].forEach(key => {
+    ['business', 'status', 'advisor', 'messageTitle', 'messageBody', 'approvedAmount', 'quote', 'term', 'paymentFrequency', 'paymentAmount', 'numberPayments', 'totalRepayment', 'documentsRequested', 'notes'].forEach(key => {
       const field = $('#' + key);
       if (field) field.value = selected[key] || '';
     });
@@ -239,10 +239,65 @@
     selected = null;
   }
 
+  async function saveBusinessName() {
+    if (!selected) return;
+    const business = $('#business')?.value.trim() || '';
+    const button = $('#saveBusiness');
+    const message = $('#businessSaveMsg');
+
+    if (!business) {
+      if (message) {
+        message.className = 'notice error';
+        message.textContent = 'Please enter the business name.';
+      }
+      return;
+    }
+
+    if (button) {
+      button.disabled = true;
+      button.textContent = 'Saving…';
+    }
+    if (message) {
+      message.className = 'notice';
+      message.textContent = 'Saving business name…';
+    }
+
+    try {
+      const result = await readApi('adminUpdate', {
+        applicationId:selected.applicationId,
+        business
+      },35000);
+      if (!result?.ok) throw new Error(result?.error || 'Business name could not be saved.');
+
+      selected = result.data || { ...selected,business,updated:new Date().toISOString() };
+      const index = applications.findIndex(app => String(app.applicationId) === String(selected.applicationId));
+      if (index >= 0) applications[index] = selected;
+
+      render();
+      openFile(selected.applicationId);
+
+      if (message) {
+        message.className = 'notice success';
+        message.textContent = 'Business name saved. Lender emails will use this company name.';
+      }
+      toast('Business name saved');
+    } catch (error) {
+      if (message) {
+        message.className = 'notice error';
+        message.textContent = error.message || 'Business name could not be saved.';
+      }
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = 'Save Business Name';
+      }
+    }
+  }
+
   async function saveUpdate() {
     if (!selected) return;
     const update = { applicationId: selected.applicationId };
-    ['status', 'advisor', 'messageTitle', 'messageBody', 'approvedAmount', 'quote', 'term', 'paymentFrequency', 'paymentAmount', 'numberPayments', 'totalRepayment', 'documentsRequested', 'notes'].forEach(key => {
+    ['business', 'status', 'advisor', 'messageTitle', 'messageBody', 'approvedAmount', 'quote', 'term', 'paymentFrequency', 'paymentAmount', 'numberPayments', 'totalRepayment', 'documentsRequested', 'notes'].forEach(key => {
       const field = $('#' + key);
       if (field) update[key] = field.value;
     });
@@ -318,6 +373,7 @@
     }
   }
 
+  $('#saveBusiness').onclick = saveBusinessName;
   $('#adminLogin').onclick = login;
   $('#adminPassword').addEventListener('keydown', event => { if (event.key === 'Enter') login(); });
   $('#save').onclick = saveUpdate;
