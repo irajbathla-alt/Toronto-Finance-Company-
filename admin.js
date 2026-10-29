@@ -315,7 +315,7 @@
     } finally {
       if (button) {
         button.disabled = false;
-        button.textContent = 'Save Business Name';
+        button.textContent = 'Save';
       }
     }
   }
