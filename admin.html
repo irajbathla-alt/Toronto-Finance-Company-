@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="portal.css?v=20260812-decision1">
 <style>
+.business-kv{align-items:center}.business-inline{display:flex;align-items:center;gap:7px;min-width:0}.business-inline input{min-width:0;flex:1;height:31px;padding:6px 9px;border:1px solid #ded4c8;border-radius:7px;background:#fcfaf7;font:inherit;color:var(--ink);outline:none;transition:border-color .18s ease,box-shadow .18s ease}.business-inline input::placeholder{color:#aaa198}.business-inline input:focus{border-color:rgba(198,150,78,.72);box-shadow:0 0 0 3px rgba(198,150,78,.08);background:#fff}.business-inline .quick{padding:7px 10px;flex:0 0 auto}.business-save-msg{display:block;margin-top:4px;font-size:9px;color:#786f65}.business-save-msg.success{color:#2f855a}.business-save-msg.error{color:#a13f33}@media(max-width:760px){.business-inline{align-items:stretch}.business-inline input{height:34px}}
 .client-response{border:1px solid rgba(198,150,78,.32);background:#fbf7f0;border-radius:10px;padding:16px}.client-response strong{display:block;font-size:11px;letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px}.client-response p{margin:4px 0;color:#786f65;font-size:12px;line-height:1.6}.client-response.has-response{background:#edf6f0;border-color:rgba(47,133,90,.25)}
 .audit-card{padding:0!important;overflow:hidden}.audit-toggle-row{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:17px 18px;background:transparent;border:0;color:var(--ink);text-align:left;cursor:pointer}.audit-toggle-row:hover{background:#fcfaf7}.audit-toggle-title{display:flex;align-items:center;gap:12px;min-width:0}.audit-toggle-title h3{margin:2px 0 0;font-size:22px}.audit-toggle-meta{display:flex;align-items:center;gap:10px;flex:0 0 auto}.audit-chevron{font-size:16px;line-height:1;color:var(--muted);transition:transform .18s ease}.audit-card.open .audit-chevron{transform:rotate(180deg)}.audit-body{padding:0 18px 18px;border-top:1px solid #eee}.audit-body.hidden{display:none}.audit-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:14px}.audit-controls select{border:1px solid #d9cdbf;border-radius:999px;padding:8px 11px;background:#fcf9f4;font-size:9px;text-transform:uppercase;letter-spacing:.07em}.audit-trail{position:relative;margin-top:14px;max-height:430px;overflow:auto;padding-right:4px}.audit-empty{padding:18px 0;color:#786f65;font-size:11px}.audit-event{display:grid;grid-template-columns:16px minmax(0,1fr);gap:11px;padding:0 0 17px;position:relative}.audit-event:not(:last-child)::after{content:'';position:absolute;left:7px;top:16px;bottom:0;width:1px;background:#e7ded4}.audit-dot{width:9px;height:9px;border-radius:50%;background:#c6964e;margin-top:4px;z-index:1;box-shadow:0 0 0 3px #fff}.audit-event.client .audit-dot{background:#406b8a}.audit-event.admin .audit-dot{background:#17130f}.audit-event.agent .audit-dot{background:#2f855a}.audit-event.system .audit-dot{background:#8b8176}.audit-line{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.audit-summary{font-size:11px;font-weight:600;line-height:1.45}.audit-time{font-size:9px;color:#8a8177;white-space:nowrap}.audit-meta{margin-top:4px;font-size:10px;color:#786f65;line-height:1.5}.audit-actor{display:inline-block;margin-top:6px;padding:4px 7px;border-radius:999px;background:#f2eee8;font-size:7px;text-transform:uppercase;letter-spacing:.08em;color:#786f65}@media(max-width:760px){.audit-line{display:block}.audit-time{display:block;margin-top:3px}.audit-controls{align-items:stretch}.audit-controls select,.audit-controls button{flex:1}}
 </style>
@@ -107,15 +108,6 @@
     <section class="section card">
       <div class="section-title"><h3>Client & Application</h3><button class="quick" id="copyId">Copy ID</button></div>
       <div id="details"></div>
-      <div class="field" style="margin-top:16px">
-        <label>Business Name</label>
-        <input id="business" maxlength="180" placeholder="Enter legal or operating business name">
-        <div class="subtle" style="margin-top:6px">Used as the company name on lender submissions.</div>
-      </div>
-      <div class="drawer-buttons" style="margin-top:10px">
-        <button class="quick" id="saveBusiness" type="button">Save Business Name</button>
-      </div>
-      <div id="businessSaveMsg" class="notice"></div>
     </section>
 
     <section class="section card">
@@ -166,7 +158,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="crm-config.js?v=20260906-debug2"></script>
-<script src="admin.js?v=20261029-business1"></script>
+<script src="admin.js?v=20261029-business2"></script>
 <script src="admin-extensions.js?v=20261029-business1"></script>
 </body>
 </html>
