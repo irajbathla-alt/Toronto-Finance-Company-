@@ -589,6 +589,21 @@
     }
   }
 
+  function setAuditOpen(open) {
+    const card = $('#auditCard');
+    const body = $('#auditBody');
+    const toggle = $('#auditToggle');
+    if (!card || !body || !toggle) return;
+
+    card.classList.toggle('open',open);
+    body.classList.toggle('hidden',!open);
+    toggle.setAttribute('aria-expanded',String(open));
+
+    if (open && currentApplicationId && !events.length && !loading) {
+      loadAudit(true);
+    }
+  }
+
   function selectApplication(id) {
     const clean = String(id || '').trim();
     if (!/^TFC-/i.test(clean)) return;
@@ -597,14 +612,23 @@
     if (changed) {
       events = [];
       render();
+      setAuditOpen(false);
     }
-    setTimeout(() => loadAudit(true), 180);
+    setTimeout(() => loadAudit(false), 180);
   }
 
   document.addEventListener('click', event => {
     const open = event.target.closest?.('[data-open]');
     if (open?.dataset?.open) selectApplication(open.dataset.open);
   }, true);
+
+  const auditToggle = $('#auditToggle');
+  if (auditToggle) {
+    auditToggle.onclick = () => {
+      const isOpen = $('#auditToggle')?.getAttribute('aria-expanded') === 'true';
+      setAuditOpen(!isOpen);
+    };
+  }
 
   const auditRefresh = $('#auditRefresh');
   if (auditRefresh) auditRefresh.onclick = () => loadAudit(true);
@@ -620,6 +644,8 @@
     });
     titleObserver.observe(title, { childList:true, subtree:true, characterData:true });
   }
+
+  setAuditOpen(false);
 
   const saveMessage = $('#saveMsg');
   if (saveMessage) {
