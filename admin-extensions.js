@@ -737,7 +737,7 @@
       .lender-picker-toggle:hover,.lender-picker.open .lender-picker-toggle,.document-picker-toggle:hover,.document-picker.open .document-picker-toggle{border-color:rgba(198,150,78,.58);box-shadow:0 0 0 3px rgba(198,150,78,.07)}
       .lender-picker-chevron,.document-picker-chevron{font-size:13px;color:#786f65;transition:transform .18s ease}
       .lender-picker.open .lender-picker-chevron,.document-picker.open .document-picker-chevron{transform:rotate(180deg)}
-      .lender-picker-panel,.document-picker-panel{position:absolute;z-index:20;left:0;right:0;top:calc(100% + 6px);max-height:320px;overflow:auto;border:1px solid #ded4c8;border-radius:10px;background:#fff;padding:7px;box-shadow:0 14px 34px rgba(35,29,23,.13)}
+      .lender-picker-panel,.document-picker-panel{position:relative;margin-top:6px;max-height:320px;overflow:auto;border:1px solid #ded4c8;border-radius:10px;background:#fff;padding:7px;box-shadow:0 10px 24px rgba(35,29,23,.09)}
       .lender-picker-panel.hidden,.document-picker-panel.hidden{display:none}
       .document-picker-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 4px 9px;border-bottom:1px solid #eee;margin-bottom:7px}
       .document-picker-toolbar span{font-size:9px;color:#786f65}
@@ -845,6 +845,7 @@
       const picker = $('#lenderPicker');
       const panel = $('#lenderPickerPanel');
       const open = panel.classList.contains('hidden');
+      if (open) closeDocumentPicker();
       panel.classList.toggle('hidden',!open);
       picker.classList.toggle('open',open);
       $('#lenderPickerToggle').setAttribute('aria-expanded',String(open));
@@ -855,6 +856,7 @@
       const picker = $('#documentPicker');
       const panel = $('#documentPickerPanel');
       const open = panel.classList.contains('hidden');
+      if (open) closeLenderPicker();
       panel.classList.toggle('hidden',!open);
       picker.classList.toggle('open',open);
       $('#documentPickerToggle').setAttribute('aria-expanded',String(open));
@@ -1217,13 +1219,18 @@
 
     const lenderIds = [...document.querySelectorAll('[data-lender-choice]:checked')].map(input => input.value);
     const fileIds = [...document.querySelectorAll('[data-lender-document]:checked')].map(input => input.value);
-    const subject = $('#lenderSubject').value.trim();
-    const body = $('#lenderBody').value.trim();
+    const businessName = String($('#business')?.value || '').trim();
+    const subjectTemplate = $('#lenderSubject').value.trim();
+    const bodyTemplate = $('#lenderBody').value.trim();
 
+    if (!businessName) return setStatus('#lenderSendStatus','Enter and save the Business name in Client & Application before sending to a lender.','error');
     if (!lenderIds.length) return setStatus('#lenderSendStatus','Select at least one lender.','error');
     if (!fileIds.length) return setStatus('#lenderSendStatus','Select at least one document.','error');
-    if (!subject) return setStatus('#lenderSendStatus','Enter an email subject.','error');
-    if (!body) return setStatus('#lenderSendStatus','Enter an email message.','error');
+    if (!subjectTemplate) return setStatus('#lenderSendStatus','Enter an email subject.','error');
+    if (!bodyTemplate) return setStatus('#lenderSendStatus','Enter an email message.','error');
+
+    const subject = subjectTemplate.replace(/\{Company Name\}/gi,businessName);
+    const body = bodyTemplate.replace(/\{Company Name\}/gi,businessName);
 
     const selectedIds = new Set(fileIds);
     const totalBytes = documents.filter(doc => selectedIds.has(String(doc.id)))
