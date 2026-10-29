@@ -4,7 +4,7 @@
   const cfg = window.TFC_CONFIG || {};
   const $ = selector => document.querySelector(selector);
   const FIELDS = [
-    'status','advisor','messageTitle','messageBody','approvedAmount','quote','term',
+    'business','status','advisor','messageTitle','messageBody','approvedAmount','quote','term',
     'paymentFrequency','paymentAmount','numberPayments','totalRepayment','documentsRequested','notes'
   ];
   let currentApplicationId = '';
