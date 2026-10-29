@@ -102,6 +102,21 @@ Dynamic client-entered data displayed by `admin.js` is HTML-escaped before being
 10. Admin can save silently or save and notify the client.
 11. Client sees updated information in the portal and can respond to available financing.
 
+### Lender submissions
+
+The Admin CRM includes a simple lender-submission workflow:
+
+- saved lenders are stored in a `Lenders` tab created automatically in the CRM spreadsheet
+- each client file can select one or more saved lenders
+- client documents are selected directly from that application's Drive folder
+- selected files are attached to the email; Drive links are not used
+- each lender receives a separate email
+- packages over 20 MB are blocked before sending
+- every successful or failed lender send is recorded in Application Activity
+- lender-send actions use the admin token issued at login; after deploying this backend version, log out and log back in once before using the feature
+
+Changing the lender-submission backend requires a new Apps Script deployment version.
+
 ## Audit trail
 
 The current backend reference includes an append-only application audit trail stored in a separate Google Sheet tab named `Audit Log`.
