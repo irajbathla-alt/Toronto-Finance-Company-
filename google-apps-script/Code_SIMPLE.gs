@@ -34,6 +34,10 @@ const AUDIT_HEADERS = [
   'auditId','timestamp','applicationId','actorType','actorId',
   'action','field','oldValue','newValue','summary','metadata'
 ];
+const LENDER_SHEET_NAME = 'Lenders';
+const LENDER_HEADERS = ['lenderId','created','updated','name','email','contactName','notes','active'];
+const ADMIN_TOKEN_TTL_SECONDS = 21600;
+const MAX_LENDER_PACKAGE_BYTES = 20 * 1024 * 1024;
 
 function doGet(e) {
   try {
@@ -51,6 +55,11 @@ function doGet(e) {
       adminUpdate,
       adminEnsureDrive,
       adminGetAudit,
+      adminListLenders,
+      adminSaveLender,
+      adminDeleteLender,
+      adminGetSubmissionDocuments,
+      adminSendLenderPackage,
       getDocuments
     };
 
@@ -77,6 +86,11 @@ function doPost(e) {
       adminUpdate,
       adminEnsureDrive,
       adminGetAudit,
+      adminListLenders,
+      adminSaveLender,
+      adminDeleteLender,
+      adminGetSubmissionDocuments,
+      adminSendLenderPackage,
       getDocuments
     };
 
@@ -122,7 +136,7 @@ function json(value) {
 function health() {
   return {
     ok:true,
-    service:'Toronto Finance Company CRM Simple 1.7 Audit Trail',
+    service:'Toronto Finance Company CRM Simple 1.8 Lender Submissions',
     minimumStatements:CONFIG.MIN_STATEMENTS,
     adminPasswordConfigured:CONFIG.ADMIN_PASSWORD !== 'CHANGE_THIS_PASSWORD',
     clientNotificationFrom:CONFIG.CLIENT_NOTIFICATION_FROM
@@ -646,6 +660,141 @@ function adminLogin(p) {
     throw new Error('Invalid admin credentials');
   }
 
+  const adminToken = Utilities.getUuid().replace(/-/g,'');
+  CacheService.getScriptCache().put('tfc-admin-token-' + adminToken,email,ADMIN_TOKEN_TTL_SECONDS);
+  return { ok:true, adminToken };
+}
+
+function requireAdminToken(p) {
+  const token = String((p && p.adminToken) || '').trim();
+  if (!token) throw new Error('Admin session expired. Please log out and log back in.');
+
+  const email = CacheService.getScriptCache().get('tfc-admin-token-' + token);
+  if (!email || String(email).toLowerCase() !== String(CONFIG.ADMIN_EMAIL).toLowerCase()) {
+    throw new Error('Admin session expired. Please log out and log back in.');
+  }
+  return email;
+}
+
+function lendersSheet() {
+  const ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
+  let sh = ss.getSheetByName(LENDER_SHEET_NAME);
+
+  if (!sh) {
+    sh = ss.insertSheet(LENDER_SHEET_NAME);
+    ensureColumnCapacity(sh,LENDER_HEADERS.length);
+    sh.getRange(1,1,1,LENDER_HEADERS.length).setValues([LENDER_HEADERS]);
+    return sh;
+  }
+
+  if (sh.getLastRow() === 0 || sh.getLastColumn() === 0) {
+    ensureColumnCapacity(sh,LENDER_HEADERS.length);
+    sh.getRange(1,1,1,LENDER_HEADERS.length).setValues([LENDER_HEADERS]);
+    return sh;
+  }
+
+  const width = Math.max(1,sh.getLastColumn());
+  const headers = sh.getRange(1,1,1,width).getValues()[0].map(value => String(value || '').trim());
+  const merged = headers.slice();
+  LENDER_HEADERS.forEach(header => {
+    if (!merged.includes(header)) merged.push(header);
+  });
+  ensureColumnCapacity(sh,merged.length);
+  if (merged.length !== width) sh.getRange(1,1,1,merged.length).setValues([merged]);
+  return sh;
+}
+
+function lenderIsActive(value) {
+  return value === true || ['true','1','yes'].includes(String(value || '').trim().toLowerCase());
+}
+
+function allLenders() {
+  const sh = lendersSheet();
+  if (sh.getLastRow() < 2) return [];
+  const headers = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0].map(value => String(value || '').trim());
+  return sh.getRange(2,1,sh.getLastRow()-1,headers.length).getValues()
+    .map(row => rowToObject(headers,row))
+    .filter(record => record.lenderId && lenderIsActive(record.active))
+    .sort((a,b) => String(a.name || '').localeCompare(String(b.name || '')));
+}
+
+function findLenderRow(lenderId) {
+  const sh = lendersSheet();
+  const headers = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0].map(value => String(value || '').trim());
+  return findRowInSheet(sh,headers,'lenderId',String(lenderId || ''));
+}
+
+function saveLenderRecord(lenderId,patch) {
+  const found = findLenderRow(lenderId);
+  if (!found) throw new Error('Lender not found');
+  const row = found.sh.getRange(found.rowNumber,1,1,found.headers.length).getValues()[0];
+  found.headers.forEach((header,index) => {
+    if (Object.prototype.hasOwnProperty.call(patch,header)) row[index] = patch[header];
+  });
+  const updatedIndex = found.headers.indexOf('updated');
+  if (updatedIndex >= 0) row[updatedIndex] = new Date();
+  found.sh.getRange(found.rowNumber,1,1,found.headers.length).setValues([row]);
+}
+
+function adminListLenders(p) {
+  requireAdminToken(p);
+  return {
+    ok:true,
+    data:allLenders().map(lender => ({
+      lenderId:String(lender.lenderId || ''),
+      name:String(lender.name || ''),
+      email:String(lender.email || ''),
+      contactName:String(lender.contactName || ''),
+      notes:String(lender.notes || '')
+    }))
+  };
+}
+
+function adminSaveLender(p) {
+  requireAdminToken(p);
+
+  const name = String(p.name || '').trim();
+  const email = String(p.email || '').trim().toLowerCase();
+  const contactName = String(p.contactName || '').trim();
+  const notes = String(p.notes || '').trim();
+  const lenderId = String(p.lenderId || '').trim();
+
+  if (!name) throw new Error('Lender name is required');
+  if (!/^\S+@\S+\.\S+$/.test(email)) throw new Error('A valid lender email is required');
+
+  const duplicate = allLenders().find(lender =>
+    String(lender.email || '').trim().toLowerCase() === email &&
+    String(lender.lenderId || '') !== lenderId
+  );
+  if (duplicate) throw new Error('A lender with this email already exists');
+
+  if (lenderId) {
+    saveLenderRecord(lenderId,{ name,email,contactName,notes,active:true });
+    return { ok:true, lenderId };
+  }
+
+  const sh = lendersSheet();
+  const headers = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0].map(value => String(value || '').trim());
+  const now = new Date();
+  const record = {
+    lenderId:'LND-' + Utilities.getUuid().replace(/-/g,'').slice(0,10).toUpperCase(),
+    created:now,
+    updated:now,
+    name,
+    email,
+    contactName,
+    notes,
+    active:true
+  };
+  appendRecordToSheet(sh,headers,record);
+  return { ok:true, lenderId:record.lenderId };
+}
+
+function adminDeleteLender(p) {
+  requireAdminToken(p);
+  const lenderId = String(p.lenderId || '').trim();
+  if (!lenderId) throw new Error('Lender is required');
+  saveLenderRecord(lenderId,{ active:false });
   return { ok:true };
 }
 
@@ -838,6 +987,46 @@ function getDocuments(p) {
   return { ok:true, data:listDocuments(findApplication(p.applicationId)) };
 }
 
+function adminGetSubmissionDocuments(p) {
+  requireAdminToken(p);
+  const record = findApplication(p.applicationId);
+  return { ok:true, data:listSubmissionDocuments(record) };
+}
+
+function listSubmissionDocuments(record) {
+  if (!record.driveFolderId) return [];
+  const out = [];
+  try {
+    walkSubmissionFolder(DriveApp.getFolderById(record.driveFolderId),out);
+  } catch (_) {}
+  return out.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
+function walkSubmissionFolder(folder,out) {
+  const files = folder.getFiles();
+  while (files.hasNext()) {
+    const file = files.next();
+    const folderName = folder.getName();
+    let type = 'document';
+    if (folderName === 'Bank Statements') type = 'statement';
+    else if (folderName === 'Identification') type = 'identification';
+    else if (folderName === 'Financial Statements') type = 'financial';
+    out.push({
+      id:file.getId(),
+      name:file.getName(),
+      date:file.getDateCreated(),
+      type,
+      size:file.getSize(),
+      mimeType:file.getMimeType()
+    });
+  }
+
+  const folders = folder.getFolders();
+  while (folders.hasNext()) {
+    walkSubmissionFolder(folders.next(),out);
+  }
+}
+
 function listDocuments(record) {
   if (!record.driveFolderId) return [];
 
@@ -885,6 +1074,123 @@ function countFiles(folder) {
     count++;
   }
   return count;
+}
+
+function parseStringArray(value) {
+  if (Array.isArray(value)) return value.map(item => String(item || '').trim()).filter(Boolean);
+  const raw = String(value || '').trim();
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed.map(item => String(item || '').trim()).filter(Boolean);
+  } catch (_) {}
+  return raw.split(',').map(item => item.trim()).filter(Boolean);
+}
+
+function adminSendLenderPackage(p) {
+  requireAdminToken(p);
+
+  const applicationId = String(p.applicationId || '').trim();
+  if (!applicationId) throw new Error('Application ID is required');
+
+  const record = findApplication(applicationId);
+  const lenderIds = [...new Set(parseStringArray(p.lenderIds))];
+  const fileIds = [...new Set(parseStringArray(p.fileIds))];
+  const subject = String(p.subject || '').trim().slice(0,180);
+  const body = String(p.body || '').trim().slice(0,5000);
+
+  if (!lenderIds.length) throw new Error('Select at least one lender');
+  if (!fileIds.length) throw new Error('Select at least one document');
+  if (!subject) throw new Error('Email subject is required');
+  if (!body) throw new Error('Email message is required');
+
+  const lenderMap = Object.fromEntries(allLenders().map(lender => [String(lender.lenderId),lender]));
+  const lenders = lenderIds.map(id => lenderMap[id]).filter(Boolean);
+  if (lenders.length !== lenderIds.length) throw new Error('One or more selected lenders are no longer available');
+
+  const permitted = Object.fromEntries(listSubmissionDocuments(record).map(doc => [String(doc.id),doc]));
+  const docs = fileIds.map(id => permitted[id]).filter(Boolean);
+  if (docs.length !== fileIds.length) throw new Error('One or more selected documents are no longer available in this client file');
+
+  const totalBytes = docs.reduce((sum,doc) => sum + Number(doc.size || 0),0);
+  if (totalBytes > MAX_LENDER_PACKAGE_BYTES) {
+    throw new Error('Package is too large to email. Please deselect one or more documents and try again.');
+  }
+
+  const attachments = docs.map(doc => DriveApp.getFileById(doc.id).getBlob().setName(doc.name));
+  const from = String(CONFIG.CLIENT_NOTIFICATION_FROM || '').trim().toLowerCase();
+  const aliases = GmailApp.getAliases().map(alias => String(alias || '').trim().toLowerCase());
+  if (!from || !aliases.includes(from)) {
+    throw new Error(CONFIG.CLIENT_NOTIFICATION_FROM + ' is not available as a Gmail Send mail as alias for the Apps Script account.');
+  }
+
+  const sent = [];
+  const failed = [];
+
+  lenders.forEach(lender => {
+    try {
+      GmailApp.sendEmail(String(lender.email || '').trim(),subject,body,{
+        from:CONFIG.CLIENT_NOTIFICATION_FROM,
+        name:CONFIG.COMPANY_NAME,
+        replyTo:CONFIG.CLIENT_NOTIFICATION_FROM,
+        attachments
+      });
+
+      sent.push({
+        lenderId:String(lender.lenderId || ''),
+        name:String(lender.name || ''),
+        email:String(lender.email || '')
+      });
+
+      appendAuditEvent({
+        applicationId:record.applicationId,
+        actorType:'ADMIN',
+        actorId:CONFIG.ADMIN_EMAIL,
+        action:'LENDER_PACKAGE_SENT',
+        field:'lenderSubmission',
+        newValue:String(lender.name || ''),
+        summary:'Lender package sent to ' + String(lender.name || lender.email || 'lender') + ' · ' + docs.length + ' document' + (docs.length === 1 ? '' : 's'),
+        metadata:{
+          lenderId:String(lender.lenderId || ''),
+          lenderEmail:String(lender.email || ''),
+          subject,
+          documents:docs.map(doc => doc.name),
+          totalBytes
+        }
+      });
+    } catch (err) {
+      const error = err.message || String(err);
+      failed.push({
+        lenderId:String(lender.lenderId || ''),
+        name:String(lender.name || ''),
+        email:String(lender.email || ''),
+        error
+      });
+
+      appendAuditEvent({
+        applicationId:record.applicationId,
+        actorType:'ADMIN',
+        actorId:CONFIG.ADMIN_EMAIL,
+        action:'LENDER_PACKAGE_FAILED',
+        field:'lenderSubmission',
+        newValue:String(lender.name || ''),
+        summary:'Lender package could not be sent to ' + String(lender.name || lender.email || 'lender'),
+        metadata:{
+          lenderId:String(lender.lenderId || ''),
+          lenderEmail:String(lender.email || ''),
+          error
+        }
+      });
+    }
+  });
+
+  return {
+    ok:true,
+    sent,
+    failed,
+    documentCount:docs.length,
+    totalBytes
+  };
 }
 
 function sendClientUpdateEmail(record) {
