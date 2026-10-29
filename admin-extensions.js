@@ -732,13 +732,15 @@
       .lender-block-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
       .lender-block-head strong{font-size:10px;letter-spacing:.09em;text-transform:uppercase}
       .lender-checklist,.lender-docs{display:grid;gap:7px}
-      .lender-picker{position:relative}
-      .lender-picker-toggle{width:100%;min-height:42px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #d9cdbf;border-radius:9px;background:#fff;padding:10px 12px;color:var(--ink);font-size:11px;text-align:left;cursor:pointer;transition:border-color .18s ease,box-shadow .18s ease}
-      .lender-picker-toggle:hover,.lender-picker.open .lender-picker-toggle{border-color:rgba(198,150,78,.58);box-shadow:0 0 0 3px rgba(198,150,78,.07)}
-      .lender-picker-chevron{font-size:13px;color:#786f65;transition:transform .18s ease}
-      .lender-picker.open .lender-picker-chevron{transform:rotate(180deg)}
-      .lender-picker-panel{position:absolute;z-index:20;left:0;right:0;top:calc(100% + 6px);max-height:280px;overflow:auto;border:1px solid #ded4c8;border-radius:10px;background:#fff;padding:7px;box-shadow:0 14px 34px rgba(35,29,23,.13)}
-      .lender-picker-panel.hidden{display:none}
+      .lender-picker,.document-picker{position:relative}
+      .lender-picker-toggle,.document-picker-toggle{width:100%;min-height:42px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #d9cdbf;border-radius:9px;background:#fff;padding:10px 12px;color:var(--ink);font-size:11px;text-align:left;cursor:pointer;transition:border-color .18s ease,box-shadow .18s ease}
+      .lender-picker-toggle:hover,.lender-picker.open .lender-picker-toggle,.document-picker-toggle:hover,.document-picker.open .document-picker-toggle{border-color:rgba(198,150,78,.58);box-shadow:0 0 0 3px rgba(198,150,78,.07)}
+      .lender-picker-chevron,.document-picker-chevron{font-size:13px;color:#786f65;transition:transform .18s ease}
+      .lender-picker.open .lender-picker-chevron,.document-picker.open .document-picker-chevron{transform:rotate(180deg)}
+      .lender-picker-panel,.document-picker-panel{position:absolute;z-index:20;left:0;right:0;top:calc(100% + 6px);max-height:320px;overflow:auto;border:1px solid #ded4c8;border-radius:10px;background:#fff;padding:7px;box-shadow:0 14px 34px rgba(35,29,23,.13)}
+      .lender-picker-panel.hidden,.document-picker-panel.hidden{display:none}
+      .document-picker-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 4px 9px;border-bottom:1px solid #eee;margin-bottom:7px}
+      .document-picker-toolbar span{font-size:9px;color:#786f65}
       .lender-option,.lender-doc-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid rgba(23,19,15,.11);border-radius:9px;padding:10px 11px;background:#fff}
       .lender-option input,.lender-doc-row input{width:16px;height:16px}
       .lender-option-main,.lender-doc-main{min-width:0}
@@ -803,9 +805,21 @@
       <div class="lender-block">
         <div class="lender-block-head">
           <strong>Select Documents</strong>
-          <button class="lender-mini" id="lenderSelectAll" type="button">Select All</button>
+          <span class="subtle" id="documentCount">0 available</span>
         </div>
-        <div class="lender-docs" id="lenderDocs"><div class="lender-empty">Open a client file to load Drive documents.</div></div>
+        <div class="document-picker" id="documentPicker">
+          <button class="document-picker-toggle" id="documentPickerToggle" type="button" aria-expanded="false">
+            <span id="documentPickerLabel">Select documents</span>
+            <span class="document-picker-chevron">⌄</span>
+          </button>
+          <div class="document-picker-panel hidden" id="documentPickerPanel">
+            <div class="document-picker-toolbar">
+              <span>Client Drive Documents</span>
+              <button class="lender-mini" id="lenderSelectAll" type="button">Select All</button>
+            </div>
+            <div class="lender-docs" id="lenderDocs"><div class="lender-empty">Open a client file to load Drive documents.</div></div>
+          </div>
+        </div>
         <div class="lender-package-meta" id="lenderPackageMeta">0 documents selected</div>
       </div>
 
@@ -836,6 +850,16 @@
       $('#lenderPickerToggle').setAttribute('aria-expanded',String(open));
     };
     $('#lenderPickerPanel').onclick = event => event.stopPropagation();
+    $('#documentPickerToggle').onclick = event => {
+      event.stopPropagation();
+      const picker = $('#documentPicker');
+      const panel = $('#documentPickerPanel');
+      const open = panel.classList.contains('hidden');
+      panel.classList.toggle('hidden',!open);
+      picker.classList.toggle('open',open);
+      $('#documentPickerToggle').setAttribute('aria-expanded',String(open));
+    };
+    $('#documentPickerPanel').onclick = event => event.stopPropagation();
     $('#lenderSave').onclick = saveLender;
     $('#lenderCancelEdit').onclick = resetLenderForm;
     $('#lenderSelectAll').onclick = toggleAllDocuments;
@@ -917,6 +941,16 @@
     toggle.setAttribute('aria-expanded','false');
   }
 
+  function closeDocumentPicker() {
+    const picker = $('#documentPicker');
+    const panel = $('#documentPickerPanel');
+    const toggle = $('#documentPickerToggle');
+    if (!picker || !panel || !toggle) return;
+    panel.classList.add('hidden');
+    picker.classList.remove('open');
+    toggle.setAttribute('aria-expanded','false');
+  }
+
   function renderLenders() {
     const list = $('#lenderList');
     if (!list) return;
@@ -984,6 +1018,7 @@
     const list = $('#lenderDocs');
     if (!list) return;
     list.replaceChildren();
+    if ($('#documentCount')) $('#documentCount').textContent = documents.length + ' available';
 
     if (!documents.length) {
       const empty = document.createElement('div');
@@ -1030,12 +1065,17 @@
     const bytes = chosenDocs.reduce((sum,doc) => sum + Number(doc.size || 0),0);
     const tooLarge = bytes > MAX_PACKAGE_BYTES;
 
-    $('#lenderPackageMeta').textContent =
+    const summary =
       chosenDocs.length + ' document' + (chosenDocs.length === 1 ? '' : 's') +
-      ' selected · ' + formatBytes(bytes) +
-      (tooLarge ? ' · package too large for email' : '');
+      ' selected · ' + formatBytes(bytes);
+
+    $('#lenderPackageMeta').textContent =
+      summary + (tooLarge ? ' · package too large for email' : '');
 
     $('#lenderPackageMeta').style.color = tooLarge ? '#a13f33' : '';
+    if ($('#documentPickerLabel')) {
+      $('#documentPickerLabel').textContent = chosenDocs.length ? summary : 'Select documents';
+    }
     $('#lenderSelectAll').textContent =
       documents.length && chosenDocs.length === documents.length ? 'Clear All' : 'Select All';
   }
@@ -1223,6 +1263,7 @@
         document.querySelectorAll('[data-lender-choice]:checked').forEach(input => { input.checked = false; });
         updateLenderPickerLabel();
         closeLenderPicker();
+        closeDocumentPicker();
         const auditRefresh = $('#auditRefresh');
         if (auditRefresh && !auditRefresh.disabled) setTimeout(() => auditRefresh.click(),500);
       } else {
@@ -1256,6 +1297,7 @@
     const open = event.target.closest?.('[data-open]');
     if (open?.dataset?.open) setTimeout(() => selectApplication(open.dataset.open),120);
     if (!event.target.closest?.('#lenderPicker')) closeLenderPicker();
+    if (!event.target.closest?.('#documentPicker')) closeDocumentPicker();
   },true);
 
   function install() {
