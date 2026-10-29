@@ -1170,7 +1170,10 @@ function adminSendLenderPackage(p) {
   const sent = [];
   const failed = [];
 
-  const companyName = String(record.business || record.name || record.applicationId || 'Client').trim();
+  const companyName = String(p.companyName || record.business || '').trim();
+  if (!companyName) {
+    throw new Error('Business name is required before sending a lender package.');
+  }
 
   lenders.forEach(lender => {
     const lenderName = String(lender.name || 'Lender').trim();
