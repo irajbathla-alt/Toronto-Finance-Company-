@@ -36,6 +36,13 @@ const AUDIT_HEADERS = [
 ];
 const LENDER_SHEET_NAME = 'Lenders';
 const LENDER_HEADERS = ['lenderId','created','updated','name','email','contactName','notes','active'];
+const DEFAULT_LENDERS = [
+  { name:'Journey Capital', email:'agentapps@journeycapital.ca' },
+  { name:'Xuper Funding', email:'iso@xpfunding.com' },
+  { name:'Canacap', email:'communications@canacap.ca' },
+  { name:'Sheaves Capital', email:'apps@sheavescapital.ca' }
+];
+const DEFAULT_LENDERS_SEEDED_KEY = 'tfc-default-lenders-seeded-v1';
 const ADMIN_TOKEN_TTL_SECONDS = 21600;
 const MAX_LENDER_PACKAGE_BYTES = 20 * 1024 * 1024;
 
@@ -708,8 +715,42 @@ function lenderIsActive(value) {
   return value === true || ['true','1','yes'].includes(String(value || '').trim().toLowerCase());
 }
 
+function seedDefaultLenders(sh) {
+  const props = PropertiesService.getScriptProperties();
+  if (props.getProperty(DEFAULT_LENDERS_SEEDED_KEY) === '1') return;
+
+  const headers = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0]
+    .map(value => String(value || '').trim());
+  let existingEmails = [];
+
+  if (sh.getLastRow() >= 2) {
+    existingEmails = sh.getRange(2,1,sh.getLastRow()-1,headers.length).getValues()
+      .map(row => rowToObject(headers,row))
+      .map(record => String(record.email || '').trim().toLowerCase())
+      .filter(Boolean);
+  }
+
+  DEFAULT_LENDERS.forEach(lender => {
+    if (existingEmails.includes(lender.email.toLowerCase())) return;
+    const now = new Date();
+    appendRecordToSheet(sh,headers,{
+      lenderId:'LND-' + Utilities.getUuid().replace(/-/g,'').slice(0,10).toUpperCase(),
+      created:now,
+      updated:now,
+      name:lender.name,
+      email:lender.email,
+      contactName:'',
+      notes:'',
+      active:true
+    });
+  });
+
+  props.setProperty(DEFAULT_LENDERS_SEEDED_KEY,'1');
+}
+
 function allLenders() {
   const sh = lendersSheet();
+  seedDefaultLenders(sh);
   if (sh.getLastRow() < 2) return [];
   const headers = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0].map(value => String(value || '').trim());
   return sh.getRange(2,1,sh.getLastRow()-1,headers.length).getValues()
@@ -1096,13 +1137,13 @@ function adminSendLenderPackage(p) {
   const record = findApplication(applicationId);
   const lenderIds = [...new Set(parseStringArray(p.lenderIds))];
   const fileIds = [...new Set(parseStringArray(p.fileIds))];
-  const subject = String(p.subject || '').trim().slice(0,180);
-  const body = String(p.body || '').trim().slice(0,5000);
+  const subjectTemplate = String(p.subject || '').trim().slice(0,180);
+  const bodyTemplate = String(p.body || '').trim().slice(0,5000);
 
   if (!lenderIds.length) throw new Error('Select at least one lender');
   if (!fileIds.length) throw new Error('Select at least one document');
-  if (!subject) throw new Error('Email subject is required');
-  if (!body) throw new Error('Email message is required');
+  if (!subjectTemplate) throw new Error('Email subject is required');
+  if (!bodyTemplate) throw new Error('Email message is required');
 
   const lenderMap = Object.fromEntries(allLenders().map(lender => [String(lender.lenderId),lender]));
   const lenders = lenderIds.map(id => lenderMap[id]).filter(Boolean);
@@ -1127,7 +1168,17 @@ function adminSendLenderPackage(p) {
   const sent = [];
   const failed = [];
 
+  const companyName = String(record.business || record.name || record.applicationId || 'Client').trim();
+
   lenders.forEach(lender => {
+    const lenderName = String(lender.name || 'Lender').trim();
+    const subject = subjectTemplate
+      .replace(/\{Lender Name\}/gi,lenderName)
+      .replace(/\{Company Name\}/gi,companyName);
+    const body = bodyTemplate
+      .replace(/\{Lender Name\}/gi,lenderName)
+      .replace(/\{Company Name\}/gi,companyName);
+
     try {
       GmailApp.sendEmail(String(lender.email || '').trim(),subject,body,{
         from:CONFIG.CLIENT_NOTIFICATION_FROM,
