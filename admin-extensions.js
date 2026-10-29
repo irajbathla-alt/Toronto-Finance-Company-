@@ -1097,14 +1097,15 @@
       '',
       'Hope you are well.',
       '',
-      'The client would like to apply for Small Business Financing.',
-      'Please see the attached details',
+      'The client, {Company Name}, would like to apply for Small Business Financing.',
+      '',
+      'Please see the attached:',
       '1. Client Information',
       '2. Bank Statements',
       '',
-      'Warm Regards',
-      '',
-      'Toronto Finance Company'
+      'Warm Regards,',
+      'Toronto Finance Company',
+      'info@torontofinancecompany.com'
     ].join('\n');
   }
 
