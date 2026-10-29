@@ -732,6 +732,13 @@
       .lender-block-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
       .lender-block-head strong{font-size:10px;letter-spacing:.09em;text-transform:uppercase}
       .lender-checklist,.lender-docs{display:grid;gap:7px}
+      .lender-picker{position:relative}
+      .lender-picker-toggle{width:100%;min-height:42px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #d9cdbf;border-radius:9px;background:#fff;padding:10px 12px;color:var(--ink);font-size:11px;text-align:left;cursor:pointer;transition:border-color .18s ease,box-shadow .18s ease}
+      .lender-picker-toggle:hover,.lender-picker.open .lender-picker-toggle{border-color:rgba(198,150,78,.58);box-shadow:0 0 0 3px rgba(198,150,78,.07)}
+      .lender-picker-chevron{font-size:13px;color:#786f65;transition:transform .18s ease}
+      .lender-picker.open .lender-picker-chevron{transform:rotate(180deg)}
+      .lender-picker-panel{position:absolute;z-index:20;left:0;right:0;top:calc(100% + 6px);max-height:280px;overflow:auto;border:1px solid #ded4c8;border-radius:10px;background:#fff;padding:7px;box-shadow:0 14px 34px rgba(35,29,23,.13)}
+      .lender-picker-panel.hidden{display:none}
       .lender-option,.lender-doc-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid rgba(23,19,15,.11);border-radius:9px;padding:10px 11px;background:#fff}
       .lender-option input,.lender-doc-row input{width:16px;height:16px}
       .lender-option-main,.lender-doc-main{min-width:0}
@@ -782,7 +789,15 @@
 
       <div class="lender-block">
         <div class="lender-block-head"><strong>Select Lender(s)</strong><span class="subtle" id="lenderCount">0 saved</span></div>
-        <div class="lender-checklist" id="lenderList"><div class="lender-empty">Loading lenders…</div></div>
+        <div class="lender-picker" id="lenderPicker">
+          <button class="lender-picker-toggle" id="lenderPickerToggle" type="button" aria-expanded="false">
+            <span id="lenderPickerLabel">Select lender(s)</span>
+            <span class="lender-picker-chevron">⌄</span>
+          </button>
+          <div class="lender-picker-panel hidden" id="lenderPickerPanel">
+            <div class="lender-checklist" id="lenderList"><div class="lender-empty">Loading lenders…</div></div>
+          </div>
+        </div>
       </div>
 
       <div class="lender-block">
@@ -811,6 +826,16 @@
     $('#lenderManageToggle').onclick = () => {
       $('#lenderManagePanel').classList.toggle('hidden');
     };
+    $('#lenderPickerToggle').onclick = event => {
+      event.stopPropagation();
+      const picker = $('#lenderPicker');
+      const panel = $('#lenderPickerPanel');
+      const open = panel.classList.contains('hidden');
+      panel.classList.toggle('hidden',!open);
+      picker.classList.toggle('open',open);
+      $('#lenderPickerToggle').setAttribute('aria-expanded',String(open));
+    };
+    $('#lenderPickerPanel').onclick = event => event.stopPropagation();
     $('#lenderSave').onclick = saveLender;
     $('#lenderCancelEdit').onclick = resetLenderForm;
     $('#lenderSelectAll').onclick = toggleAllDocuments;
@@ -863,6 +888,35 @@
     $('#lenderName').focus();
   }
 
+  function updateLenderPickerLabel() {
+    const selectedIds = [...document.querySelectorAll('[data-lender-choice]:checked')].map(input => input.value);
+    const label = $('#lenderPickerLabel');
+    if (!label) return;
+
+    if (!selectedIds.length) {
+      label.textContent = 'Select lender(s)';
+      return;
+    }
+
+    const selectedNames = selectedIds
+      .map(id => lenders.find(lender => String(lender.lenderId) === String(id))?.name)
+      .filter(Boolean);
+
+    label.textContent = selectedNames.length === 1
+      ? selectedNames[0]
+      : selectedNames.length + ' lenders selected';
+  }
+
+  function closeLenderPicker() {
+    const picker = $('#lenderPicker');
+    const panel = $('#lenderPickerPanel');
+    const toggle = $('#lenderPickerToggle');
+    if (!picker || !panel || !toggle) return;
+    panel.classList.add('hidden');
+    picker.classList.remove('open');
+    toggle.setAttribute('aria-expanded','false');
+  }
+
   function renderLenders() {
     const list = $('#lenderList');
     if (!list) return;
@@ -885,6 +939,7 @@
       checkbox.type = 'checkbox';
       checkbox.value = lender.lenderId;
       checkbox.dataset.lenderChoice = 'true';
+      checkbox.onchange = updateLenderPickerLabel;
 
       const main = document.createElement('span');
       main.className = 'lender-option-main';
@@ -921,6 +976,8 @@
       row.append(checkbox,main,actions);
       list.appendChild(row);
     });
+
+    updateLenderPickerLabel();
   }
 
   function renderDocuments() {
@@ -1164,6 +1221,8 @@
           failed.length ? '' : 'success'
         );
         document.querySelectorAll('[data-lender-choice]:checked').forEach(input => { input.checked = false; });
+        updateLenderPickerLabel();
+        closeLenderPicker();
         const auditRefresh = $('#auditRefresh');
         if (auditRefresh && !auditRefresh.disabled) setTimeout(() => auditRefresh.click(),500);
       } else {
@@ -1196,6 +1255,7 @@
   document.addEventListener('click',event => {
     const open = event.target.closest?.('[data-open]');
     if (open?.dataset?.open) setTimeout(() => selectApplication(open.dataset.open),120);
+    if (!event.target.closest?.('#lenderPicker')) closeLenderPicker();
   },true);
 
   function install() {
