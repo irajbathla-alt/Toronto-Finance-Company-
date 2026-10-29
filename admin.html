@@ -104,7 +104,19 @@
       </div>
     </section>
 
-    <section class="section card"><div class="section-title"><h3>Client & Application</h3><button class="quick" id="copyId">Copy ID</button></div><div id="details"></div></section>
+    <section class="section card">
+      <div class="section-title"><h3>Client & Application</h3><button class="quick" id="copyId">Copy ID</button></div>
+      <div id="details"></div>
+      <div class="field" style="margin-top:16px">
+        <label>Business Name</label>
+        <input id="business" maxlength="180" placeholder="Enter legal or operating business name">
+        <div class="subtle" style="margin-top:6px">Used as the company name on lender submissions.</div>
+      </div>
+      <div class="drawer-buttons" style="margin-top:10px">
+        <button class="quick" id="saveBusiness" type="button">Save Business Name</button>
+      </div>
+      <div id="businessSaveMsg" class="notice"></div>
+    </section>
 
     <section class="section card">
       <div class="section-title"><h3>Quick Stage Actions</h3></div>
@@ -154,7 +166,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="crm-config.js?v=20260906-debug2"></script>
-<script src="admin.js?v=20261029-lender1"></script>
-<script src="admin-extensions.js?v=20261029-lender2"></script>
+<script src="admin.js?v=20261029-business1"></script>
+<script src="admin-extensions.js?v=20261029-business1"></script>
 </body>
 </html>
