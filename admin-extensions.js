@@ -797,6 +797,7 @@
       <div class="lender-compose">
         <div><label>Email Subject</label><input id="lenderSubject" maxlength="180"></div>
         <div><label>Email Message</label><textarea id="lenderBody" maxlength="2000"></textarea></div>
+        <div class="lender-package-meta">Use {Lender Name} and {Company Name}; they are personalized automatically for each lender.</div>
       </div>
 
       <div class="lender-send-actions">
@@ -991,18 +992,19 @@
   }
 
   function defaultCompose() {
-    const title = String($('#dTitle')?.textContent || '').trim();
-    const parts = title.split('·');
-    const clientLabel = (parts.slice(1).join('·').trim() || 'Client');
-    $('#lenderSubject').value = `Financing Request – ${clientLabel} – ${currentApplicationId}`;
+    $('#lenderSubject').value = '{Lender Name} LOC_{Company Name}';
     $('#lenderBody').value = [
-      'Hello,',
+      'Hi {Lender Name} Team',
       '',
-      'Please review the attached documents for this financing request.',
+      'Hope you are well.',
       '',
-      'Please let us know if you require any additional information.',
+      'The client would like to apply for Small Business Financing.',
+      'Please see the attached details',
+      '1. Client Information',
+      '2. Bank Statements',
       '',
-      'Thank you,',
+      'Warm Regards',
+      '',
       'Toronto Finance Company'
     ].join('\n');
   }
