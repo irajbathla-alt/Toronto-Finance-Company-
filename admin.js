@@ -219,13 +219,39 @@
     $('#summaryStatements').textContent = `${Number(selected.statements || 0)} / ${minimumStatements}`;
     $('#summaryAdvisor').textContent = selected.advisor || 'Unassigned';
     $('#details').innerHTML = [
-      ['Client', selected.name], ['Email', selected.email], ['Phone', selected.phone], ['Business', selected.business],
-      ['Requested Amount', selected.requested ? `CA$${Number(selected.requested).toLocaleString()}` : '—'],
-      ['Created', formatDate(selected.created)], ['Updated', formatDate(selected.updated)]
+      ['Client', selected.name],
+      ['Email', selected.email],
+      ['Phone', selected.phone]
+    ].map(([key, value]) => `<div class="kv"><b>${escapeHtml(key)}</b><span>${escapeHtml(value || '—')}</span></div>`).join('') +
+    `<div class="kv business-kv">
+      <b>Business</b>
+      <span>
+        <span class="business-inline">
+          <input id="business" maxlength="180" value="${escapeHtml(selected.business || '')}" placeholder="Enter business name">
+          <button class="quick" id="saveBusiness" type="button">Save</button>
+        </span>
+        <small id="businessSaveMsg" class="business-save-msg">Used on lender submissions.</small>
+      </span>
+    </div>` +
+    [
+      ['Requested Amount', selected.requested ? `CA${Number(selected.requested).toLocaleString()}` : '—'],
+      ['Created', formatDate(selected.created)],
+      ['Updated', formatDate(selected.updated)]
     ].map(([key, value]) => `<div class="kv"><b>${escapeHtml(key)}</b><span>${escapeHtml(value || '—')}</span></div>`).join('');
-    ['business', 'status', 'advisor', 'messageTitle', 'messageBody', 'approvedAmount', 'quote', 'term', 'paymentFrequency', 'paymentAmount', 'numberPayments', 'totalRepayment', 'documentsRequested', 'notes'].forEach(key => {
+
+    ['status', 'advisor', 'messageTitle', 'messageBody', 'approvedAmount', 'quote', 'term', 'paymentFrequency', 'paymentAmount', 'numberPayments', 'totalRepayment', 'documentsRequested', 'notes'].forEach(key => {
       const field = $('#' + key);
       if (field) field.value = selected[key] || '';
+    });
+
+    const businessInput = $('#business');
+    const businessSave = $('#saveBusiness');
+    if (businessSave) businessSave.onclick = saveBusinessName;
+    if (businessInput) businessInput.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        saveBusinessName();
+      }
     });
     updatePreview();
     renderClientResponse(selected);
@@ -247,7 +273,7 @@
 
     if (!business) {
       if (message) {
-        message.className = 'notice error';
+        message.className = 'business-save-msg error';
         message.textContent = 'Please enter the business name.';
       }
       return;
@@ -258,7 +284,7 @@
       button.textContent = 'Saving…';
     }
     if (message) {
-      message.className = 'notice';
+      message.className = 'business-save-msg';
       message.textContent = 'Saving business name…';
     }
 
@@ -277,13 +303,13 @@
       openFile(selected.applicationId);
 
       if (message) {
-        message.className = 'notice success';
+        message.className = 'business-save-msg success';
         message.textContent = 'Business name saved. Lender emails will use this company name.';
       }
       toast('Business name saved');
     } catch (error) {
       if (message) {
-        message.className = 'notice error';
+        message.className = 'business-save-msg error';
         message.textContent = error.message || 'Business name could not be saved.';
       }
     } finally {
@@ -373,7 +399,6 @@
     }
   }
 
-  $('#saveBusiness').onclick = saveBusinessName;
   $('#adminLogin').onclick = login;
   $('#adminPassword').addEventListener('keydown', event => { if (event.key === 'Enter') login(); });
   $('#save').onclick = saveUpdate;
