@@ -304,6 +304,7 @@
     try {
       const result = await readApi('adminLogin', { email, password });
       if (!result?.ok) throw new Error(result?.error || 'Login failed.');
+      if (result.adminToken) sessionStorage.setItem('tfc-admin-token', result.adminToken);
       $('#login').classList.add('hidden');
       $('#admin').classList.remove('hidden');
       $('#logoutBtn').classList.remove('hidden');
@@ -343,5 +344,8 @@
   $('#backdrop').onclick = closeDrawer;
   $('#websiteLink').onclick = () => location.href = 'index.html';
   $('#portalLink').onclick = () => location.href = 'client-dashboard.html?login=1';
-  $('#logoutBtn').onclick = () => location.reload();
+  $('#logoutBtn').onclick = () => {
+    sessionStorage.removeItem('tfc-admin-token');
+    location.reload();
+  };
 })();
