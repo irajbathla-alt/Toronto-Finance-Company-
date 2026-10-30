@@ -65,6 +65,7 @@
       const field = $('#' + key);
       if (field) update[key] = field.value;
     });
+    update.additionalDocsEnabled = $('#additionalDocsEnabled')?.checked ? 'true' : 'false';
     return update;
   }
 
