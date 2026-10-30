@@ -14,7 +14,7 @@ const REQUIRED_HEADERS = [
   'applicationId','created','updated','name','email','passwordHash','phone','business',
   'address','city','province','postal','industry','revenue','requested','years','purpose',
   'status','statements','signatureConfirmed','signatureConfirmedAt','advisor','messageTitle','messageBody','approvedAmount','quote',
-  'term','paymentFrequency','paymentAmount','numberPayments','totalRepayment','documentsRequested',
+  'term','paymentFrequency','paymentAmount','numberPayments','totalRepayment','documentsRequested','additionalDocsEnabled',
   'clientDecision','clientDecisionNote','clientDecisionAt','notes',
   'driveFolderId','driveUrl','lastNotificationStatus','lastNotificationAt','lastNotificationError'
 ];
@@ -22,13 +22,13 @@ const REQUIRED_HEADERS = [
 const CLIENT_SAFE_FIELDS = [
   'applicationId','created','updated','name','email','phone','business','status','statements',
   'signatureConfirmed','signatureConfirmedAt','advisor','messageTitle','messageBody','approvedAmount',
-  'quote','term','paymentFrequency','paymentAmount','numberPayments','totalRepayment','documentsRequested',
+  'quote','term','paymentFrequency','paymentAmount','numberPayments','totalRepayment','documentsRequested','additionalDocsEnabled',
   'clientDecision','clientDecisionNote','clientDecisionAt','documents'
 ];
 
 const EARLY_STATUSES = ['Account Created','Statements Required','Ready for Review'];
 const APPROVAL_STATUSES = ['Conditional Approval','Approved'];
-const SCHEMA_CACHE_KEY = 'tfc-schema-20260903-signature-v2';
+const SCHEMA_CACHE_KEY = 'tfc-schema-20261029-additional-docs-v1';
 const AUDIT_SHEET_NAME = 'Audit Log';
 const AUDIT_HEADERS = [
   'auditId','timestamp','applicationId','actorType','actorId',
@@ -406,6 +406,7 @@ function auditFieldLabel(field) {
     numberPayments:'Number of payments',
     totalRepayment:'Total repayment',
     documentsRequested:'Additional documents requested',
+    additionalDocsEnabled:'Additional document upload',
     notes:'Internal / advisor notes'
   };
   return labels[field] || field;
@@ -421,6 +422,7 @@ function auditAdminChange(applicationId,field,oldValue,newValue) {
   else if (field === 'status') action = 'STATUS_CHANGED';
   else if (['approvedAmount','quote','term','paymentFrequency','paymentAmount','numberPayments','totalRepayment'].includes(field)) action = 'FINANCING_UPDATED';
   else if (field === 'documentsRequested') action = 'DOCUMENTS_REQUESTED';
+  else if (field === 'additionalDocsEnabled') action = 'ADDITIONAL_DOCS_VISIBILITY_CHANGED';
   else if (['messageTitle','messageBody'].includes(field)) action = 'CLIENT_MESSAGE_UPDATED';
   else if (field === 'advisor') action = 'ADVISOR_UPDATED';
   else if (field === 'notes') action = 'INTERNAL_NOTES_UPDATED';
@@ -853,7 +855,7 @@ function adminUpdate(p) {
   const patch = {};
 
   ['business','status','advisor','messageTitle','messageBody','approvedAmount','quote','term','paymentFrequency',
-   'paymentAmount','numberPayments','totalRepayment','documentsRequested','notes']
+   'paymentAmount','numberPayments','totalRepayment','documentsRequested','additionalDocsEnabled','notes']
     .forEach(key => {
       if (Object.prototype.hasOwnProperty.call(p,key)) patch[key] = p[key];
     });
