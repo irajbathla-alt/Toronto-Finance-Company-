@@ -6,6 +6,7 @@
   const DEFAULT_TIMEOUT = Number(cfg.requestTimeout || 30000);
   const $ = selector => document.querySelector(selector);
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+  const isTrue = value => value === true || ['true','1','yes'].includes(String(value || '').trim().toLowerCase());
   let applications = [];
   let selected = null;
 
@@ -243,6 +244,8 @@
       const field = $('#' + key);
       if (field) field.value = selected[key] || '';
     });
+    const additionalDocsToggle = $('#additionalDocsEnabled');
+    if (additionalDocsToggle) additionalDocsToggle.checked = isTrue(selected.additionalDocsEnabled);
 
     const businessInput = $('#business');
     const businessSave = $('#saveBusiness');
@@ -327,6 +330,7 @@
       const field = $('#' + key);
       if (field) update[key] = field.value;
     });
+    update.additionalDocsEnabled = $('#additionalDocsEnabled')?.checked ? 'true' : 'false';
 
     $('#save').disabled = true;
     $('#save').textContent = 'Saving…';
