@@ -446,6 +446,7 @@ function auditAdminChange(applicationId,field,oldValue,newValue) {
 }
 
 function adminGetAudit(p) {
+  requireAdminToken(p);
   const applicationId = String(p.applicationId || '').trim();
   if (!applicationId) throw new Error('Application ID is required');
   findApplication(applicationId);
@@ -843,7 +844,8 @@ function adminDeleteLender(p) {
   return { ok:true };
 }
 
-function adminList() {
+function adminList(p) {
+  requireAdminToken(p);
   return {
     ok:true,
     data:allRows().map(record => safe({ ...record, documents:[] }))
@@ -851,6 +853,7 @@ function adminList() {
 }
 
 function adminUpdate(p) {
+  requireAdminToken(p);
   const before = findApplication(p.applicationId);
   const patch = {};
 
@@ -891,6 +894,7 @@ function adminUpdate(p) {
 }
 
 function adminEnsureDrive(p) {
+  requireAdminToken(p);
   const record = findApplication(p.applicationId);
   const hadFolder = Boolean(record.driveFolderId);
   const folder = ensureDriveFolder(record);
@@ -1029,6 +1033,7 @@ function ensureDriveFolder(record) {
 }
 
 function getDocuments(p) {
+  requireAdminToken(p);
   return { ok:true, data:listDocuments(findApplication(p.applicationId)) };
 }
 
