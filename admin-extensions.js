@@ -59,7 +59,8 @@
   function buildUpdate() {
     const update = {
       applicationId: applicationId(),
-      notifyClient: 'true'
+      notifyClient: 'true',
+      adminToken: String(sessionStorage.getItem('tfc-admin-token') || '').trim()
     };
     FIELDS.forEach(key => {
       const field = $('#' + key);
@@ -318,7 +319,7 @@
     }
     if (showFeedback && $('#docActivitySync')) $('#docActivitySync').textContent = 'Checking the client’s Google Drive folders…';
     try {
-      const result = await jsonp('getDocuments', { applicationId: currentApplicationId });
+      const result = await jsonp('getDocuments', { applicationId: currentApplicationId, adminToken:String(sessionStorage.getItem('tfc-admin-token') || '').trim() });
       if (!result?.ok) throw new Error(result?.error || 'Drive documents could not be loaded.');
       renderDocuments(result.data || []);
     } catch (error) {
@@ -566,7 +567,7 @@
     }
 
     try {
-      const result = await jsonp('adminGetAudit', { applicationId:currentApplicationId });
+      const result = await jsonp('adminGetAudit', { applicationId:currentApplicationId, adminToken:String(sessionStorage.getItem('tfc-admin-token') || '').trim() });
       if (!result?.ok) throw new Error(result?.error || 'Audit history could not be loaded.');
       events = Array.isArray(result.data) ? result.data : [];
       render();
