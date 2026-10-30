@@ -6,6 +6,7 @@
     if (!sourceForm || !page || !result || document.getElementById('guidedFlow')) return;
 
     sourceForm.classList.add('guided-source-form');
+    page.classList.add('guided-page');
     const title = page.querySelector('h2');
     const flow = document.createElement('div');
     flow.id = 'guidedFlow';
@@ -168,10 +169,11 @@
       }
 
       flow.innerHTML =
-        '<div class="guided-head"><button type="button" class="guided-back">← Back</button><span>Question ' + (pos + 1) + ' of ' + total + '</span></div>' +
+        '<div class="guided-head"><button type="button" class="guided-back" aria-label="Go to previous question">← Back</button><span>' + (pos + 1) + ' / ' + total + '</span></div>' +
         '<div class="guided-progress"><i style="width:' + progress + '%"></i></div>' +
         '<div class="guided-question"><div class="guided-kicker">' + q.kicker + '</div><h3>' + q.title + '</h3>' +
         (q.help ? '<p>' + q.help + '</p>' : '') + control +
+        ((q.type === 'choice' || q.type === 'selectAsChoices' || q.type === 'amountChoice') ? '<div class="guided-tap-hint">Tap an option to continue</div>' : '') +
         '<div class="guided-footnote">Preliminary assessment only. Final eligibility is subject to verification and lender underwriting.</div></div>';
 
       flow.querySelector('.guided-back').onclick = back;
