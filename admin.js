@@ -7,6 +7,7 @@
   const $ = selector => document.querySelector(selector);
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
   const isTrue = value => value === true || ['true','1','yes'].includes(String(value || '').trim().toLowerCase());
+  const adminToken = () => String(sessionStorage.getItem('tfc-admin-token') || '').trim();
   let applications = [];
   let selected = null;
 
@@ -147,7 +148,7 @@
   async function load(showToast = false) {
     $('#refresh').disabled = true;
     try {
-      const result = await readApi('adminList');
+      const result = await readApi('adminList', { adminToken:adminToken() });
       if (!result?.ok) throw new Error(result?.error || 'Could not load applications.');
       applications = result.data || [];
       render();
@@ -170,7 +171,7 @@
   async function loadDocuments(applicationId) {
     $('#documentCount').textContent = 'Loading…';
     try {
-      const result = await readApi('getDocuments', { applicationId });
+      const result = await readApi('getDocuments', { applicationId, adminToken:adminToken() });
       renderDocs(result?.ok ? result.data || [] : []);
     } catch (_) {
       renderDocs([]);
@@ -294,7 +295,8 @@
     try {
       const result = await readApi('adminUpdate', {
         applicationId:selected.applicationId,
-        business
+        business,
+        adminToken:adminToken()
       },35000);
       if (!result?.ok) throw new Error(result?.error || 'Business name could not be saved.');
 
@@ -325,7 +327,7 @@
 
   async function saveUpdate() {
     if (!selected) return;
-    const update = { applicationId: selected.applicationId };
+    const update = { applicationId: selected.applicationId, adminToken:adminToken() };
     ['business', 'status', 'advisor', 'messageTitle', 'messageBody', 'approvedAmount', 'quote', 'term', 'paymentFrequency', 'paymentAmount', 'numberPayments', 'totalRepayment', 'documentsRequested', 'notes'].forEach(key => {
       const field = $('#' + key);
       if (field) update[key] = field.value;
@@ -365,7 +367,7 @@
     $('#drive').disabled = true;
     $('#drive').textContent = 'Creating Folder…';
     try {
-      const result = await readApi('adminEnsureDrive', { applicationId: selected.applicationId }, 35000);
+      const result = await readApi('adminEnsureDrive', { applicationId: selected.applicationId, adminToken:adminToken() }, 35000);
       if (!result?.ok || !result.data?.driveUrl) throw new Error(result?.error || 'Drive folder could not be created.');
       selected = result.data;
       const index = applications.findIndex(app => String(app.applicationId) === String(selected.applicationId));
