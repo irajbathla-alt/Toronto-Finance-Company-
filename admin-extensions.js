@@ -137,13 +137,14 @@
   'use strict';
 
   const SESSION_KEY = 'tfc-admin-session';
-  const SESSION_TTL = 8 * 60 * 60 * 1000;
+  const SESSION_TTL = 6 * 60 * 60 * 1000;
   const $ = selector => document.querySelector(selector);
 
   function readSession() {
     try {
       const session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || '{}');
-      if (!session.authenticatedAt) return null;
+      const token = String(sessionStorage.getItem('tfc-admin-token') || '').trim();
+      if (!session.authenticatedAt || !token) return null;
       if (Date.now() - Number(session.authenticatedAt) > SESSION_TTL) {
         sessionStorage.removeItem(SESSION_KEY);
         return null;
