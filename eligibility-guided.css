@@ -44,3 +44,11 @@
   .guided-choice{min-height:61px!important}
   .guided-question h3{font-size:30px}
 }
+.guided-choices.compact{grid-template-columns:1fr 1fr}
+.guided-choices.compact .guided-choice{min-height:54px!important;padding-right:34px!important}
+.guided-footnote{margin-top:auto;padding-top:22px;font-size:9px;line-height:1.5;color:#9c9185;text-align:left}
+.guided-exact-wrap{display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:9px;margin-top:12px;animation:guidedExactIn .2s ease both}
+.guided-exact-go{width:48px!important;height:48px!important;min-height:48px!important;margin:0!important;padding:0!important;border-radius:50%!important;font-size:20px!important;letter-spacing:0!important}
+.guided-exact-go:disabled{opacity:.35}
+@keyframes guidedExactIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+@media(max-width:390px){.guided-choices.compact{grid-template-columns:1fr}}
