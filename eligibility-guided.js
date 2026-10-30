@@ -25,8 +25,9 @@
       { id:'depositTrend', kicker:'Recent performance', title:'How are your recent sales or deposits trending?', type:'selectAsChoices' },
       { id:'statementMonths', kicker:'Documents', title:'How many months of business bank statements can you provide?', type:'selectAsChoices' }
     ];
-    let index = 0;
 
+    let index = 0;
+    let moving = false;
     const source = id => document.getElementById(id);
     const moneyNumber = value => Number(String(value || '').replace(/[^0-9.]/g,'')) || 0;
     const moneyDisplay = value => {
@@ -43,7 +44,9 @@
     const valid = q => {
       const el = source(q.id);
       if (!el) return false;
-      if (q.type === 'money') return q.id === 'requestedAmount' ? moneyNumber(el.value) >= 1000 : el.value !== '' && moneyNumber(el.value) >= 0;
+      if (q.type === 'money') return q.id === 'requestedAmount'
+        ? moneyNumber(el.value) >= 1000
+        : el.value !== '' && moneyNumber(el.value) >= 0;
       return String(el.value || '').trim() !== '';
     };
     const optionPairs = q => {
@@ -51,59 +54,102 @@
       const el = source(q.id);
       return Array.from(el.options).filter(o => o.value !== '').map(o => [o.value, o.textContent]);
     };
+    const clearMotion = () => flow.classList.remove('enter-forward','enter-back','leave-forward','leave-back');
+    const animateIn = direction => {
+      clearMotion();
+      flow.classList.add(direction < 0 ? 'enter-back' : 'enter-forward');
+      setTimeout(() => flow.classList.remove('enter-forward','enter-back'), 310);
+    };
+    const transitionTo = (target, direction) => {
+      if (moving) return;
+      moving = true;
+      clearMotion();
+      flow.classList.add(direction < 0 ? 'leave-back' : 'leave-forward');
+      setTimeout(() => {
+        index = target;
+        render(direction);
+        moving = false;
+      }, 170);
+    };
     const finish = () => {
-      flow.classList.add('guided-complete');
-      if (title) title.textContent = 'Your Options';
-      sourceForm.dispatchEvent(new Event('submit', { bubbles:true, cancelable:true }));
+      if (moving) return;
+      moving = true;
+      flow.classList.add('leave-forward');
+      setTimeout(() => {
+        flow.classList.add('guided-complete');
+        if (title) title.textContent = 'Your Options';
+        sourceForm.dispatchEvent(new Event('submit', { bubbles:true, cancelable:true }));
+        result.classList.add('guided-result-enter');
+        setTimeout(() => result.classList.remove('guided-result-enter'), 450);
+        moving = false;
+      }, 170);
     };
     const advance = () => {
       const q = questions[index];
-      if (!valid(q)) return;
+      if (!valid(q) || moving) return;
       if (q.id === 'activeFinancing' && source(q.id).value === '0') source('monthlyDebt').value = '0';
       const next = nextIndex(index, 1);
       if (next >= questions.length) return finish();
-      index = next;
-      render();
+      transitionTo(next, 1);
     };
     const back = () => {
+      if (moving) return;
       const prev = nextIndex(index, -1);
       if (prev < 0) {
         const backToIntro = document.getElementById('backToIntro');
         if (backToIntro) backToIntro.click();
         return;
       }
-      index = prev;
-      render();
+      transitionTo(prev, -1);
     };
-    const render = () => {
+
+    const render = direction => {
+      clearMotion();
       const q = questions[index];
       const list = visible();
       const pos = actualPosition(q);
       const total = list.length;
       const progress = Math.max(8, ((pos + 1) / total) * 100);
       let control = '';
+
       if (q.type === 'choice' || q.type === 'selectAsChoices') {
         control = '<div class="guided-choices">' + optionPairs(q).map(pair => {
           const selected = String(source(q.id).value) === String(pair[0]);
           return '<button type="button" class="guided-choice' + (selected ? ' selected' : '') + '" data-value="' + String(pair[0]).replace(/"/g,'&quot;') + '">' + pair[1] + '</button>';
         }).join('') + '</div>';
       } else if (q.type === 'select') {
-        control = '<select class="guided-select" id="guidedControl">' + Array.from(source(q.id).options).map(o => '<option value="' + String(o.value).replace(/"/g,'&quot;') + '"' + (String(source(q.id).value)===String(o.value) ? ' selected' : '') + '>' + o.textContent + '</option>').join('') + '</select>';
+        control = '<select class="guided-select" id="guidedControl">' +
+          Array.from(source(q.id).options).map(o =>
+            '<option value="' + String(o.value).replace(/"/g,'&quot;') + '"' +
+            (String(source(q.id).value)===String(o.value) ? ' selected' : '') + '>' + o.textContent + '</option>'
+          ).join('') + '</select>';
       } else {
         control = '<div class="guided-money"><span>$</span><input id="guidedControl" inputmode="decimal" autocomplete="off" placeholder="' + (q.placeholder || '') + '" value="' + moneyDisplay(source(q.id).value) + '"></div>';
       }
-      flow.innerHTML = '<div class="guided-head"><button type="button" class="guided-back">← Back</button><span>Question ' + (pos + 1) + ' of ' + total + '</span></div>' +
+
+      flow.innerHTML =
+        '<div class="guided-head"><button type="button" class="guided-back">← Back</button><span>Question ' + (pos + 1) + ' of ' + total + '</span></div>' +
         '<div class="guided-progress"><i style="width:' + progress + '%"></i></div>' +
-        '<div class="guided-question"><div class="guided-kicker">' + q.kicker + '</div><h3>' + q.title + '</h3>' + (q.help ? '<p>' + q.help + '</p>' : '') + control +
-        '<div class="guided-actions"><button type="button" class="guided-next"' + (valid(q) ? '' : ' disabled') + '>' + (nextIndex(index,1) >= questions.length ? 'See My Options' : 'Continue') + '</button><small>Your answers are used for a preliminary financing assessment. Final eligibility is subject to verification and lender underwriting.</small></div></div>';
+        '<div class="guided-question"><div class="guided-kicker">' + q.kicker + '</div><h3>' + q.title + '</h3>' +
+        (q.help ? '<p>' + q.help + '</p>' : '') + control +
+        '<div class="guided-actions"><button type="button" class="guided-next"' + (valid(q) ? '' : ' disabled') + '>' +
+        (nextIndex(index,1) >= questions.length ? 'See My Options' : 'Continue') +
+        '</button><small>Your answers are used for a preliminary financing assessment. Final eligibility is subject to verification and lender underwriting.</small></div></div>';
+
       flow.querySelector('.guided-back').onclick = back;
       const nextButton = flow.querySelector('.guided-next');
       nextButton.onclick = advance;
+
       if (q.type === 'choice' || q.type === 'selectAsChoices') {
         flow.querySelectorAll('.guided-choice').forEach(btn => btn.onclick = () => {
+          if (moving) return;
           source(q.id).value = btn.dataset.value;
-          render();
-          setTimeout(advance, 140);
+          flow.querySelectorAll('.guided-choice').forEach(x => {
+            x.classList.toggle('selected', x === btn);
+            x.disabled = true;
+          });
+          nextButton.disabled = false;
+          setTimeout(advance, 190);
         });
       } else if (q.type === 'select') {
         const controlEl = flow.querySelector('#guidedControl');
@@ -119,12 +165,27 @@
           nextButton.disabled = !valid(q);
           try { controlEl.setSelectionRange(controlEl.value.length, controlEl.value.length); } catch(e) {}
         };
+        controlEl.onkeydown = e => {
+          if (e.key === 'Enter' && valid(q)) {
+            e.preventDefault();
+            controlEl.blur();
+            advance();
+          }
+        };
+        controlEl.onfocus = () => setTimeout(() => {
+          try { controlEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(e) {}
+        }, 260);
       }
+
+      requestAnimationFrame(() => animateIn(direction || 1));
     };
 
-    render();
+    render(1);
+
     const observer = new MutationObserver(() => {
-      if (!result.classList.contains('hidden') && flow.classList.contains('guided-complete')) flow.style.display = 'none';
+      if (!result.classList.contains('hidden') && flow.classList.contains('guided-complete')) {
+        flow.style.display = 'none';
+      }
     });
     observer.observe(result, { attributes:true, attributeFilter:['class'] });
   };
