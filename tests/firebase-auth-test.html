@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Firebase Authentication Test | Toronto Finance Company</title>
+<style>
+:root{
+  --ink:#17130f;
+  --paper:#f4eadc;
+  --paper2:#fbf7f0;
+  --white:#fff;
+  --gold:#c6964e;
+  --muted:#786f65;
+  --line:rgba(23,19,15,.12);
+  --green:#2f855a;
+  --red:#a13f33;
+  --blue:#406b8a;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  background:linear-gradient(180deg,#f7efe4,#f3e6d5);
+  color:var(--ink);
+  font-family:Arial,Helvetica,sans-serif;
+}
+.wrap{width:min(760px,92vw);margin:48px auto 80px}
+.test-banner{
+  background:#fff4dd;
+  border:1px solid rgba(198,150,78,.35);
+  border-radius:12px;
+  padding:12px 16px;
+  margin-bottom:16px;
+  font-size:13px;
+  line-height:1.5;
+}
+.card{
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,19,15,.08);
+  border-radius:18px;
+  padding:28px;
+  box-shadow:0 22px 60px rgba(42,30,18,.10);
+}
+.eyebrow{
+  color:var(--gold);
+  text-transform:uppercase;
+  letter-spacing:.14em;
+  font-size:10px;
+  font-weight:700;
+}
+h1{font-family:Georgia,serif;font-weight:400;text-transform:uppercase;font-size:36px;margin:8px 0 7px}
+.intro{color:var(--muted);font-size:13px;line-height:1.65;margin:0 0 22px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{margin-top:14px}
+.field.full{grid-column:1/-1}
+label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px;font-weight:700;color:#5a5046}
+input{
+  width:100%;
+  border:1px solid #d9cdbf;
+  border-radius:10px;
+  padding:13px 14px;
+  background:var(--paper2);
+  color:var(--ink);
+  outline:none;
+  font-size:14px;
+}
+input:focus{border-color:rgba(198,150,78,.85);box-shadow:0 0 0 4px rgba(198,150,78,.10);background:#fff}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+button{
+  border:0;
+  border-radius:999px;
+  padding:13px 16px;
+  background:var(--ink);
+  color:#fff;
+  text-transform:uppercase;
+  letter-spacing:.09em;
+  font-size:10px;
+  font-weight:700;
+  cursor:pointer;
+}
+button.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}
+button.blue{background:var(--blue)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.status{
+  margin-top:22px;
+  border:1px solid var(--line);
+  background:var(--paper2);
+  border-radius:12px;
+  padding:17px;
+}
+.status.good{border-color:rgba(47,133,90,.28);background:#edf6f0}
+.status.bad{border-color:rgba(161,63,51,.25);background:#faeeec}
+.status h2{font-family:Georgia,serif;text-transform:uppercase;font-weight:400;font-size:22px;margin:0 0 9px}
+.status p{margin:4px 0;font-size:12px;line-height:1.55;word-break:break-word}
+.muted{color:var(--muted)}
+code{font-family:Consolas,monospace;font-size:11px}
+@media(max-width:640px){.grid,.actions{grid-template-columns:1fr}.field.full{grid-column:auto}.card{padding:22px}h1{font-size:30px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="test-banner">
+    <strong>TEST ONLY.</strong> This page connects only to Firebase Authentication.
+    It has no Google Sheets, Apps Script, CRM, Drive, lender, Admin Portal, or Client Portal connection.
+  </div>
+
+  <section class="card">
+    <div class="eyebrow">Toronto Finance Company</div>
+    <h1>Firebase Auth Test</h1>
+    <p class="intro">Use a test email and password only. We are testing Firebase account creation and login in isolation before any future migration.</p>
+
+    <div class="grid">
+      <div class="field full">
+        <label for="email">Email Address</label>
+        <input id="email" type="email" autocomplete="email" placeholder="test@example.com">
+      </div>
+      <div class="field full">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" minlength="6" placeholder="Enter test password">
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="createAccount">Create Account</button>
+      <button id="login" class="blue">Log In</button>
+      <button id="logout" class="secondary">Log Out</button>
+      <button id="resetPassword" class="secondary">Forgot Password</button>
+    </div>
+
+    <div class="status" id="status">
+      <h2>Not Signed In</h2>
+      <p class="muted">Waiting for Firebase Authentication.</p>
+    </div>
+  </section>
+</main>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  sendPasswordResetEmail,
+  onAuthStateChanged
+} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAXIObBDa-i8W_wAUtt43FXracH7ezPhlA",
+  authDomain: "toronto-finance-company-auth.firebaseapp.com",
+  projectId: "toronto-finance-company-auth",
+  storageBucket: "toronto-finance-company-auth.firebasestorage.app",
+  messagingSenderId: "494379883061",
+  appId: "1:494379883061:web:54acfe2bc5b27f8fa36f7c"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+auth.useDeviceLanguage();
+
+const $ = selector => document.querySelector(selector);
+const emailField = $('#email');
+const passwordField = $('#password');
+const statusBox = $('#status');
+const buttons = [...document.querySelectorAll('button')];
+
+function setBusy(busy) {
+  buttons.forEach(button => button.disabled = busy);
+}
+
+function friendlyError(error) {
+  const code = String(error?.code || '');
+  const known = {
+    'auth/email-already-in-use': 'That email already has a Firebase account.',
+    'auth/invalid-email': 'Please enter a valid email address.',
+    'auth/invalid-credential': 'The email or password is incorrect.',
+    'auth/missing-password': 'Please enter a password.',
+    'auth/weak-password': 'The password does not meet the Firebase password requirements.',
+    'auth/user-disabled': 'This Firebase account has been disabled.',
+    'auth/too-many-requests': 'Firebase temporarily blocked repeated attempts. Try again later.'
+  };
+  return known[code] || error?.message || 'Firebase returned an unknown error.';
+}
+
+function showMessage(title, message, type='') {
+  statusBox.className = 'status' + (type ? ' ' + type : '');
+  statusBox.innerHTML = '<h2></h2><p></p>';
+  statusBox.querySelector('h2').textContent = title;
+  statusBox.querySelector('p').textContent = message;
+}
+
+function credentials() {
+  return {
+    email: emailField.value.trim(),
+    password: passwordField.value
+  };
+}
+
+$('#createAccount').addEventListener('click', async () => {
+  const { email, password } = credentials();
+  if (!email || !password) return showMessage('Missing Information','Enter both an email and password.','bad');
+  setBusy(true);
+  try {
+    const credential = await createUserWithEmailAndPassword(auth,email,password);
+    showMessage('Account Created', 'Firebase created and signed in ' + credential.user.email + '.', 'good');
+  } catch (error) {
+    showMessage('Account Creation Failed', friendlyError(error), 'bad');
+  } finally {
+    setBusy(false);
+  }
+});
+
+$('#login').addEventListener('click', async () => {
+  const { email, password } = credentials();
+  if (!email || !password) return showMessage('Missing Information','Enter both an email and password.','bad');
+  setBusy(true);
+  try {
+    await signInWithEmailAndPassword(auth,email,password);
+  } catch (error) {
+    showMessage('Login Failed', friendlyError(error), 'bad');
+  } finally {
+    setBusy(false);
+  }
+});
+
+$('#logout').addEventListener('click', async () => {
+  setBusy(true);
+  try {
+    await signOut(auth);
+  } catch (error) {
+    showMessage('Logout Failed', friendlyError(error), 'bad');
+  } finally {
+    setBusy(false);
+  }
+});
+
+$('#resetPassword').addEventListener('click', async () => {
+  const email = emailField.value.trim();
+  if (!email) return showMessage('Email Required','Enter the test account email first.','bad');
+  setBusy(true);
+  try {
+    await sendPasswordResetEmail(auth,email);
+    showMessage('Reset Email Requested','Firebase accepted the password-reset request for ' + email + '. Check that inbox.','good');
+  } catch (error) {
+    showMessage('Reset Request Failed', friendlyError(error), 'bad');
+  } finally {
+    setBusy(false);
+  }
+});
+
+onAuthStateChanged(auth, user => {
+  if (!user) {
+    statusBox.className = 'status';
+    statusBox.innerHTML = '<h2>Not Signed In</h2><p class="muted">Firebase currently has no authenticated user in this browser.</p>';
+    return;
+  }
+
+  statusBox.className = 'status good';
+  statusBox.replaceChildren();
+
+  const heading = document.createElement('h2');
+  heading.textContent = 'Firebase Login Active';
+
+  const emailLine = document.createElement('p');
+  emailLine.innerHTML = '<strong>Email:</strong> ';
+  emailLine.append(document.createTextNode(user.email || '—'));
+
+  const uidLine = document.createElement('p');
+  uidLine.innerHTML = '<strong>Firebase UID:</strong> ';
+  const uidCode = document.createElement('code');
+  uidCode.textContent = user.uid;
+  uidLine.append(uidCode);
+
+  const verifiedLine = document.createElement('p');
+  verifiedLine.innerHTML = '<strong>Email verified:</strong> ';
+  verifiedLine.append(document.createTextNode(user.emailVerified ? 'Yes' : 'No'));
+
+  statusBox.append(heading,emailLine,uidLine,verifiedLine);
+});
+</script>
+</body>
+</html>
