@@ -1138,3 +1138,49 @@ body{
     0 0 0 2px rgba(199,154,87,.08),
     0 18px 38px rgba(0,0,0,.22)!important;
 }
+
+
+/* FINAL palette: Industry deck matches all other premium tap cards */
+.guided-choice,
+.guided-choices.compact .guided-choice,
+.amount-options .guided-choice,
+.industry-deck-card{
+  color:#211a14!important;
+  border:1px solid rgba(109,84,58,.18)!important;
+  background:
+    linear-gradient(180deg,rgba(255,253,249,.96),rgba(248,241,231,.88))!important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.88) inset,
+    0 7px 20px rgba(73,51,28,.05)!important;
+}
+
+.guided-choice.selected,
+.industry-deck-card.chosen{
+  color:#17130f!important;
+  border-color:rgba(171,126,65,.66)!important;
+  background:
+    linear-gradient(180deg,#fffaf0,#f2dfc4)!important;
+  box-shadow:
+    0 0 0 2px rgba(185,137,63,.06),
+    0 10px 26px rgba(110,74,34,.08)!important;
+}
+
+.guided-choice.exact-choice{
+  color:#746555!important;
+  background:rgba(255,251,245,.60)!important;
+  border-color:rgba(109,84,58,.18)!important;
+}
+
+.industry-deck-card strong{color:#211a14!important}
+.industry-card-label{color:#9b763f!important}
+.industry-card-action{color:#978879!important}
+
+@media(hover:hover) and (pointer:fine){
+  .guided-choice:hover,
+  .industry-deck-card:hover{
+    color:#17130f!important;
+    border-color:rgba(185,137,63,.50)!important;
+    background:
+      linear-gradient(180deg,#fffdf8,#f6ead8)!important;
+  }
+}
