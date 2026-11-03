@@ -538,3 +538,5 @@ body{
   .history-highlight{padding:16px;margin-bottom:18px}
   .history-amount{font-size:29px}
 }
+
+.history-highlight .history-caption strong{color:#6f5837;font-weight:600}
