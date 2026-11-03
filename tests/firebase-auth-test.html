@@ -179,9 +179,12 @@ function friendlyError(error) {
     'auth/missing-password': 'Please enter a password.',
     'auth/weak-password': 'The password does not meet the Firebase password requirements.',
     'auth/user-disabled': 'This Firebase account has been disabled.',
-    'auth/too-many-requests': 'Firebase temporarily blocked repeated attempts. Try again later.'
+    'auth/too-many-requests': 'Firebase temporarily blocked repeated attempts. Try again later.',
+    'auth/unauthorized-continue-uri': 'The return URL is not authorized in Firebase Authentication settings.',
+    'auth/operation-not-allowed': 'Email/Password authentication is not enabled for this Firebase project.'
   };
-  return known[code] || error?.message || 'Firebase returned an unknown error.';
+  const message = known[code] || error?.message || 'Firebase returned an unknown error.';
+  return code ? message + ' [' + code + ']' : message;
 }
 
 function showMessage(title, message, type='') {
@@ -242,7 +245,11 @@ $('#resetPassword').addEventListener('click', async () => {
   setBusy(true);
   try {
     await sendPasswordResetEmail(auth,email);
-    showMessage('Reset Email Requested','Firebase accepted the password-reset request for ' + email + '. Check that inbox.','good');
+    showMessage(
+      'Reset Request Accepted',
+      'Firebase accepted the password-reset request for ' + email + '. If the email does not arrive, check Spam/Junk and Firebase Authentication > Templates > Password reset. This test page received no Firebase error.',
+      'good'
+    );
   } catch (error) {
     showMessage('Reset Request Failed', friendlyError(error), 'bad');
   } finally {
