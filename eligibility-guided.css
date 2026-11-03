@@ -1025,3 +1025,53 @@ body{
   transform:translateX(145%) rotate(16deg)!important;
   opacity:0!important;
 }
+
+
+/* Persistent industry deck — no DOM rebuild between swipes */
+.industry-deck-card{
+  will-change:transform,opacity;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  transform:translateZ(0);
+}
+.industry-deck-card.dragging{
+  transition:none!important;
+}
+.industry-deck-card.promote-1{
+  transform:translate3d(0,0,0) scale(1)!important;
+  opacity:1!important;
+}
+.industry-deck-card.promote-2{
+  transform:translate3d(0,12px,0) scale(.965)!important;
+  opacity:.88!important;
+}
+.industry-deck-card.promote-3{
+  transform:translate3d(0,23px,0) scale(.93)!important;
+  opacity:.64!important;
+}
+.industry-deck-card.swipe-left{
+  transform:translate3d(-145%,0,0) rotate(-15deg)!important;
+  opacity:0!important;
+}
+.industry-deck-card.entering-prev{
+  z-index:4!important;
+  transform:translate3d(118%,0,0) rotate(10deg) scale(.98)!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
+.industry-deck-card.entering-prev.enter-prev-active{
+  transform:translate3d(0,0,0) rotate(0deg) scale(1)!important;
+  opacity:1!important;
+}
+.industry-deck-card.shift-back-0{
+  transform:translate3d(0,12px,0) scale(.965)!important;
+  opacity:.88!important;
+}
+.industry-deck-card.shift-back-1{
+  transform:translate3d(0,23px,0) scale(.93)!important;
+  opacity:.64!important;
+}
+.industry-deck-card.shift-back-2{
+  transform:translate3d(0,34px,0) scale(.90)!important;
+  opacity:0!important;
+}
