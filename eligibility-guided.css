@@ -1075,3 +1075,43 @@ body{
   transform:translate3d(0,34px,0) scale(.90)!important;
   opacity:0!important;
 }
+
+
+/* Dark tap cards only */
+.guided-choice,
+.guided-choices.compact .guided-choice,
+.amount-options .guided-choice{
+  color:#f5efe7!important;
+  border:1px solid rgba(199,154,87,.22)!important;
+  background:
+    linear-gradient(180deg,#23201c,#171513)!important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.03) inset,
+    0 8px 18px rgba(0,0,0,.12)!important;
+}
+
+.guided-choice.selected{
+  color:#fff8ef!important;
+  border-color:rgba(199,154,87,.68)!important;
+  background:
+    linear-gradient(180deg,#33291f,#211a15)!important;
+  box-shadow:
+    0 0 0 2px rgba(199,154,87,.08),
+    0 10px 24px rgba(0,0,0,.18)!important;
+}
+
+.guided-choice.exact-choice{
+  color:#e8ddd0!important;
+  background:
+    linear-gradient(180deg,#1f1c19,#151311)!important;
+  border-color:rgba(199,154,87,.20)!important;
+}
+
+@media(hover:hover) and (pointer:fine){
+  .guided-choice:hover{
+    color:#fff9f2!important;
+    border-color:rgba(199,154,87,.48)!important;
+    background:
+      linear-gradient(180deg,#29251f,#1b1815)!important;
+  }
+}
