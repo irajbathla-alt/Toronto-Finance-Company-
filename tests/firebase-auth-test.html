@@ -241,10 +241,9 @@ $('#login').addEventListener('click', async () => {
     const credential = await signInWithEmailAndPassword(auth,email,password);
     await reload(credential.user);
     if (!credential.user.emailVerified) {
-      await signOut(auth);
       showMessage(
         'Email Verification Required',
-        'Your email/password account is valid, but the email has not been verified yet. Use Resend Verification Email, verify the email, then log in again.',
+        'Your email/password account is valid, but access is blocked until the email is verified. You can use Resend Verification Email, click the verification link, then press Refresh Verification Status.',
         'bad'
       );
       return;
@@ -352,10 +351,9 @@ onAuthStateChanged(auth, async user => {
   const usesGoogle = providerIds.includes('google.com');
 
   if (usesPassword && !usesGoogle && !user.emailVerified) {
-    await signOut(auth);
     showMessage(
       'Email Verification Required',
-      'This email/password account is not verified yet. Verify the email before access is allowed.',
+      'This email/password account is signed in to Firebase, but access is blocked until the email is verified. Use Resend Verification Email if needed, then press Refresh Verification Status.',
       'bad'
     );
     return;
