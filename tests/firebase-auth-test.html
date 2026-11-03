@@ -127,6 +127,7 @@ code{font-family:Consolas,monospace;font-size:11px}
       <button id="login" class="blue">Log In</button>
       <button id="logout" class="secondary">Log Out</button>
       <button id="resetPassword" class="secondary">Forgot Password</button>
+      <button id="googleLogin" class="secondary" style="grid-column:1/-1">Continue with Google</button>
     </div>
 
     <div class="status" id="status">
@@ -144,6 +145,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
   onAuthStateChanged
 } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
 
@@ -159,6 +162,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 auth.useDeviceLanguage();
+const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt:'select_account' });
 
 const $ = selector => document.querySelector(selector);
 const emailField = $('#email');
@@ -181,7 +186,10 @@ function friendlyError(error) {
     'auth/user-disabled': 'This Firebase account has been disabled.',
     'auth/too-many-requests': 'Firebase temporarily blocked repeated attempts. Try again later.',
     'auth/unauthorized-continue-uri': 'The return URL is not authorized in Firebase Authentication settings.',
-    'auth/operation-not-allowed': 'Email/Password authentication is not enabled for this Firebase project.'
+    'auth/operation-not-allowed': 'This Firebase sign-in provider is not enabled for this project.',
+    'auth/popup-closed-by-user': 'The Google sign-in window was closed before login completed.',
+    'auth/popup-blocked': 'Your browser blocked the Google sign-in popup. Allow popups for this test page and try again.',
+    'auth/unauthorized-domain': 'This website domain is not authorized in Firebase Authentication. Add torontofinancecompany.com under Authentication > Settings > Authorized domains.'
   };
   const message = known[code] || error?.message || 'Firebase returned an unknown error.';
   return code ? message + ' [' + code + ']' : message;
@@ -223,6 +231,17 @@ $('#login').addEventListener('click', async () => {
     await signInWithEmailAndPassword(auth,email,password);
   } catch (error) {
     showMessage('Login Failed', friendlyError(error), 'bad');
+  } finally {
+    setBusy(false);
+  }
+});
+
+$('#googleLogin').addEventListener('click', async () => {
+  setBusy(true);
+  try {
+    await signInWithPopup(auth,googleProvider);
+  } catch (error) {
+    showMessage('Google Login Failed', friendlyError(error), 'bad');
   } finally {
     setBusy(false);
   }
@@ -280,11 +299,17 @@ onAuthStateChanged(auth, user => {
   uidCode.textContent = user.uid;
   uidLine.append(uidCode);
 
+  const providerLine = document.createElement('p');
+  providerLine.innerHTML = '<strong>Provider:</strong> ';
+  providerLine.append(document.createTextNode(
+    user.providerData.map(item => item.providerId).join(', ') || 'Firebase'
+  ));
+
   const verifiedLine = document.createElement('p');
   verifiedLine.innerHTML = '<strong>Email verified:</strong> ';
   verifiedLine.append(document.createTextNode(user.emailVerified ? 'Yes' : 'No'));
 
-  statusBox.append(heading,emailLine,uidLine,verifiedLine);
+  statusBox.append(heading,emailLine,uidLine,providerLine,verifiedLine);
 });
 </script>
 </body>
