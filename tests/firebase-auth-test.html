@@ -128,6 +128,8 @@ code{font-family:Consolas,monospace;font-size:11px}
       <button id="logout" class="secondary">Log Out</button>
       <button id="resetPassword" class="secondary">Forgot Password</button>
       <button id="googleLogin" class="secondary" style="grid-column:1/-1">Continue with Google</button>
+      <button id="sendVerification" class="secondary">Resend Verification Email</button>
+      <button id="refreshVerification" class="secondary">Refresh Verification Status</button>
     </div>
 
     <div class="status" id="status">
@@ -145,6 +147,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
+  sendEmailVerification,
+  reload,
   GoogleAuthProvider,
   signInWithPopup,
   onAuthStateChanged
@@ -189,7 +193,8 @@ function friendlyError(error) {
     'auth/operation-not-allowed': 'This Firebase sign-in provider is not enabled for this project.',
     'auth/popup-closed-by-user': 'The Google sign-in window was closed before login completed.',
     'auth/popup-blocked': 'Your browser blocked the Google sign-in popup. Allow popups for this test page and try again.',
-    'auth/unauthorized-domain': 'This website domain is not authorized in Firebase Authentication. Add torontofinancecompany.com under Authentication > Settings > Authorized domains.'
+    'auth/unauthorized-domain': 'This website domain is not authorized in Firebase Authentication. Add torontofinancecompany.com under Authentication > Settings > Authorized domains.',
+    'auth/requires-recent-login': 'Firebase requires you to sign in again before completing this action.'
   };
   const message = known[code] || error?.message || 'Firebase returned an unknown error.';
   return code ? message + ' [' + code + ']' : message;
@@ -215,7 +220,12 @@ $('#createAccount').addEventListener('click', async () => {
   setBusy(true);
   try {
     const credential = await createUserWithEmailAndPassword(auth,email,password);
-    showMessage('Account Created', 'Firebase created and signed in ' + credential.user.email + '.', 'good');
+    await sendEmailVerification(credential.user);
+    showMessage(
+      'Account Created',
+      'Firebase created and signed in ' + credential.user.email + '. A verification email was sent. Open that email, click Verify, then return here and press Refresh Verification Status.',
+      'good'
+    );
   } catch (error) {
     showMessage('Account Creation Failed', friendlyError(error), 'bad');
   } finally {
@@ -242,6 +252,46 @@ $('#googleLogin').addEventListener('click', async () => {
     await signInWithPopup(auth,googleProvider);
   } catch (error) {
     showMessage('Google Login Failed', friendlyError(error), 'bad');
+  } finally {
+    setBusy(false);
+  }
+});
+
+$('#sendVerification').addEventListener('click', async () => {
+  const user = auth.currentUser;
+  if (!user) return showMessage('Sign In Required','Log in with an Email/Password test account first.','bad');
+  if (user.emailVerified) return showMessage('Already Verified','This Firebase account is already email verified.','good');
+
+  setBusy(true);
+  try {
+    await sendEmailVerification(user);
+    showMessage(
+      'Verification Email Sent',
+      'Firebase sent a verification email to ' + (user.email || 'this account') + '. Check the inbox and Spam/Junk, click Verify, then return here and press Refresh Verification Status.',
+      'good'
+    );
+  } catch (error) {
+    showMessage('Verification Failed', friendlyError(error), 'bad');
+  } finally {
+    setBusy(false);
+  }
+});
+
+$('#refreshVerification').addEventListener('click', async () => {
+  const user = auth.currentUser;
+  if (!user) return showMessage('Sign In Required','Log in first, then refresh the verification status.','bad');
+
+  setBusy(true);
+  try {
+    await reload(user);
+    const freshUser = auth.currentUser;
+    if (freshUser?.emailVerified) {
+      showMessage('Email Verified','Firebase now confirms that ' + (freshUser.email || 'this account') + ' is verified.','good');
+    } else {
+      showMessage('Not Verified Yet','Firebase still shows this email as unverified. Click the verification link in the email, then try Refresh Verification Status again.');
+    }
+  } catch (error) {
+    showMessage('Refresh Failed', friendlyError(error), 'bad');
   } finally {
     setBusy(false);
   }
