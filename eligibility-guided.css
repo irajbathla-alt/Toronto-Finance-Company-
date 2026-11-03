@@ -540,3 +540,81 @@ body{
 }
 
 .history-highlight .history-caption strong{color:#6f5837;font-weight:600}
+
+
+/* Final result hierarchy */
+.range-cta{
+  width:100%!important;
+  margin:0 0 22px!important;
+  padding:15px 18px!important;
+  background:linear-gradient(145deg,#201a15,#0d0b09)!important;
+  color:#fff!important;
+  border-radius:999px!important;
+  box-shadow:0 12px 28px rgba(23,19,15,.16)!important;
+  font-size:9px!important;
+  font-weight:700!important;
+  letter-spacing:.17em!important;
+  text-transform:uppercase!important;
+}
+.range-cta:hover{transform:translateY(-1px)!important}
+
+.pathway-card.featured{
+  margin:0 0 17px;
+  padding:17px 17px 16px;
+  border-color:rgba(185,137,63,.42)!important;
+  background:linear-gradient(180deg,#fffaf1,#f7ead8)!important;
+  box-shadow:0 9px 24px rgba(120,82,39,.07)!important;
+}
+.pathway-card.featured:before{display:none!important}
+.pathway-label{
+  margin-bottom:11px;
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:#9b763f;
+}
+.pathway-main{min-width:0}
+.pathways-section{
+  margin-top:4px;
+  padding-top:16px;
+  border-top:1px solid rgba(23,19,15,.07);
+}
+.pathways-heading{
+  margin:0 0 10px;
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:#9b763f;
+}
+.pathways.refined{
+  display:grid!important;
+  gap:9px!important;
+  border:0!important;
+  margin:0!important;
+}
+.pathway-card.compact{
+  padding:12px 14px!important;
+  border-radius:10px!important;
+  background:rgba(255,251,245,.58)!important;
+  box-shadow:none!important;
+}
+.pathway-card.compact .pathway-type{
+  margin-top:4px!important;
+  font-size:9px!important;
+}
+.pathway-card.compact .pathway-status{
+  padding:5px 8px!important;
+  font-size:7px!important;
+}
+#page1.guided-page .disclaimer{
+  margin-top:18px!important;
+  padding-top:15px!important;
+}
+@media(max-width:520px){
+  .range-cta{margin-bottom:19px!important}
+  .pathway-card.featured{padding:16px}
+  .pathway-top{align-items:flex-start!important}
+  .pathway-status{flex:0 0 auto;max-width:48%;white-space:normal!important}
+}
