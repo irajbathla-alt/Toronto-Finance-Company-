@@ -155,7 +155,7 @@
 
       if (q.type === 'industryDeck') {
         const opts = optionPairs(q);
-        const deckCards = [0,1,2].map(offset => {
+        const deckCards = [0,1,2,3].map(offset => {
           const pair = opts[(industryDeckIndex + offset) % opts.length];
           return '<button type="button" class="industry-deck-card deck-' + offset + '" data-value="' + String(pair[0]).replace(/"/g,'&quot;') + '" data-offset="' + offset + '"><span class="industry-card-label">Industry</span><strong>' + pair[1] + '</strong><span class="industry-card-action">' + (offset===0 ? 'Tap to choose' : '') + '</span></button>';
         }).reverse().join('');
@@ -191,8 +191,24 @@
         const topCard = flow.querySelector('.industry-deck-card.deck-0');
         const moveDeck = dir => {
           if (moving) return;
-          industryDeckIndex = (industryDeckIndex + dir + opts.length) % opts.length;
-          render(direction || 1);
+          moving = true;
+          const cards = [0,1,2,3].map(n => flow.querySelector('.industry-deck-card.deck-' + n));
+          if (dir > 0) {
+            cards.forEach((card, i) => {
+              if (!card || i === 0) return;
+              card.classList.add('promote-' + i);
+            });
+          } else {
+            cards.forEach((card, i) => {
+              if (!card) return;
+              card.classList.add('reverse-shift-' + i);
+            });
+          }
+          setTimeout(() => {
+            industryDeckIndex = (industryDeckIndex + dir + opts.length) % opts.length;
+            render(direction || 1);
+            moving = false;
+          }, 260);
         };
         flow.querySelectorAll('.deck-arrow').forEach(btn => btn.onclick = () => moveDeck(Number(btn.dataset.dir) || 1));
         if (topCard) {
@@ -226,8 +242,23 @@
             topCard.classList.remove('dragging');
             if (Math.abs(currentX) > 70) {
               const dir = currentX > 0 ? -1 : 1;
+              moving = true;
+              const cards = [1,2,3].map(n => flow.querySelector('.industry-deck-card.deck-' + n));
               topCard.classList.add(currentX > 0 ? 'swipe-right' : 'swipe-left');
-              setTimeout(() => moveDeck(dir), 170);
+              if (dir > 0) {
+                cards.forEach((card, i) => {
+                  if (card) card.classList.add('promote-' + (i + 1));
+                });
+              } else {
+                cards.forEach((card, i) => {
+                  if (card) card.classList.add('reverse-shift-' + (i + 1));
+                });
+              }
+              setTimeout(() => {
+                industryDeckIndex = (industryDeckIndex + dir + opts.length) % opts.length;
+                render(direction || 1);
+                moving = false;
+              }, 260);
             } else {
               topCard.style.transform = '';
               topCard.style.opacity = '';
