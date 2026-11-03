@@ -498,3 +498,43 @@ body{
   .amount-options{grid-template-columns:1fr}
   .exact-choice{grid-column:auto}
 }
+
+
+/* Historical approval context */
+.history-highlight{
+  margin:0 0 20px;
+  padding:17px 18px 16px;
+  border:1px solid rgba(185,137,63,.24);
+  border-radius:12px;
+  background:
+    linear-gradient(135deg,rgba(198,150,78,.10),rgba(255,251,244,.70)),
+    #fffaf3;
+  box-shadow:0 8px 22px rgba(105,73,35,.055),0 1px 0 rgba(255,255,255,.85) inset;
+}
+.history-label{
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:#93703e;
+}
+.history-amount{
+  margin-top:8px;
+  font-family:"Cormorant Garamond",serif;
+  font-size:31px;
+  line-height:1;
+  font-weight:500;
+  letter-spacing:-.02em;
+  color:#17130f;
+}
+.history-caption{
+  margin-top:7px;
+  max-width:390px;
+  font-size:9px;
+  line-height:1.5;
+  color:#8c7e6e;
+}
+@media(max-width:520px){
+  .history-highlight{padding:16px;margin-bottom:18px}
+  .history-amount{font-size:29px}
+}
