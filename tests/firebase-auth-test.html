@@ -238,7 +238,17 @@ $('#login').addEventListener('click', async () => {
   if (!email || !password) return showMessage('Missing Information','Enter both an email and password.','bad');
   setBusy(true);
   try {
-    await signInWithEmailAndPassword(auth,email,password);
+    const credential = await signInWithEmailAndPassword(auth,email,password);
+    await reload(credential.user);
+    if (!credential.user.emailVerified) {
+      await signOut(auth);
+      showMessage(
+        'Email Verification Required',
+        'Your email/password account is valid, but the email has not been verified yet. Use Resend Verification Email, verify the email, then log in again.',
+        'bad'
+      );
+      return;
+    }
   } catch (error) {
     showMessage('Login Failed', friendlyError(error), 'bad');
   } finally {
@@ -326,10 +336,28 @@ $('#resetPassword').addEventListener('click', async () => {
   }
 });
 
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => {
   if (!user) {
     statusBox.className = 'status';
     statusBox.innerHTML = '<h2>Not Signed In</h2><p class="muted">Firebase currently has no authenticated user in this browser.</p>';
+    return;
+  }
+
+  try {
+    await reload(user);
+  } catch (_) {}
+
+  const providerIds = user.providerData.map(item => item.providerId);
+  const usesPassword = providerIds.includes('password');
+  const usesGoogle = providerIds.includes('google.com');
+
+  if (usesPassword && !usesGoogle && !user.emailVerified) {
+    await signOut(auth);
+    showMessage(
+      'Email Verification Required',
+      'This email/password account is not verified yet. Verify the email before access is allowed.',
+      'bad'
+    );
     return;
   }
 
@@ -351,9 +379,7 @@ onAuthStateChanged(auth, user => {
 
   const providerLine = document.createElement('p');
   providerLine.innerHTML = '<strong>Provider:</strong> ';
-  providerLine.append(document.createTextNode(
-    user.providerData.map(item => item.providerId).join(', ') || 'Firebase'
-  ));
+  providerLine.append(document.createTextNode(providerIds.join(', ') || 'Firebase'));
 
   const verifiedLine = document.createElement('p');
   verifiedLine.innerHTML = '<strong>Email verified:</strong> ';
