@@ -153,6 +153,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   linkWithPopup,
+  linkWithCredential,
   onAuthStateChanged
 } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
 
@@ -170,6 +171,9 @@ const auth = getAuth(app);
 auth.useDeviceLanguage();
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt:'select_account' });
+
+let pendingGoogleCredential = null;
+let pendingGoogleEmail = '';
 
 const $ = selector => document.querySelector(selector);
 const emailField = $('#email');
@@ -198,6 +202,7 @@ function friendlyError(error) {
     'auth/unauthorized-domain': 'This website domain is not authorized in Firebase Authentication. Add torontofinancecompany.com under Authentication > Settings > Authorized domains.',
     'auth/requires-recent-login': 'Firebase requires you to sign in again before completing this action.',
     'auth/provider-already-linked': 'Google is already linked to this Firebase user.',
+    'auth/account-exists-with-different-credential': 'An account already exists with this email using another sign-in method. Authenticate that existing account once so Firebase can securely link Google.',
     'auth/credential-already-in-use': 'That Google account is already attached to a different Firebase user. For this test, use another test account or remove the duplicate test user in Firebase Authentication > Users.',
     'auth/email-already-in-use': 'That email is already being used by another Firebase user.'
   };
@@ -217,6 +222,60 @@ function credentials() {
     email: emailField.value.trim(),
     password: passwordField.value
   };
+}
+
+async function completePendingGoogleLink(user) {
+  if (!pendingGoogleCredential) return false;
+
+  const signedInEmail = String(user?.email || '').trim().toLowerCase();
+  const expectedEmail = String(pendingGoogleEmail || '').trim().toLowerCase();
+
+  if (expectedEmail && signedInEmail && expectedEmail !== signedInEmail) {
+    pendingGoogleCredential = null;
+    pendingGoogleEmail = '';
+    showMessage(
+      'Email Mismatch — Not Linked',
+      'For security, Google was not linked because the Google email does not match the existing Firebase account email.',
+      'bad'
+    );
+    return true;
+  }
+
+  const originalUid = user.uid;
+
+  try {
+    const linked = await linkWithCredential(user, pendingGoogleCredential);
+    await reload(linked.user);
+
+    const sameUid = linked.user.uid === originalUid;
+    const providers = linked.user.providerData.map(item => item.providerId);
+
+    pendingGoogleCredential = null;
+    pendingGoogleEmail = '';
+
+    showMessage(
+      sameUid ? 'Google Reconciled — Same UID Confirmed' : 'UID Check Failed',
+      sameUid
+        ? 'Success. The existing account was authenticated and Google was securely linked to the same Firebase UID: ' + linked.user.uid + '. Providers: ' + providers.join(', ')
+        : 'The Firebase UID changed unexpectedly. Do not proceed with production migration.',
+      sameUid ? 'good' : 'bad'
+    );
+    return true;
+  } catch (error) {
+    if (error?.code === 'auth/provider-already-linked') {
+      pendingGoogleCredential = null;
+      pendingGoogleEmail = '';
+      showMessage(
+        'Already Reconciled',
+        'Google is already linked to this Firebase user. No duplicate account was created.',
+        'good'
+      );
+      return true;
+    }
+
+    showMessage('Google Reconciliation Failed', friendlyError(error), 'bad');
+    return true;
+  }
 }
 
 $('#createAccount').addEventListener('click', async () => {
@@ -253,6 +312,10 @@ $('#login').addEventListener('click', async () => {
       );
       return;
     }
+
+    if (pendingGoogleCredential) {
+      await completePendingGoogleLink(credential.user);
+    }
   } catch (error) {
     showMessage('Login Failed', friendlyError(error), 'bad');
   } finally {
@@ -261,10 +324,45 @@ $('#login').addEventListener('click', async () => {
 });
 
 $('#googleLogin').addEventListener('click', async () => {
+  pendingGoogleCredential = null;
+  pendingGoogleEmail = '';
+
   setBusy(true);
   try {
-    await signInWithPopup(auth,googleProvider);
+    const result = await signInWithPopup(auth,googleProvider);
+    const providers = result.user.providerData.map(item => item.providerId);
+
+    if (providers.includes('password') && providers.includes('google.com')) {
+      showMessage(
+        'Google Login — Existing Account Reconciled',
+        'Firebase signed in the existing user and both Email/Password and Google point to the same UID: ' + result.user.uid,
+        'good'
+      );
+    }
   } catch (error) {
+    if (error?.code === 'auth/account-exists-with-different-credential') {
+      const pending = GoogleAuthProvider.credentialFromError(error);
+      const existingEmail = String(error?.customData?.email || '').trim();
+
+      if (!pending || !existingEmail) {
+        showMessage('Google Login Failed', friendlyError(error), 'bad');
+        return;
+      }
+
+      pendingGoogleCredential = pending;
+      pendingGoogleEmail = existingEmail;
+      emailField.value = existingEmail;
+      passwordField.value = '';
+      passwordField.focus();
+
+      showMessage(
+        'Existing Account Found — One-Time Reconciliation',
+        'Google confirmed ' + existingEmail + ', but Firebase requires proof of the existing account before linking. Enter the existing password and click Log In once. Google will then be linked to the same Firebase UID automatically.',
+        'bad'
+      );
+      return;
+    }
+
     showMessage('Google Login Failed', friendlyError(error), 'bad');
   } finally {
     setBusy(false);
@@ -374,7 +472,11 @@ $('#refreshVerification').addEventListener('click', async () => {
     await reload(user);
     const freshUser = auth.currentUser;
     if (freshUser?.emailVerified) {
-      showMessage('Email Verified','Firebase now confirms that ' + (freshUser.email || 'this account') + ' is verified.','good');
+      if (pendingGoogleCredential) {
+        await completePendingGoogleLink(freshUser);
+      } else {
+        showMessage('Email Verified','Firebase now confirms that ' + (freshUser.email || 'this account') + ' is verified.','good');
+      }
     } else {
       showMessage('Not Verified Yet','Firebase still shows this email as unverified. Click the verification link in the email, then try Refresh Verification Status again.');
     }
