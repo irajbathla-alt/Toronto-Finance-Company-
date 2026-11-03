@@ -42,7 +42,7 @@
     };
 
     const questions = [
-      { id:'industry', kicker:'About your business', title:'What industry is your business in?', type:'selectAsChoices', compact:true },
+      { id:'industry', kicker:'About your business', title:'What industry is your business in?', type:'industryDeck' },
       { id:'timeMonths', kicker:'Business history', title:'How long have you been in business?', type:'choice', options:[[3,'Less than 6 months'],[8,'6 to 11 months'],[18,'1 to 2 years'],[30,'2 to 3 years'],[48,'More than 3 years']] },
       { id:'monthlyDeposits', kicker:'Business cash flow', title:'What are your average monthly business deposits?', help:'Choose the closest range, or enter the exact amount.', type:'amountChoice', options:amountOptions.monthlyDeposits },
       { id:'requestedAmount', kicker:'Funding request', title:'How much financing are you looking for?', help:'Choose the closest range, or enter the exact amount.', type:'amountChoice', options:amountOptions.requestedAmount },
@@ -58,6 +58,7 @@
     let index = 0;
     let moving = false;
     const exactMode = {};
+    let industryDeckIndex = 0;
     const source = id => document.getElementById(id);
     const moneyNumber = value => Number(String(value || '').replace(/[^0-9.]/g,'')) || 0;
     const moneyDisplay = value => {
@@ -152,7 +153,14 @@
       const progress = Math.max(8, ((pos + 1) / total) * 100);
       let control = '';
 
-      if (q.type === 'choice' || q.type === 'selectAsChoices') {
+      if (q.type === 'industryDeck') {
+        const opts = optionPairs(q);
+        const deckCards = [0,1,2].map(offset => {
+          const pair = opts[(industryDeckIndex + offset) % opts.length];
+          return '<button type="button" class="industry-deck-card deck-' + offset + '" data-value="' + String(pair[0]).replace(/"/g,'&quot;') + '" data-offset="' + offset + '"><span class="industry-card-label">Industry</span><strong>' + pair[1] + '</strong><span class="industry-card-action">' + (offset===0 ? 'Tap to choose' : '') + '</span></button>';
+        }).reverse().join('');
+        control = '<div class="industry-deck" id="industryDeck">' + deckCards + '</div><div class="industry-deck-nav"><button type="button" class="deck-arrow" data-dir="-1" aria-label="Previous industry">←</button><span>Swipe to browse</span><button type="button" class="deck-arrow" data-dir="1" aria-label="Next industry">→</button></div>';
+      } else if (q.type === 'choice' || q.type === 'selectAsChoices') {
         control = '<div class="guided-choices' + (q.compact ? ' compact' : '') + '">' + optionPairs(q).map(pair => {
           const selected = String(source(q.id).value) === String(pair[0]);
           return '<button type="button" class="guided-choice' + (selected ? ' selected' : '') + '" data-value="' + String(pair[0]).replace(/"/g,'&quot;') + '">' + pair[1] + '</button>';
@@ -178,7 +186,59 @@
 
       flow.querySelector('.guided-back').onclick = back;
 
-      if (q.type === 'choice' || q.type === 'selectAsChoices') {
+      if (q.type === 'industryDeck') {
+        const opts = optionPairs(q);
+        const topCard = flow.querySelector('.industry-deck-card.deck-0');
+        const moveDeck = dir => {
+          if (moving) return;
+          industryDeckIndex = (industryDeckIndex + dir + opts.length) % opts.length;
+          render(direction || 1);
+        };
+        flow.querySelectorAll('.deck-arrow').forEach(btn => btn.onclick = () => moveDeck(Number(btn.dataset.dir) || 1));
+        if (topCard) {
+          let startX = 0, currentX = 0, dragging = false, pointerId = null;
+          topCard.onclick = e => {
+            if (dragging || moving) return;
+            source(q.id).value = topCard.dataset.value;
+            topCard.classList.add('chosen');
+            setTimeout(advance, 180);
+          };
+          topCard.addEventListener('pointerdown', e => {
+            if (moving) return;
+            pointerId = e.pointerId;
+            startX = e.clientX;
+            currentX = 0;
+            dragging = false;
+            topCard.setPointerCapture(pointerId);
+            topCard.classList.add('dragging');
+          });
+          topCard.addEventListener('pointermove', e => {
+            if (pointerId !== e.pointerId) return;
+            currentX = e.clientX - startX;
+            if (Math.abs(currentX) > 7) dragging = true;
+            const rotate = currentX / 22;
+            topCard.style.transform = 'translateX(' + currentX + 'px) rotate(' + rotate + 'deg)';
+            topCard.style.opacity = String(Math.max(.72, 1 - Math.abs(currentX) / 420));
+          });
+          const endDrag = e => {
+            if (pointerId !== e.pointerId) return;
+            try { topCard.releasePointerCapture(pointerId); } catch(err) {}
+            topCard.classList.remove('dragging');
+            if (Math.abs(currentX) > 70) {
+              const dir = currentX > 0 ? -1 : 1;
+              topCard.classList.add(currentX > 0 ? 'swipe-right' : 'swipe-left');
+              setTimeout(() => moveDeck(dir), 170);
+            } else {
+              topCard.style.transform = '';
+              topCard.style.opacity = '';
+              setTimeout(() => { dragging = false; }, 30);
+            }
+            pointerId = null;
+          };
+          topCard.addEventListener('pointerup', endDrag);
+          topCard.addEventListener('pointercancel', endDrag);
+        }
+      } else if (q.type === 'choice' || q.type === 'selectAsChoices') {
         flow.querySelectorAll('.guided-choice').forEach(btn => btn.onclick = () => chooseAndAdvance(q, btn));
       } else if (q.type === 'amountChoice') {
         flow.querySelectorAll('.guided-choice[data-value]').forEach(btn => btn.onclick = () => {
