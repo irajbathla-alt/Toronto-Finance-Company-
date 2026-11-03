@@ -1121,9 +1121,7 @@ body{
 .industry-deck-card{
   color:#f5efe7!important;
   border:1px solid rgba(199,154,87,.22)!important;
-  background:
-    radial-gradient(circle at 92% 8%,rgba(199,154,87,.08),transparent 32%),
-    linear-gradient(180deg,#23201c,#171513)!important;
+  background:linear-gradient(180deg,#23201c,#171513)!important;
   box-shadow:
     0 1px 0 rgba(255,255,255,.03) inset,
     0 16px 34px rgba(0,0,0,.18)!important;
