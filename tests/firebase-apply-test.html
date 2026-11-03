@@ -30,7 +30,7 @@ code{font-family:Consolas,monospace;font-size:11px}
 </head>
 <body>
 <main class="wrap">
-  <div class="banner"><strong>TEST ONLY.</strong> This page does not create a live Toronto Finance Company application. It tests Firebase Authentication plus a separate Google Sheet tab called <strong>Firebase Apply Test</strong>. No Client Portal, Drive, lender workflow, or Applications-sheet row is changed.</div>
+  <div class="banner"><strong>TEST ONLY.</strong> This page tests Firebase Authentication and the exact signup payload locally. It does not call Apps Script, write to Google Sheets, create a live application, touch Drive, or affect the Client/Admin portals.</div>
   <section class="card">
     <div class="eyebrow">Toronto Finance Company</div>
     <h1>Apply Now Test</h1>
@@ -45,7 +45,7 @@ code{font-family:Consolas,monospace;font-size:11px}
       <button id="createEmail">Create with Email</button>
       <button id="googleLogin" class="secondary">Continue with Google</button>
       <button id="refreshVerification" class="secondary">Refresh Verification</button>
-      <button id="submitTest" class="blue">Submit Test Application</button>
+      <button id="submitTest" class="blue">Verify Signup Payload</button>
       <button id="logout" class="secondary" style="grid-column:1/-1">Log Out</button>
     </div>
 
@@ -68,8 +68,6 @@ const firebaseConfig={
   messagingSenderId:"494379883061",
   appId:"1:494379883061:web:54acfe2bc5b27f8fa36f7c"
 };
-const TEST_API_URL="https://script.google.com/macros/s/AKfycbxvkD5U6shFqseYlralB4VTQ_MbK42HbiPHXmZvAqgj1NXkwcMGkvkimcsYu2VNd7m-/exec";
-
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 auth.useDeviceLanguage();
@@ -151,33 +149,53 @@ $("#submitTest").onclick=async()=>{
   busy(true);
   try{
     await reload(user);
-    if(!auth.currentUser?.emailVerified){
-      show("Verification Required","The Firebase email must be verified before the test application can be written.","bad");
+    const current=auth.currentUser;
+    if(!current?.emailVerified){
+      show("Verification Required","The Firebase email must be verified before signup can continue.","bad");
       return;
     }
 
-    const idToken=await auth.currentUser.getIdToken(true);
+    const idToken=await current.getIdToken(true);
+    const providers=current.providerData.map(p=>p.providerId).join(", ")||"Firebase";
+    const firebaseEmail=String(current.email||"").trim().toLowerCase();
+    const formEmail=String(d.email||firebaseEmail).trim().toLowerCase();
+
+    if(formEmail && firebaseEmail && formEmail!==firebaseEmail){
+      show("Email Mismatch","The form email does not match the authenticated Firebase email. Signup would be blocked.","bad");
+      return;
+    }
+
     const payload={
-      action:"firebaseApplyTest",
-      idToken,
       name:d.name,
-      phone:d.phone
+      email:firebaseEmail,
+      phone:d.phone,
+      firebaseIdToken:idToken
     };
 
-    await fetch(TEST_API_URL,{
-      method:"POST",
-      mode:"no-cors",
-      keepalive:false,
-      headers:{"Content-Type":"text/plain;charset=UTF-8"},
-      body:JSON.stringify(payload)
+    statusBox.className="status good";
+    statusBox.innerHTML="";
+    const h=document.createElement("h2");
+    h.textContent="Signup Payload Verified";
+    const lines=[
+      "Name: "+payload.name,
+      "Email: "+payload.email,
+      "Phone: "+payload.phone,
+      "Firebase UID: "+current.uid,
+      "Provider: "+providers,
+      "Email verified: Yes",
+      "Firebase ID token: Present ("+idToken.length+" characters)"
+    ];
+    statusBox.appendChild(h);
+    lines.forEach(text=>{
+      const p=document.createElement("p");
+      p.textContent=text;
+      statusBox.appendChild(p);
     });
-
-    show(
-      "Test Submission Sent",
-      "Firebase authenticated the client and the request was sent to the isolated Firebase Apply Test sheet. Check that tab for the UID, verified Firebase email, provider, name and phone.",
-      "good"
-    );
-  }catch(e){show("Test Submission Failed",e?.message||String(e),"bad")}
+    const note=document.createElement("p");
+    note.className="muted";
+    note.textContent="Nothing was sent to Apps Script or Google Sheets. This proves the exact data is ready for the existing Apps Script create-account flow later.";
+    statusBox.appendChild(note);
+  }catch(e){show("Payload Verification Failed",e?.message||String(e),"bad")}
   finally{busy(false)}
 };
 
