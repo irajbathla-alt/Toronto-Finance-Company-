@@ -45,6 +45,11 @@ const DEFAULT_LENDERS = [
 const DEFAULT_LENDERS_SEEDED_KEY = 'tfc-default-lenders-seeded-v1';
 const ADMIN_TOKEN_TTL_SECONDS = 21600;
 const MAX_LENDER_PACKAGE_BYTES = 20 * 1024 * 1024;
+const FIREBASE_WEB_API_KEY = 'AIzaSyAXIObBDa-i8W_wAUtt43FXracH7ezPhlA';
+const FIREBASE_APPLY_TEST_SHEET_NAME = 'Firebase Apply Test';
+const FIREBASE_APPLY_TEST_HEADERS = [
+  'timestamp','firebaseUid','email','emailVerified','provider','name','phone'
+];
 
 function doGet(e) {
   try {
@@ -87,6 +92,7 @@ function doPost(e) {
       clientConfirmSignature,
       clientDecision,
       sendSignupNotification,
+      firebaseApplyTest,
       uploadDocument,
       adminLogin,
       adminList,
@@ -658,6 +664,115 @@ function sendSignupNotification(p) {
   }
 
   return { ok:false, ...result };
+}
+
+
+function firebaseApplyTestSheet() {
+  const ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
+  let sh = ss.getSheetByName(FIREBASE_APPLY_TEST_SHEET_NAME);
+
+  if (!sh) {
+    sh = ss.insertSheet(FIREBASE_APPLY_TEST_SHEET_NAME);
+    ensureColumnCapacity(sh,FIREBASE_APPLY_TEST_HEADERS.length);
+    sh.getRange(1,1,1,FIREBASE_APPLY_TEST_HEADERS.length).setValues([FIREBASE_APPLY_TEST_HEADERS]);
+    return sh;
+  }
+
+  if (sh.getLastRow() === 0 || sh.getLastColumn() === 0) {
+    ensureColumnCapacity(sh,FIREBASE_APPLY_TEST_HEADERS.length);
+    sh.getRange(1,1,1,FIREBASE_APPLY_TEST_HEADERS.length).setValues([FIREBASE_APPLY_TEST_HEADERS]);
+  }
+
+  return sh;
+}
+
+function verifyFirebaseIdTokenForTest(idToken) {
+  const token = String(idToken || '').trim();
+  if (!token) throw new Error('Firebase ID token is required');
+
+  const response = UrlFetchApp.fetch(
+    'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' + encodeURIComponent(FIREBASE_WEB_API_KEY),
+    {
+      method:'post',
+      contentType:'application/json',
+      payload:JSON.stringify({ idToken:token }),
+      muteHttpExceptions:true
+    }
+  );
+
+  const status = response.getResponseCode();
+  let payload = {};
+  try { payload = JSON.parse(response.getContentText() || '{}'); } catch (_) {}
+
+  if (status !== 200 || !payload.users || !payload.users[0]) {
+    throw new Error('Firebase authentication could not be verified');
+  }
+
+  const user = payload.users[0];
+  if (user.disabled) throw new Error('Firebase account is disabled');
+
+  return {
+    uid:String(user.localId || ''),
+    email:String(user.email || '').trim().toLowerCase(),
+    emailVerified:user.emailVerified === true,
+    providers:(user.providerUserInfo || [])
+      .map(item => String(item.providerId || '').trim())
+      .filter(Boolean)
+  };
+}
+
+function firebaseApplyTest(p) {
+  const identity = verifyFirebaseIdTokenForTest(p.idToken);
+
+  if (!identity.uid || !identity.email) {
+    throw new Error('Firebase account is missing a UID or email');
+  }
+  if (!identity.emailVerified) {
+    throw new Error('Please verify the Firebase email before submitting the test application');
+  }
+
+  const name = String(p.name || '').trim();
+  const phone = String(p.phone || '').trim();
+
+  if (!name) throw new Error('Name is required');
+  if (phone.replace(/\D/g,'').length < 7) throw new Error('A valid phone number is required');
+
+  const sh = firebaseApplyTestSheet();
+  const headers = FIREBASE_APPLY_TEST_HEADERS.slice();
+  const now = new Date();
+  const record = {
+    timestamp:now,
+    firebaseUid:identity.uid,
+    email:identity.email,
+    emailVerified:true,
+    provider:identity.providers.join(', '),
+    name,
+    phone
+  };
+
+  const uidColumn = headers.indexOf('firebaseUid') + 1;
+  let rowNumber = 0;
+
+  if (sh.getLastRow() >= 2) {
+    const found = sh
+      .getRange(2,uidColumn,sh.getLastRow()-1,1)
+      .createTextFinder(identity.uid)
+      .matchEntireCell(true)
+      .findNext();
+    if (found) rowNumber = found.getRow();
+  }
+
+  const row = headers.map(header => record[header] ?? '');
+  if (rowNumber) sh.getRange(rowNumber,1,1,headers.length).setValues([row]);
+  else sh.getRange(sh.getLastRow()+1,1,1,headers.length).setValues([row]);
+
+  return {
+    ok:true,
+    testOnly:true,
+    firebaseUid:identity.uid,
+    email:identity.email,
+    provider:record.provider
+  };
 }
 
 function adminLogin(p) {
