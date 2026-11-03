@@ -188,87 +188,165 @@
 
       if (q.type === 'industryDeck') {
         const opts = optionPairs(q);
-        const topCard = flow.querySelector('.industry-deck-card.deck-0');
-        const moveDeck = dir => {
+        const deck = flow.querySelector('#industryDeck');
+
+        const setCardContent = (card, pair, offset) => {
+          card.dataset.value = pair[0];
+          card.dataset.offset = String(offset);
+          const label = card.querySelector('strong');
+          const action = card.querySelector('.industry-card-action');
+          if (label) label.textContent = pair[1];
+          if (action) action.textContent = offset === 0 ? 'Tap to choose' : '';
+        };
+
+        const normalizeDeck = () => {
+          const cards = Array.from(deck.querySelectorAll('.industry-deck-card'));
+          cards.forEach(card => {
+            card.className = 'industry-deck-card';
+            card.style.transform = '';
+            card.style.opacity = '';
+          });
+          cards.forEach((card, offset) => {
+            card.classList.add('deck-' + offset);
+            const pair = opts[(industryDeckIndex + offset) % opts.length];
+            setCardContent(card, pair, offset);
+          });
+          bindTopCard();
+        };
+
+        const rotateForward = () => {
           if (moving) return;
           moving = true;
-          const cards = [0,1,2,3].map(n => flow.querySelector('.industry-deck-card.deck-' + n));
-          if (dir > 0) {
-            cards.forEach((card, i) => {
-              if (!card || i === 0) return;
-              card.classList.add('promote-' + i);
-            });
-          } else {
-            cards.forEach((card, i) => {
-              if (!card) return;
-              card.classList.add('reverse-shift-' + i);
-            });
-          }
+          const cards = Array.from(deck.querySelectorAll('.industry-deck-card')).sort((a,b)=>Number(a.dataset.offset)-Number(b.dataset.offset));
+          const top = cards[0], c1 = cards[1], c2 = cards[2], c3 = cards[3];
+
+          top.classList.add('swipe-left');
+          c1.classList.add('promote-1');
+          c2.classList.add('promote-2');
+          c3.classList.add('promote-3');
+
           setTimeout(() => {
-            industryDeckIndex = (industryDeckIndex + dir + opts.length) % opts.length;
-            render(direction || 1);
+            industryDeckIndex = (industryDeckIndex + 1) % opts.length;
+
+            top.className = 'industry-deck-card deck-3';
+            c1.className = 'industry-deck-card deck-0';
+            c2.className = 'industry-deck-card deck-1';
+            c3.className = 'industry-deck-card deck-2';
+
+            [c1,c2,c3,top].forEach((card, offset) => {
+              card.style.transform = '';
+              card.style.opacity = '';
+              const pair = opts[(industryDeckIndex + offset) % opts.length];
+              setCardContent(card, pair, offset);
+            });
+
+            bindTopCard();
             moving = false;
-          }, 260);
+          }, 270);
         };
-        flow.querySelectorAll('.deck-arrow').forEach(btn => btn.onclick = () => moveDeck(Number(btn.dataset.dir) || 1));
-        if (topCard) {
-          let startX = 0, currentX = 0, dragging = false, pointerId = null;
-          topCard.onclick = e => {
-            if (dragging || moving) return;
+
+        const rotateBackward = () => {
+          if (moving) return;
+          moving = true;
+          const cards = Array.from(deck.querySelectorAll('.industry-deck-card')).sort((a,b)=>Number(a.dataset.offset)-Number(b.dataset.offset));
+          const top = cards[0], c1 = cards[1], c2 = cards[2], c3 = cards[3];
+          const prevIndex = (industryDeckIndex - 1 + opts.length) % opts.length;
+          const prevPair = opts[prevIndex];
+
+          c3.className = 'industry-deck-card entering-prev';
+          setCardContent(c3, prevPair, 0);
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            c3.classList.add('enter-prev-active');
+            top.classList.add('shift-back-0');
+            c1.classList.add('shift-back-1');
+            c2.classList.add('shift-back-2');
+          }));
+
+          setTimeout(() => {
+            industryDeckIndex = prevIndex;
+
+            c3.className = 'industry-deck-card deck-0';
+            top.className = 'industry-deck-card deck-1';
+            c1.className = 'industry-deck-card deck-2';
+            c2.className = 'industry-deck-card deck-3';
+
+            [c3,top,c1,c2].forEach((card, offset) => {
+              card.style.transform = '';
+              card.style.opacity = '';
+              const pair = opts[(industryDeckIndex + offset) % opts.length];
+              setCardContent(card, pair, offset);
+            });
+
+            bindTopCard();
+            moving = false;
+          }, 270);
+        };
+
+        function bindTopCard() {
+          const topCard = deck.querySelector('.industry-deck-card.deck-0');
+          if (!topCard || topCard.dataset.bound === '1') return;
+          topCard.dataset.bound = '1';
+
+          let startX = 0;
+          let currentX = 0;
+          let hasDragged = false;
+          let pointerId = null;
+
+          topCard.addEventListener('click', () => {
+            if (hasDragged || moving) return;
             source(q.id).value = topCard.dataset.value;
             topCard.classList.add('chosen');
             setTimeout(advance, 180);
-          };
+          });
+
           topCard.addEventListener('pointerdown', e => {
             if (moving) return;
             pointerId = e.pointerId;
             startX = e.clientX;
             currentX = 0;
-            dragging = false;
+            hasDragged = false;
             topCard.setPointerCapture(pointerId);
             topCard.classList.add('dragging');
           });
+
           topCard.addEventListener('pointermove', e => {
             if (pointerId !== e.pointerId) return;
             currentX = e.clientX - startX;
-            if (Math.abs(currentX) > 7) dragging = true;
-            const rotate = currentX / 22;
-            topCard.style.transform = 'translateX(' + currentX + 'px) rotate(' + rotate + 'deg)';
-            topCard.style.opacity = String(Math.max(.72, 1 - Math.abs(currentX) / 420));
+            if (Math.abs(currentX) > 6) hasDragged = true;
+            const rotate = currentX / 24;
+            topCard.style.transform = 'translate3d(' + currentX + 'px,0,0) rotate(' + rotate + 'deg)';
+            topCard.style.opacity = String(Math.max(.78,1-Math.abs(currentX)/500));
           });
-          const endDrag = e => {
+
+          const finishDrag = e => {
             if (pointerId !== e.pointerId) return;
             try { topCard.releasePointerCapture(pointerId); } catch(err) {}
             topCard.classList.remove('dragging');
-            if (Math.abs(currentX) > 70) {
-              const dir = currentX > 0 ? -1 : 1;
-              moving = true;
-              const cards = [1,2,3].map(n => flow.querySelector('.industry-deck-card.deck-' + n));
-              topCard.classList.add(currentX > 0 ? 'swipe-right' : 'swipe-left');
-              if (dir > 0) {
-                cards.forEach((card, i) => {
-                  if (card) card.classList.add('promote-' + (i + 1));
-                });
-              } else {
-                cards.forEach((card, i) => {
-                  if (card) card.classList.add('reverse-shift-' + (i + 1));
-                });
-              }
-              setTimeout(() => {
-                industryDeckIndex = (industryDeckIndex + dir + opts.length) % opts.length;
-                render(direction || 1);
-                moving = false;
-              }, 260);
+
+            const distance = currentX;
+            pointerId = null;
+
+            if (Math.abs(distance) > 70) {
+              topCard.style.transform = '';
+              topCard.style.opacity = '';
+              if (distance < 0) rotateForward();
+              else rotateBackward();
             } else {
               topCard.style.transform = '';
               topCard.style.opacity = '';
-              setTimeout(() => { dragging = false; }, 30);
+              setTimeout(() => { hasDragged = false; }, 60);
             }
-            pointerId = null;
           };
-          topCard.addEventListener('pointerup', endDrag);
-          topCard.addEventListener('pointercancel', endDrag);
+
+          topCard.addEventListener('pointerup', finishDrag);
+          topCard.addEventListener('pointercancel', finishDrag);
         }
+
+        flow.querySelectorAll('.deck-arrow').forEach(btn => {
+          btn.onclick = () => Number(btn.dataset.dir) > 0 ? rotateForward() : rotateBackward();
+        });
+
+        bindTopCard();
       } else if (q.type === 'choice' || q.type === 'selectAsChoices') {
         flow.querySelectorAll('.guided-choice').forEach(btn => btn.onclick = () => chooseAndAdvance(q, btn));
       } else if (q.type === 'amountChoice') {
