@@ -128,6 +128,7 @@ code{font-family:Consolas,monospace;font-size:11px}
       <button id="logout" class="secondary">Log Out</button>
       <button id="resetPassword" class="secondary">Forgot Password</button>
       <button id="googleLogin" class="secondary" style="grid-column:1/-1">Continue with Google</button>
+      <button id="linkGoogle" class="secondary" style="grid-column:1/-1">Link Google to This Account</button>
       <button id="sendVerification" class="secondary">Resend Verification Email</button>
       <button id="refreshVerification" class="secondary">Refresh Verification Status</button>
     </div>
@@ -151,6 +152,7 @@ import {
   reload,
   GoogleAuthProvider,
   signInWithPopup,
+  linkWithPopup,
   onAuthStateChanged
 } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
 
@@ -194,7 +196,10 @@ function friendlyError(error) {
     'auth/popup-closed-by-user': 'The Google sign-in window was closed before login completed.',
     'auth/popup-blocked': 'Your browser blocked the Google sign-in popup. Allow popups for this test page and try again.',
     'auth/unauthorized-domain': 'This website domain is not authorized in Firebase Authentication. Add torontofinancecompany.com under Authentication > Settings > Authorized domains.',
-    'auth/requires-recent-login': 'Firebase requires you to sign in again before completing this action.'
+    'auth/requires-recent-login': 'Firebase requires you to sign in again before completing this action.',
+    'auth/provider-already-linked': 'Google is already linked to this Firebase user.',
+    'auth/credential-already-in-use': 'That Google account is already attached to a different Firebase user. For this test, use another test account or remove the duplicate test user in Firebase Authentication > Users.',
+    'auth/email-already-in-use': 'That email is already being used by another Firebase user.'
   };
   const message = known[code] || error?.message || 'Firebase returned an unknown error.';
   return code ? message + ' [' + code + ']' : message;
@@ -261,6 +266,80 @@ $('#googleLogin').addEventListener('click', async () => {
     await signInWithPopup(auth,googleProvider);
   } catch (error) {
     showMessage('Google Login Failed', friendlyError(error), 'bad');
+  } finally {
+    setBusy(false);
+  }
+});
+
+$('#linkGoogle').addEventListener('click', async () => {
+  const user = auth.currentUser;
+  if (!user) {
+    return showMessage(
+      'Sign In Required',
+      'First log in with the verified Email/Password account that you want to link to Google.',
+      'bad'
+    );
+  }
+
+  const providerIds = user.providerData.map(item => item.providerId);
+  if (!providerIds.includes('password')) {
+    return showMessage(
+      'Password Account Required',
+      'For this test, first sign in using the Email/Password account. Then link Google to that same Firebase user.',
+      'bad'
+    );
+  }
+
+  if (!user.emailVerified) {
+    return showMessage(
+      'Verify Email First',
+      'Verify the Email/Password account before linking Google.',
+      'bad'
+    );
+  }
+
+  if (providerIds.includes('google.com')) {
+    return showMessage(
+      'Already Linked',
+      'This Firebase user already has both Email/Password and Google linked.',
+      'good'
+    );
+  }
+
+  const originalUid = user.uid;
+  const originalEmail = (user.email || '').toLowerCase();
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({
+    prompt: 'select_account',
+    login_hint: user.email || ''
+  });
+
+  setBusy(true);
+  try {
+    const result = await linkWithPopup(user, provider);
+    const linkedUser = result.user;
+    const googleProfile = linkedUser.providerData.find(item => item.providerId === 'google.com');
+    const googleEmail = (googleProfile?.email || '').toLowerCase();
+
+    if (googleEmail && originalEmail && googleEmail !== originalEmail) {
+      showMessage(
+        'Google Linked — Email Mismatch',
+        'Firebase linked Google to the same UID, but the Google email (' + googleEmail + ') is different from the password email (' + originalEmail + '). For our production design we would not allow this.',
+        'bad'
+      );
+      return;
+    }
+
+    const sameUid = linkedUser.uid === originalUid;
+    showMessage(
+      sameUid ? 'Accounts Linked — Same UID Confirmed' : 'UID Check Failed',
+      sameUid
+        ? 'Success. Email/Password and Google now belong to one Firebase user. UID: ' + linkedUser.uid
+        : 'The Firebase UID changed unexpectedly. Do not proceed with production migration.',
+      sameUid ? 'good' : 'bad'
+    );
+  } catch (error) {
+    showMessage('Google Link Failed', friendlyError(error), 'bad');
   } finally {
     setBusy(false);
   }
