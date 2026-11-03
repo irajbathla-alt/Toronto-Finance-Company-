@@ -618,3 +618,94 @@ body{
   .pathway-top{align-items:flex-start!important}
   .pathway-status{flex:0 0 auto;max-width:48%;white-space:normal!important}
 }
+
+
+/* Premium swipeable pill tabs */
+.guided-choice.selected:after{display:none!important;content:none!important}
+.guided-choice.selected{
+  border-color:rgba(166,122,62,.72)!important;
+  background:
+    linear-gradient(180deg,rgba(255,250,241,.98),rgba(242,226,202,.92))!important;
+  color:#17130f!important;
+  box-shadow:
+    0 0 0 2px rgba(185,137,63,.07),
+    0 8px 20px rgba(112,76,36,.07)!important;
+}
+
+.guided-choices,
+.guided-choices.compact,
+.amount-options{
+  display:flex!important;
+  grid-template-columns:none!important;
+  gap:10px!important;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding:2px 2px 9px;
+  margin-left:-2px;
+  margin-right:-2px;
+  scroll-snap-type:x mandatory;
+  scroll-padding-inline:2px;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.guided-choices::-webkit-scrollbar,
+.guided-choices.compact::-webkit-scrollbar,
+.amount-options::-webkit-scrollbar{display:none}
+
+.guided-choice,
+.guided-choices.compact .guided-choice,
+.amount-options .guided-choice{
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:148px!important;
+  max-width:240px;
+  min-height:50px!important;
+  padding:13px 18px!important;
+  border-radius:999px!important;
+  text-align:center!important;
+  scroll-snap-align:start;
+  white-space:normal;
+  line-height:1.22!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.72) inset!important;
+}
+
+.guided-choice.exact-choice{
+  grid-column:auto!important;
+  min-width:174px!important;
+  border-style:solid!important;
+}
+.guided-choice.exact-choice:before{margin-right:5px}
+
+.guided-choice:active{transform:scale(.985)!important}
+
+@media(hover:hover) and (pointer:fine){
+  .guided-choice:hover{
+    transform:translateY(-1px)!important;
+    border-color:rgba(185,137,63,.55)!important;
+    box-shadow:0 8px 20px rgba(83,58,27,.06)!important;
+  }
+}
+
+.guided-tap-hint:after{
+  content:" · Swipe for more";
+}
+
+@media(min-width:700px){
+  .guided-choices,
+  .guided-choices.compact,
+  .amount-options{
+    flex-wrap:wrap;
+    overflow:visible;
+    padding-bottom:2px;
+  }
+  .guided-tap-hint:after{content:""}
+}
+
+@media(max-width:430px){
+  .guided-choices.compact{grid-template-columns:none!important}
+  .guided-choices.compact .guided-choice{min-height:50px!important}
+}
+@media(max-width:370px){
+  .amount-options{grid-template-columns:none!important}
+  .exact-choice{grid-column:auto!important}
+}
