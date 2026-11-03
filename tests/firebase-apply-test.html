@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Firebase Apply Test | Toronto Finance Company</title>
+<style>
+:root{--ink:#17130f;--paper:#f5eadc;--paper2:#fbf7f1;--gold:#c6964e;--muted:#786f65;--line:rgba(23,19,15,.13);--green:#2f855a;--red:#a13f33;--blue:#406b8a}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:linear-gradient(180deg,#f7efe4,#f3e6d5);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+.wrap{width:min(760px,92vw);margin:48px auto 80px}
+.banner{background:#fff4dd;border:1px solid rgba(198,150,78,.35);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;line-height:1.5}
+.card{background:rgba(255,255,255,.97);border:1px solid rgba(23,19,15,.08);border-radius:18px;padding:28px;box-shadow:0 22px 60px rgba(42,30,18,.10)}
+.eyebrow{color:var(--gold);text-transform:uppercase;letter-spacing:.14em;font-size:10px;font-weight:700}
+h1{font:400 36px Georgia,serif;text-transform:uppercase;margin:8px 0 7px}
+.intro{color:var(--muted);font-size:13px;line-height:1.65;margin:0 0 22px}
+.field{margin-top:14px} label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px;font-weight:700;color:#5a5046}
+input{width:100%;border:1px solid #d9cdbf;border-radius:10px;padding:13px 14px;background:var(--paper2);color:var(--ink);outline:none;font-size:14px}
+input:focus{border-color:rgba(198,150,78,.85);box-shadow:0 0 0 4px rgba(198,150,78,.10);background:#fff}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+button{border:0;border-radius:999px;padding:13px 16px;background:var(--ink);color:#fff;text-transform:uppercase;letter-spacing:.08em;font-size:10px;font-weight:700;cursor:pointer}
+button.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)} button.blue{background:var(--blue)} button:disabled{opacity:.5;cursor:not-allowed}
+.status{margin-top:22px;border:1px solid var(--line);background:var(--paper2);border-radius:12px;padding:17px}
+.status.good{border-color:rgba(47,133,90,.28);background:#edf6f0}.status.bad{border-color:rgba(161,63,51,.25);background:#faeeec}
+.status h2{font:400 22px Georgia,serif;text-transform:uppercase;margin:0 0 9px}.status p{margin:4px 0;font-size:12px;line-height:1.55;word-break:break-word}.muted{color:var(--muted)}
+code{font-family:Consolas,monospace;font-size:11px}
+@media(max-width:640px){.actions{grid-template-columns:1fr}.card{padding:22px}h1{font-size:30px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="banner"><strong>TEST ONLY.</strong> This page does not create a live Toronto Finance Company application. It tests Firebase Authentication plus a separate Google Sheet tab called <strong>Firebase Apply Test</strong>. No Client Portal, Drive, lender workflow, or Applications-sheet row is changed.</div>
+  <section class="card">
+    <div class="eyebrow">Toronto Finance Company</div>
+    <h1>Apply Now Test</h1>
+    <p class="intro">Same simple front-door information: name, email, phone and authentication. Detailed business information and documents remain for the Client Portal later.</p>
+
+    <div class="field"><label for="name">Full Name</label><input id="name" autocomplete="name" placeholder="Your full legal name"></div>
+    <div class="field"><label for="email">Email Address</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com"></div>
+    <div class="field"><label for="phone">Phone Number</label><input id="phone" type="tel" autocomplete="tel" placeholder="+1 416-555-0123"></div>
+    <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="new-password" minlength="8" placeholder="Minimum 8 characters"></div>
+
+    <div class="actions">
+      <button id="createEmail">Create with Email</button>
+      <button id="googleLogin" class="secondary">Continue with Google</button>
+      <button id="refreshVerification" class="secondary">Refresh Verification</button>
+      <button id="submitTest" class="blue">Submit Test Application</button>
+      <button id="logout" class="secondary" style="grid-column:1/-1">Log Out</button>
+    </div>
+
+    <div class="status" id="status"><h2>Not Signed In</h2><p class="muted">Authenticate with Firebase, then submit the test application.</p></div>
+  </section>
+</main>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
+import {
+  getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup,
+  sendEmailVerification, reload, signOut, updateProfile, onAuthStateChanged
+} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
+
+const firebaseConfig={
+  apiKey:"AIzaSyAXIObBDa-i8W_wAUtt43FXracH7ezPhlA",
+  authDomain:"toronto-finance-company-auth.firebaseapp.com",
+  projectId:"toronto-finance-company-auth",
+  storageBucket:"toronto-finance-company-auth.firebasestorage.app",
+  messagingSenderId:"494379883061",
+  appId:"1:494379883061:web:54acfe2bc5b27f8fa36f7c"
+};
+const TEST_API_URL="https://script.google.com/macros/s/AKfycbxvkD5U6shFqseYlralB4VTQ_MbK42HbiPHXmZvAqgj1NXkwcMGkvkimcsYu2VNd7m-/exec";
+
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+auth.useDeviceLanguage();
+const googleProvider=new GoogleAuthProvider();
+googleProvider.setCustomParameters({prompt:"select_account"});
+
+const $=s=>document.querySelector(s);
+const buttons=[...document.querySelectorAll("button")];
+const statusBox=$("#status");
+
+function busy(value){buttons.forEach(b=>b.disabled=value)}
+function show(title,message,type=""){
+  statusBox.className="status"+(type?" "+type:"");
+  statusBox.innerHTML="<h2></h2><p></p>";
+  statusBox.querySelector("h2").textContent=title;
+  statusBox.querySelector("p").textContent=message;
+}
+function details(){
+  return {
+    name:$("#name").value.trim(),
+    email:$("#email").value.trim().toLowerCase(),
+    phone:$("#phone").value.trim(),
+    password:$("#password").value
+  };
+}
+function validateProfile(){
+  const d=details();
+  if(!d.name){show("Name Required","Enter the client's full name.","bad");return null}
+  if(d.phone.replace(/\D/g,"").length<7){show("Phone Required","Enter a valid phone number.","bad");return null}
+  return d;
+}
+
+$("#createEmail").onclick=async()=>{
+  const d=validateProfile(); if(!d)return;
+  if(!/^\S+@\S+\.\S+$/.test(d.email)){show("Email Required","Enter a valid email address.","bad");return}
+  if(d.password.length<8){show("Password Required","Use at least 8 characters.","bad");return}
+  busy(true);
+  try{
+    const result=await createUserWithEmailAndPassword(auth,d.email,d.password);
+    await updateProfile(result.user,{displayName:d.name});
+    await sendEmailVerification(result.user);
+    show("Account Created","Verification email sent. Verify the email, return here, then click Refresh Verification.","good");
+  }catch(e){show("Account Creation Failed",e?.message||String(e),"bad")}
+  finally{busy(false)}
+};
+
+$("#googleLogin").onclick=async()=>{
+  const d=validateProfile(); if(!d)return;
+  busy(true);
+  try{
+    const result=await signInWithPopup(auth,googleProvider);
+    if(!result.user.displayName && d.name) await updateProfile(result.user,{displayName:d.name});
+    $("#email").value=result.user.email||"";
+    show("Google Authentication Complete","Firebase authenticated "+(result.user.email||"the Google account")+". You can now submit the test application.","good");
+  }catch(e){show("Google Login Failed",e?.message||String(e),"bad")}
+  finally{busy(false)}
+};
+
+$("#refreshVerification").onclick=async()=>{
+  const user=auth.currentUser;
+  if(!user){show("Sign In Required","Create/sign in to the Firebase account first.","bad");return}
+  busy(true);
+  try{
+    await reload(user);
+    if(auth.currentUser?.emailVerified){
+      show("Email Verified","Firebase confirms the email is verified. You can submit the test application.","good");
+    }else{
+      show("Not Verified Yet","Click the verification link in the email, then try again.","bad");
+    }
+  }catch(e){show("Refresh Failed",e?.message||String(e),"bad")}
+  finally{busy(false)}
+};
+
+$("#submitTest").onclick=async()=>{
+  const d=validateProfile(); if(!d)return;
+  const user=auth.currentUser;
+  if(!user){show("Firebase Sign-In Required","Authenticate with Email or Google first.","bad");return}
+
+  busy(true);
+  try{
+    await reload(user);
+    if(!auth.currentUser?.emailVerified){
+      show("Verification Required","The Firebase email must be verified before the test application can be written.","bad");
+      return;
+    }
+
+    const idToken=await auth.currentUser.getIdToken(true);
+    const payload={
+      action:"firebaseApplyTest",
+      idToken,
+      name:d.name,
+      phone:d.phone
+    };
+
+    await fetch(TEST_API_URL,{
+      method:"POST",
+      mode:"no-cors",
+      keepalive:false,
+      headers:{"Content-Type":"text/plain;charset=UTF-8"},
+      body:JSON.stringify(payload)
+    });
+
+    show(
+      "Test Submission Sent",
+      "Firebase authenticated the client and the request was sent to the isolated Firebase Apply Test sheet. Check that tab for the UID, verified Firebase email, provider, name and phone.",
+      "good"
+    );
+  }catch(e){show("Test Submission Failed",e?.message||String(e),"bad")}
+  finally{busy(false)}
+};
+
+$("#logout").onclick=async()=>{await signOut(auth);show("Logged Out","Firebase session ended.")};
+
+onAuthStateChanged(auth,async user=>{
+  if(!user)return;
+  try{await reload(user)}catch(_){}
+  const providers=user.providerData.map(p=>p.providerId).join(", ")||"Firebase";
+  $("#email").value=user.email||$("#email").value;
+  statusBox.className="status good";
+  statusBox.innerHTML="";
+  const h=document.createElement("h2");h.textContent="Firebase Login Active";
+  const p=document.createElement("p");
+  p.textContent="Email: "+(user.email||"—")+" | UID: "+user.uid+" | Provider: "+providers+" | Verified: "+(user.emailVerified?"Yes":"No");
+  statusBox.append(h,p);
+});
+</script>
+</body>
+</html>
