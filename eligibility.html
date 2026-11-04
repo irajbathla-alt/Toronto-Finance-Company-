@@ -71,15 +71,45 @@ if(["financial","travel"].includes(i.industry)){aScore-=8;bScore-=4;r.push("Indu
 let pathways=[{key:"A",name:"Lender A Criteria",score:aScore,status:pathwayLabel(aScore,"A")},{key:"B",name:"Lender B Criteria",score:bScore,status:pathwayLabel(bScore,"B")},{key:"C",name:"Lender C Criteria",score:cScore,status:pathwayLabel(cScore,"C")}];let top=pathways.slice().sort((x,y)=>y.score-x.score)[0],score=top.score,tier=top.key,status="Financing Options May Be Available",confidence=i.months>=6?"High":i.months>=3?"Moderate":"Low",cap=r500(i.deposits*(score>=82?.95:score>=70?.8:score>=58?.65:score>=45?.45:.3)*clamp(1-dr*.7,.45,1)),within=cap>0&&i.requested<=cap;if(!within)r.push("Requested amount may require a different amount or structure after lender review.");return{score,tier,status,confidence,cap,within,dr,rr,cash,nsf,bal,debt,cover,age,credit,fit,pathways,topPath:top.name,strengths:[...new Set(s)].slice(0,5),risks:[...new Set(r)].slice(0,6)}}
 const APPROVED_HISTORY={A:[[19820.5,11550],[20962.73,15000],[22121.7,7000],[24636.93,7000],[24636.93,18000],[26234.98,19500],[29255.91,7000],[38032.24,20000],[40631.35,11000],[41645.62,29500],[51674.25,40000],[62050.12,10000],[77959.69,65000],[80913.59,15000],[83804.05,20000],[87849.59,24000],[99009.13,60000],[109631.54,20000],[114773.12,77000],[121755.97,77000],[139616.68,35000],[153918.24,77000],[157412.62,44000],[228489.33,12500],[294351.88,57800],[490475.23,150000],[1268432.31,45000]],B:[[32857.67,10000],[80913.59,21875],[87417.15,40000],[91416.62,70000],[126911.89,45000],[181579.86,62500],[237941.69,40000]],C:[[5623.46,15000],[10788.09,45000],[21982.5,45000],[26585.47,50000],[70378.16,7500],[102289.5,75000],[1254078.23,75000]]};
 function histPct(v,p){let a=v.slice().sort((x,y)=>x-y);if(!a.length)return 0;let n=(a.length-1)*p,l=Math.floor(n),h=Math.ceil(n);return l===h?a[l]:a[l]+(a[h]-a[l])*(n-l)}
-function similarApprovalRange(type,revenue){let cases=(APPROVED_HISTORY[type]||[]).filter(x=>x[0]>0&&x[1]>0);if(!cases.length||!revenue)return null;let closest=cases.slice().sort((x,y)=>Math.abs(Math.log(revenue/x[0]))-Math.abs(Math.log(revenue/y[0]))).slice(0,Math.min(5,cases.length));let minAmt=Math.min(...cases.map(x=>x[1])),maxAmt=Math.max(...cases.map(x=>x[1]));let scaled=closest.map(x=>clamp(x[1]*Math.pow(revenue/x[0],.55),minAmt,maxAmt));let low=r500(histPct(scaled,.35)),high=r500(histPct(scaled,.65));if(high-low<5000){let mid=(low+high)/2;low=r500(Math.max(minAmt,mid-2500));high=r500(Math.min(maxAmt,mid+2500))}if(high<low){let t=low;low=high;high=t}return{low,high,count:closest.length}}
+function similarApprovalRange(type,revenue,a,i){
+  let cases=(APPROVED_HISTORY[type]||[]).filter(x=>x[0]>0&&x[1]>0);
+  if(!cases.length||!revenue)return null;
+  let closest=cases.slice().sort((x,y)=>Math.abs(Math.log(revenue/x[0]))-Math.abs(Math.log(revenue/y[0]))).slice(0,Math.min(5,cases.length));
+  let minAmt=Math.min(...cases.map(x=>x[1])),maxAmt=Math.max(...cases.map(x=>x[1]));
+  let base=closest.map(x=>clamp(x[1]*Math.pow(revenue/x[0],.55),minAmt,maxAmt));
+
+  // Keep actual approvals as the anchor, then adjust modestly for this applicant's full profile.
+  let factor=.72+(a.score/100)*.34;
+  if(i.nsf===0)factor+=.04; else if(i.nsf===1)factor-=.02; else if(i.nsf===2)factor-=.07; else if(i.nsf>=3)factor-=.15;
+  if(i.negative==="frequent")factor-=.12; else if(i.negative==="occasional")factor-=.04;
+  if(i.trend==="increasing")factor+=.05; else if(i.trend==="decreasing")factor-=.10;
+  if(i.time<6)factor-=.14; else if(i.time>=24)factor+=.04;
+  if(a.dr>.25)factor-=.13; else if(a.dr>.18)factor-=.07; else if(a.dr<.08)factor+=.03;
+  if(a.rr>1.5)factor-=.10; else if(a.rr<=.8)factor+=.03;
+  factor=clamp(factor,.55,1.12);
+
+  let scaled=base.map(v=>clamp(v*factor,minAmt,maxAmt));
+  let low=r500(histPct(scaled,.30)),high=r500(histPct(scaled,.70));
+
+  // Keep the result meaningfully responsive instead of collapsing to the same narrow band.
+  if(high-low<5000){
+    let mid=(low+high)/2;
+    low=r500(Math.max(minAmt,mid-3000));
+    high=r500(Math.min(maxAmt,mid+3000));
+  }
+  if(high<low){let t=low;low=high;high=t}
+  return{low,high,count:closest.length,factor};
+}
 function fmtMoney(v){return "$"+Math.round(v).toLocaleString("en-CA")}
-function lenderFitForTier(type){
-  const map={
-    A:{primary:"Journey Capital",secondary:"Canacap",note:"Core cash-flow lenders"},
-    B:{primary:"Merchant Growth",secondary:"",note:"Flexible cash-flow lender"},
-    C:{primary:"Judi.ai",secondary:"",note:"Alternative cash-flow pathway"}
-  };
-  return map[type]||null;
+function rankLenders(a,i){
+  const p=Object.fromEntries(a.pathways.map(x=>[x.key,x.score]));
+  const scores=[
+    {name:"Journey Capital",score:(p.A||0)+(i.deposits>=10000?8:-12)+(i.time>=6?6:-12)+(i.nsf===0?5:i.nsf<=2?0:-9)+(i.credit==="700+"||i.credit==="650-699"?4:0)},
+    {name:"Canacap",score:(p.A||0)+(i.deposits>=10000?7:-10)+(i.time>=6?5:-10)+(i.nsf<=2?3:-7)+(i.credit==="below-500"?-4:1)},
+    {name:"Merchant Growth",score:(p.B||0)+(i.deposits>=10000?7:i.deposits>=5000?2:-8)+(i.time>=6?5:-7)+(i.trend==="decreasing"?-5:2)+(i.active==="2"?-3:2)},
+    {name:"Judi.ai",score:(p.C||0)+(i.deposits>=5000?5:-4)+(i.time>=6?3:0)+(i.credit==="500-549"||i.credit==="below-500"?5:1)+(i.nsf>=3?-4:2)}
+  ];
+  return scores.sort((x,y)=>y.score-x.score).slice(0,2);
 }
 function render(a){
   const meta={
@@ -87,8 +117,9 @@ function render(a){
     B:["Flexible Cash-Flow","More flexible underwriting"],
     C:["Alternative Pathway","Broader lender appetite"]
   };
-  const deposits=latest&&latest.i?latest.i.deposits:0;
-  const estimate=similarApprovalRange(a.tier,deposits);
+  const profile=latest&&latest.i?latest.i:null;
+  const deposits=profile?profile.deposits:0;
+  const estimate=profile?similarApprovalRange(a.tier,deposits,a,profile):null;
   const ordered=[
     ...a.pathways.filter(p=>p.key===a.tier),
     ...a.pathways.filter(p=>p.key!==a.tier)
@@ -121,13 +152,13 @@ function render(a){
     </div>`;
   }).join("");
 
-  const lenderFit=lenderFitForTier(a.tier);
-  const lenderNames=lenderFit?[lenderFit.primary,lenderFit.secondary].filter(Boolean).map(esc).join(" · "):"";
+  const lenderRank=profile?rankLenders(a,profile):[];
+  const lenderNames=lenderRank.map(x=>esc(x.name)).join(" · ");
   const historyBlock=estimate?`<div class="history-highlight">
     <div class="history-label">Comparable Historical Approval Range</div>
     <div class="history-amount">${fmtMoney(estimate.low)} – ${fmtMoney(estimate.high)}</div>
     ${lenderNames?`<div class="history-lenders"><span>Likely lenders to try</span>${lenderNames}</div>`:""}
-    <div class="history-caption">Based on the ${estimate.count} closest approved files to your stated ${fmtMoney(deposits)}/month business deposits within this lender type.</div>
+    <div class="history-caption">Anchored to the ${estimate.count} closest approved files by monthly deposits, then adjusted for your credit, banking history, time in business, debt load, deposit trend and requested amount.</div>
   </div>`:"";
 
   result.innerHTML=`<div class="tier-box tier-${a.tier.toLowerCase()}">
