@@ -33,9 +33,9 @@ button{width:100%;margin-top:20px;padding:14px 18px;background:var(--ink);color:
 <section id="page1" class="section hidden"><div class="progress"><span>Intro</span><span class="active">Eligibility</span><span>Details</span></div><h2>Eligibility Check</h2><form id="eligibilityForm">
 <label>Business Industry</label><select id="industry" required><option value="">Select</option><option value="restaurant">Restaurant / Café / Food Service</option><option value="retail">Retail / Convenience / Liquor</option><option value="construction">Construction / Trades</option><option value="trucking">Trucking / Transportation</option><option value="automotive">Automotive / Repair / Welding</option><option value="medical">Medical / Clinic / Health</option><option value="professional">Professional Services</option><option value="manufacturing">Manufacturing / Wholesale</option><option value="beauty">Beauty / Personal Care</option><option value="cleaning">Cleaning / Janitorial</option><option value="travel">Travel / Tourism</option><option value="financial">Financial Services</option><option value="other">Other</option></select>
 <label>Time in Business</label><input id="timeMonths" type="number" min="0" max="600" step="1" placeholder="Months in business" required>
-<label>Average Monthly Business Deposits</label><input id="monthlyDeposits" type="number" min="0" step="500" placeholder="$ e.g. 35000" required>
+<label>Average Monthly Business Deposits</label><input id="monthlyDeposits" type="number" min="1000" step="500" placeholder="$ e.g. 35000" required>
 <label>Financing Requested</label><input id="requestedAmount" type="number" min="1000" step="500" placeholder="$ e.g. 30000" required>
-<label>Estimated Personal Credit Score</label><select id="credit" required><option value="">Select</option><option value="700+">700+</option><option value="650-699">650–699</option><option value="600-649">600–649</option><option value="550-599">550–599</option><option value="500-549">500–549</option><option value="below-500">Below 500</option><option value="unknown">Not Sure</option></select>
+<label>Estimated Personal Credit Score</label><select id="credit" required><option value="">Select</option><option value="700+">700+</option><option value="649-699">649–699</option><option value="600-648">600–648</option><option value="550-599">550–599</option><option value="500-549">500–549</option><option value="below-500">Below 500</option><option value="unknown">Not Sure</option></select>
 <label>NSFs / Returned Payments in Last 3 Months</label><select id="nsf3m" required><option value="">Select</option><option value="0">None</option><option value="1">1</option><option value="2">2</option><option value="3">3–4</option><option value="5">5+</option></select>
 <label>Recent Negative / Overdrawn Balances</label><select id="negativeBalances" required><option value="">Select</option><option value="none">None</option><option value="occasional">Occasional</option><option value="frequent">Frequent</option></select>
 <label>Active Business Financing Facilities</label><select id="activeFinancing" required><option value="">Select</option><option value="0">None</option><option value="1">One</option><option value="2">Two or More</option></select>
@@ -47,7 +47,7 @@ button{width:100%;margin-top:20px;padding:14px 18px;background:var(--ink);color:
 </div></div>
 <div class="confirm-overlay" id="confirmOverlay"><div class="confirm-card"><div class="confirm-icon">✓</div><h3>Thank You</h3><p>Your financing inquiry has been successfully submitted.</p><p>One of our Business Financing Advisors will carefully review your information and contact you to discuss the financing solutions best suited to your business.</p><div class="response">Typical response time: 24–48 business hours</div><button id="returnHome">Return to Home</button><button class="close-confirm" id="closeConfirm">Close</button></div></div>
 <script>
-const MODEL="TFC-FUNDING-COMPASS-5.4",scriptURL="https://script.google.com/macros/s/AKfycbxqvRdFTUynTIhWn0h2aU5W1jouIs369XrmkZGGKBPkeursr4_UBIrlwtmdzsdBjStO/exec";
+const MODEL="TFC-FUNDING-COMPASS-5.5",scriptURL="https://script.google.com/macros/s/AKfycbxqvRdFTUynTIhWn0h2aU5W1jouIs369XrmkZGGKBPkeursr4_UBIrlwtmdzsdBjStO/exec";
 const $=id=>document.getElementById(id),frontPage=$("frontPage"),page1=$("page1"),page2=$("page2"),result=$("result"),confirmOverlay=$("confirmOverlay");let latest=null;
 function go(a,b){a.classList.remove("active");setTimeout(()=>{a.classList.add("hidden");b.classList.remove("hidden");requestAnimationFrame(()=>b.classList.add("active"));scrollTo({top:0,behavior:"smooth"})},280)}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}function r500(v){return Math.round(Math.max(0,v)/500)*500}function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
@@ -57,13 +57,13 @@ function assess(i){let s=[],r=[],cash=i.deposits>=100000?100:i.deposits>=50000?9
 let nsf=i.nsf===0?100:i.nsf===1?78:i.nsf===2?58:i.nsf<5?35:15;i.nsf===0?s.push("No recent NSF activity reported."):r.push("Recent NSF / returned-payment activity reported.");let bal=i.negative==="none"?100:i.negative==="occasional"?62:25;i.negative==="none"?s.push("No recent negative balances reported."):r.push("Negative or overdrawn balances reported.");
 let dr=i.deposits?i.debt/i.deposits:1,debt=dr>.35?20:dr>.25?38:dr>.18?55:dr>.12?70:dr>.07?84:100;if(i.active==="1")debt-=8;if(i.active==="2"){debt-=22;r.push("Multiple active business financing facilities reported.")}debt=clamp(debt,0,100);if(dr>.18)r.push("Existing financing payments are high relative to deposits.");else if(i.active==="0")s.push("No material existing business-financing burden reported.");
 let cover=i.months>=6?100:i.months>=4?82:i.months>=3?68:50;i.months>=6?s.push("Six or more months of business banking available."):r.push("Limited statement history may reduce confidence.");let age=i.time>=36?100:i.time>=24?92:i.time>=12?80:i.time>=6?55:30;i.time>=24?s.push("Established operating history."):i.time<6&&r.push("Very short time in business may limit some lender options.");
-let cm={"700+":100,"650-699":90,"600-649":78,"550-599":62,"500-549":45,"below-500":25,"unknown":60},credit=cm[i.credit]||60,rr=i.deposits?i.requested/i.deposits:10,fit=rr<=.5?100:rr<=.8?90:rr<=1?80:rr<=1.25?68:rr<=1.5?55:rr<=2?38:15;if(rr<=1)s.push("Requested amount is proportionate to stated deposits.");if(rr>1.5)r.push("Requested amount may need a different structure or lender program.");
+let cm={"700+":100,"649-699":90,"600-648":78,"550-599":62,"500-549":45,"below-500":25,"unknown":60},credit=cm[i.credit]||60,rr=i.deposits?i.requested/i.deposits:10,fit=rr<=.5?100:rr<=.8?90:rr<=1?80:rr<=1.25?68:rr<=1.5?55:rr<=2?38:15;if(rr<=1)s.push("Requested amount is proportionate to stated deposits.");if(rr>1.5)r.push("Requested amount may need a different structure or lender program.");
 let depA=i.deposits>=50000?100:i.deposits>=25000?85:i.deposits>=20000?70:i.deposits>=15000?50:i.deposits>=10000?30:10;
 let depB=i.deposits>=25000?100:i.deposits>=20000?90:i.deposits>=10000?72:i.deposits>=7500?55:i.deposits>=5000?40:20;
 let depC=i.deposits>=20000?100:i.deposits>=10000?85:i.deposits>=5000?70:i.deposits>=3000?50:30;
 let ageA=i.time>=24?100:i.time>=12?85:i.time>=6?50:20,ageB=i.time>=12?100:i.time>=6?80:i.time>=3?55:30,ageC=i.time>=6?100:i.time>=3?75:50;
-let creditB={"700+":100,"650-699":95,"600-649":88,"550-599":75,"500-549":60,"below-500":40,"unknown":70}[i.credit]||70;
-let creditC={"700+":100,"650-699":100,"600-649":95,"550-599":88,"500-549":78,"below-500":65,"unknown":75}[i.credit]||75;
+let creditB={"700+":100,"649-699":95,"600-648":88,"550-599":75,"500-549":60,"below-500":40,"unknown":70}[i.credit]||70;
+let creditC={"700+":100,"649-699":100,"600-648":95,"550-599":88,"500-549":78,"below-500":65,"unknown":75}[i.credit]||75;
 let aScore=Math.round(depA*.30+credit*.20+ageA*.15+nsf*.15+debt*.10+fit*.10);
 let bScore=Math.round(depB*.34+creditB*.10+ageB*.10+nsf*.14+clamp(debt+10,0,100)*.14+clamp(fit+10,0,100)*.13+cash*.05);
 let cScore=Math.round(depC*.30+creditC*.05+ageC*.10+nsf*.12+clamp(debt+20,0,100)*.13+clamp(fit+20,0,100)*.20+cash*.10);
@@ -98,7 +98,7 @@ const LENDER_HISTORY={
 
 function fmtMoney(v){return "$"+Math.round(v).toLocaleString("en-CA")}
 function creditFloorValue(v){
-  return ({"700+":700,"650-699":650,"600-649":600,"550-599":550,"500-549":500,"below-500":0,"unknown":null}[v]??null);
+  return ({"700+":700,"649-699":649,"600-648":600,"550-599":550,"500-549":500,"below-500":0,"unknown":null}[v]??null);
 }
 
 function pairDistance(deposits,requested,approvedDeposits,approvedAmount){
