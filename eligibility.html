@@ -47,7 +47,7 @@ button{width:100%;margin-top:20px;padding:14px 18px;background:var(--ink);color:
 </div></div>
 <div class="confirm-overlay" id="confirmOverlay"><div class="confirm-card"><div class="confirm-icon">✓</div><h3>Thank You</h3><p>Your financing inquiry has been successfully submitted.</p><p>One of our Business Financing Advisors will carefully review your information and contact you to discuss the financing solutions best suited to your business.</p><div class="response">Typical response time: 24–48 business hours</div><button id="returnHome">Return to Home</button><button class="close-confirm" id="closeConfirm">Close</button></div></div>
 <script>
-const MODEL="TFC-FUNDING-COMPASS-5.1",scriptURL="https://script.google.com/macros/s/AKfycbxqvRdFTUynTIhWn0h2aU5W1jouIs369XrmkZGGKBPkeursr4_UBIrlwtmdzsdBjStO/exec";
+const MODEL="TFC-FUNDING-COMPASS-5.2",scriptURL="https://script.google.com/macros/s/AKfycbxqvRdFTUynTIhWn0h2aU5W1jouIs369XrmkZGGKBPkeursr4_UBIrlwtmdzsdBjStO/exec";
 const $=id=>document.getElementById(id),frontPage=$("frontPage"),page1=$("page1"),page2=$("page2"),result=$("result"),confirmOverlay=$("confirmOverlay");let latest=null;
 function go(a,b){a.classList.remove("active");setTimeout(()=>{a.classList.add("hidden");b.classList.remove("hidden");requestAnimationFrame(()=>b.classList.add("active"));scrollTo({top:0,behavior:"smooth"})},280)}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}function r500(v){return Math.round(Math.max(0,v)/500)*500}function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
@@ -74,19 +74,19 @@ const LENDER_HISTORY={
   // 4 ambiguous duplicate feature rows and the corrupted Amber Trucking feature row are excluded.
   "Journey Capital":{
     approvals:[[19820.50,11550],[20962.73,15000],[24636.93,18000],[26234.98,19500],[41645.62,29500],[51674.25,40000],[77959.69,65000],[80913.59,15000],[87849.59,24000],[99009.13,60000],[114773.12,77000],[121755.97,77000],[153918.24,77000],[294351.88,57800],[490475.23,150000]],
-    sample:15,minRevenue:10000,minTime:6,fitLimit:.70,veryWeakCredit:false,path:"A"
+    sample:15,minRevenue:10000,minTime:6,fitLimit:.70,path:"A"
   },
   "Canacap Funding":{
     approvals:[[22121.70,7000],[29255.91,7000],[38032.24,20000],[40631.35,11000],[62050.12,10000],[83804.05,20000],[139616.68,35000],[157412.62,44000],[228489.33,12500],[1268432.31,45000]],
-    sample:10,minRevenue:20000,minTime:6,fitLimit:.90,veryWeakCredit:false,path:"A"
+    sample:10,minRevenue:20000,minTime:6,fitLimit:.90,path:"A"
   },
   "Merchant Growth":{
     approvals:[[32857.67,10000],[80913.59,21875],[87417.15,40000],[91416.62,70000],[126911.89,45000],[181579.86,62500],[237941.69,40000]],
-    sample:7,minRevenue:25000,minTime:6,fitLimit:.90,veryWeakCredit:false,path:"B"
+    sample:7,minRevenue:25000,minTime:6,fitLimit:.90,path:"B"
   },
   "Judi.Ai":{
     approvals:[[5623.46,15000],[10788.09,45000],[21982.50,45000],[26585.47,50000],[70378.16,7500],[102289.50,75000]],
-    sample:6,minRevenue:5000,minTime:6,fitLimit:1.80,veryWeakCredit:false,path:"C"
+    sample:6,minRevenue:5000,minTime:6,fitLimit:1.80,minCredit:660,path:"C"
   },
   "iCapital Financing":{
     approvals:[[18591.67,19000],[55436.50,19000]],sample:2,limited:true,path:"C"
@@ -97,6 +97,9 @@ const LENDER_HISTORY={
 };
 
 function fmtMoney(v){return "$"+Math.round(v).toLocaleString("en-CA")}
+function creditFloorValue(v){
+  return ({"700+":700,"650-699":650,"600-649":600,"550-599":550,"500-549":500,"below-500":0,"unknown":null}[v]??null);
+}
 
 function pairDistance(deposits,requested,approvedDeposits,approvedAmount){
   if(!deposits||!requested||!approvedDeposits||!approvedAmount)return Infinity;
@@ -126,7 +129,11 @@ function lenderFit(name,h,i){
   if(i.nsf>=3)reasons.push("nsf-review");
   if(i.negative==="frequent")reasons.push("negative-cashflow");
   if(debtRatio>=.30||(i.active==="2"&&debtRatio>.20))reasons.push("existing-debt");
-  if(i.credit==="below-500")reasons.push("credit-review");
+  const creditValue=creditFloorValue(i.credit);
+  if(h.minCredit){
+    if(creditValue===null)reasons.push("credit-unknown");
+    else if(creditValue<h.minCredit)reasons.push("credit-below-lender-minimum");
+  } else if(i.credit==="below-500")reasons.push("credit-review");
 
   const nearest=comparableCases(h,i,3);
   const fit=nearest.length?nearest.reduce((s,x)=>s+x.distance,0)/nearest.length:Infinity;
