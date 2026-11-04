@@ -77,7 +77,7 @@
       if (!el) return false;
       if (q.type === 'amountChoice') {
         const n = moneyNumber(el.value);
-        return q.id === 'requestedAmount' ? n >= 1000 : n >= 0 && String(el.value) !== '';
+        return q.id === 'requestedAmount' ? n >= 1000 : q.id === 'monthlyDeposits' ? n >= 1000 : n >= 0 && String(el.value) !== '';
       }
       return String(el.value || '').trim() !== '';
     };
