@@ -47,7 +47,7 @@ button{width:100%;margin-top:20px;padding:14px 18px;background:var(--ink);color:
 </div></div>
 <div class="confirm-overlay" id="confirmOverlay"><div class="confirm-card"><div class="confirm-icon">✓</div><h3>Thank You</h3><p>Your financing inquiry has been successfully submitted.</p><p>One of our Business Financing Advisors will carefully review your information and contact you to discuss the financing solutions best suited to your business.</p><div class="response">Typical response time: 24–48 business hours</div><button id="returnHome">Return to Home</button><button class="close-confirm" id="closeConfirm">Close</button></div></div>
 <script>
-const MODEL="TFC-FUNDING-COMPASS-5.8",scriptURL="https://script.google.com/macros/s/AKfycbxqvRdFTUynTIhWn0h2aU5W1jouIs369XrmkZGGKBPkeursr4_UBIrlwtmdzsdBjStO/exec";
+const MODEL="TFC-FUNDING-COMPASS-5.9",scriptURL="https://script.google.com/macros/s/AKfycbxqvRdFTUynTIhWn0h2aU5W1jouIs369XrmkZGGKBPkeursr4_UBIrlwtmdzsdBjStO/exec";
 const $=id=>document.getElementById(id),frontPage=$("frontPage"),page1=$("page1"),page2=$("page2"),result=$("result"),confirmOverlay=$("confirmOverlay");let latest=null;
 function go(a,b){a.classList.remove("active");setTimeout(()=>{a.classList.add("hidden");b.classList.remove("hidden");requestAnimationFrame(()=>b.classList.add("active"));scrollTo({top:0,behavior:"smooth"})},280)}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}function r500(v){return Math.round(Math.max(0,v)/500)*500}function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
@@ -211,10 +211,14 @@ function probableEstimateForFit(fit,requested){
   // If request itself is below the comparable centre, treat the request as the practical ceiling.
   if(high<low)low=high;
 
+  const roundedHigh=Math.min(requested,r500(high));
+  const roundedCenter=Math.min(requested,r500(Math.min(center,requested)));
+  const roundedLow=Math.min(roundedHigh,r500(low));
+
   return{
-    low:r500(low),
-    high:r500(high),
-    center:r500(Math.min(center,requested)),
+    low:roundedLow,
+    high:roundedHigh,
+    center:roundedCenter,
     observedLow:r500(observedLow),
     observedHigh:r500(observedHigh),
     count:nearest.length,
