@@ -119,6 +119,7 @@ function lenderFit(name,h,i){
   const debtRatio=i.deposits?i.debt/i.deposits:1;
 
   // Hard review gates are deliberately conservative for a public pre-screen.
+  if(i.deposits<10000)reasons.push("public-min-revenue");
   if(i.deposits<h.minRevenue)reasons.push("revenue");
   if(i.time<h.minTime)reasons.push("time-in-business");
   if(i.months<3)reasons.push("insufficient-statements");
@@ -129,9 +130,11 @@ function lenderFit(name,h,i){
 
   const nearest=comparableCases(h,i,3);
   const fit=nearest.length?nearest.reduce((s,x)=>s+x.distance,0)/nearest.length:Infinity;
+  const nearestMax=nearest.length?Math.max(...nearest.map(x=>x.amount)):0;
 
-  // fitLimit is calibrated from leave-one-out distances within each lender's clean approvals.
+  // fitLimit is the rounded 75th-percentile leave-one-out distance for this lender's clean approvals.
   if(fit>h.fitLimit)reasons.push("outside-comparable-history");
+  if(nearestMax&&i.requested>nearestMax*1.25)reasons.push("request-above-comparables");
 
   const eligible=reasons.length===0;
   const score=Number.isFinite(fit)?Math.round(100*Math.exp(-fit)):0;
@@ -198,7 +201,7 @@ function render(a){
     <div class="history-label">Observed Comparable Approval Amounts</div>
     <div class="history-amount">${amountText}</div>
     ${lenderNames?`<div class="history-lenders"><span>Lenders worth reviewing</span>${lenderNames}</div>`:""}
-    <div class="history-caption">These are the actual approved amounts from the ${displayEstimate.count} clean historical ${esc(displayEstimate.lender)} files most similar to your monthly deposits and requested amount. They are not an approval, offer or prediction.</div>
+    <div class="history-caption">These are the actual approved amounts from the ${displayEstimate.count} clean historical ${esc(displayEstimate.lender)} files most similar to your monthly deposits and requested amount. Your stated request is ${fmtMoney(profile.requested)}. These figures are not an approval, offer or prediction.</div>
   </div>`:`<div class="history-highlight">
     <div class="history-label">Preliminary Review</div>
     <div class="history-amount" style="font-size:24px">Advisor Review Required</div>
