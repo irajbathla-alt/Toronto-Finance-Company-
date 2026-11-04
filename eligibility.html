@@ -86,7 +86,7 @@ const LENDER_HISTORY={
   },
   "Judi.Ai":{
     approvals:[[5623.46,15000],[10788.09,45000],[21982.50,45000],[26585.47,50000],[70378.16,7500],[102289.50,75000]],
-    sample:6,minRevenue:5000,minTime:6,fitLimit:1.80,veryWeakCredit:true,path:"C"
+    sample:6,minRevenue:5000,minTime:6,fitLimit:1.80,veryWeakCredit:false,path:"C"
   },
   "iCapital Financing":{
     approvals:[[18591.67,19000],[55436.50,19000]],sample:2,limited:true,path:"C"
@@ -126,7 +126,7 @@ function lenderFit(name,h,i){
   if(i.nsf>=3)reasons.push("nsf-review");
   if(i.negative==="frequent")reasons.push("negative-cashflow");
   if(debtRatio>=.30||(i.active==="2"&&debtRatio>.20))reasons.push("existing-debt");
-  if(i.credit==="below-500"&&!h.veryWeakCredit)reasons.push("credit-review");
+  if(i.credit==="below-500")reasons.push("credit-review");
 
   const nearest=comparableCases(h,i,3);
   const fit=nearest.length?nearest.reduce((s,x)=>s+x.distance,0)/nearest.length:Infinity;
