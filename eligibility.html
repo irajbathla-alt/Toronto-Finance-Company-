@@ -47,7 +47,7 @@ button{width:100%;margin-top:20px;padding:14px 18px;background:var(--ink);color:
 </div></div>
 <div class="confirm-overlay" id="confirmOverlay"><div class="confirm-card"><div class="confirm-icon">✓</div><h3>Thank You</h3><p>Your financing inquiry has been successfully submitted.</p><p>One of our Business Financing Advisors will carefully review your information and contact you to discuss the financing solutions best suited to your business.</p><div class="response">Typical response time: 24–48 business hours</div><button id="returnHome">Return to Home</button><button class="close-confirm" id="closeConfirm">Close</button></div></div>
 <script>
-const MODEL="TFC-LENDER-PATHWAYS-3.0",scriptURL="https://script.google.com/macros/s/AKfycbxqvRdFTUynTIhWn0h2aU5W1jouIs369XrmkZGGKBPkeursr4_UBIrlwtmdzsdBjStO/exec";
+const MODEL="TFC-LENDER-PATHWAYS-4.0",scriptURL="https://script.google.com/macros/s/AKfycbxqvRdFTUynTIhWn0h2aU5W1jouIs369XrmkZGGKBPkeursr4_UBIrlwtmdzsdBjStO/exec";
 const $=id=>document.getElementById(id),frontPage=$("frontPage"),page1=$("page1"),page2=$("page2"),result=$("result"),confirmOverlay=$("confirmOverlay");let latest=null;
 function go(a,b){a.classList.remove("active");setTimeout(()=>{a.classList.add("hidden");b.classList.remove("hidden");requestAnimationFrame(()=>b.classList.add("active"));scrollTo({top:0,behavior:"smooth"})},280)}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}function r500(v){return Math.round(Math.max(0,v)/500)*500}function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
@@ -72,21 +72,21 @@ let pathways=[{key:"A",name:"Lender A Criteria",score:aScore,status:pathwayLabel
 const LENDER_HISTORY={
   "Journey Capital":{
     approvals:[[19820.50,11550],[20962.73,15000],[24636.93,18000],[26234.98,19500],[41645.62,29500],[51674.25,40000],[77959.69,65000],[80913.59,15000],[87849.59,24000],[99009.13,60000],[114773.12,77000],[121755.97,77000],[153918.24,77000],[294351.88,57800],[490475.23,150000]],
-    minRevenue:10000,minTime:6,maxNsf:2,creditFloor:"500-549",path:"A",weight:1
+    minRevenue:10000,minTime:6,maxNsf:2,creditFloor:"500-549",path:"A"
   },
   "Canacap Funding":{
-    approvals:[[22121.70,7000],[29255.91,7000],[38032.24,20000],[40631.35,11000],[49273.87,7000],[62050.12,10000],[83804.05,20000],[109631.54,20000],[139616.68,35000],[157412.62,44000],[228489.33,12500],[1268432.31,45000]],
-    minRevenue:20000,minTime:6,maxNsf:2,creditFloor:"500-549",path:"A",weight:.97
+    approvals:[[22121.70,7000],[29255.91,7000],[38032.24,20000],[40631.35,11000],[24636.93,7000],[62050.12,10000],[83804.05,20000],[109631.54,20000],[139616.68,35000],[157412.62,44000],[228489.33,12500],[1268432.31,45000]],
+    minRevenue:20000,minTime:6,maxNsf:2,creditFloor:"500-549",path:"A"
   },
   "Merchant Growth":{
     approvals:[[32857.67,10000],[80913.59,21875],[87417.15,40000],[91416.62,70000],[126911.89,45000],[181579.86,62500],[237941.69,40000]],
-    minRevenue:25000,minTime:6,maxNsf:2,creditFloor:"500-549",path:"B",weight:.98
+    minRevenue:25000,minTime:6,maxNsf:2,creditFloor:"500-549",path:"B"
   },
   "Judi.Ai":{
     approvals:[[5623.46,15000],[10788.09,45000],[21982.50,45000],[26585.47,50000],[70378.16,7500],[102289.50,75000],[1254078.23,75000]],
-    minRevenue:5000,minTime:3,maxNsf:4,creditFloor:"below-500",path:"C",weight:.94
+    minRevenue:5000,minTime:6,maxNsf:2,creditFloor:"below-500",path:"C"
   },
-  "iCapital Financial":{
+  "iCapital Financing":{
     approvals:[[18591.67,19000],[55436.50,19000]],
     limited:true,path:"C"
   },
@@ -123,20 +123,33 @@ function rankLenders(a,i){
   Object.entries(LENDER_HISTORY).forEach(([name,h])=>{
     if(h.limited)return;
     const hardReasons=[];
+
+    // Conservative public-screen rules. Historical exceptions stay in the dataset,
+    // but are not automatically presented to a client as a lender fit.
+    if(i.deposits<10000)hardReasons.push("public-min-revenue");
+    if(i.time<6)hardReasons.push("public-min-time");
+    if(i.nsf>=3)hardReasons.push("public-nsf-review");
+
     if(i.deposits<h.minRevenue)hardReasons.push("revenue");
     if(i.time<h.minTime)hardReasons.push("time");
     if(i.nsf>h.maxNsf)hardReasons.push("nsf");
     if(i.negative==="frequent")hardReasons.push("cashflow");
+
     const debtRatio=i.deposits?i.debt/i.deposits:1;
     if(debtRatio>=.30||(i.active==="2"&&debtRatio>.20))hardReasons.push("debt");
     if(i.credit!=="unknown"&&creditRank(i.credit)<creditRank(h.creditFloor))hardReasons.push("credit");
 
     const revenueFit=empiricalRevenueFit(h.approvals,i.deposits);
     const pathFit=pathScores[h.path]||50;
-    let score=(revenueFit*.50+readiness*.28+pathFit*.22)*(h.weight||1);
+    let score=revenueFit*.50+readiness*.28+pathFit*.22;
+
+    const observedMax=Math.max(...h.approvals.map(x=>x[1]));
+    if(i.requested>observedMax*2)score-=12;
+    else if(i.requested>observedMax*1.4)score-=6;
+
     if(hardReasons.length)score-=35+Math.min(15,(hardReasons.length-1)*5);
     score=clamp(Math.round(score),0,100);
-    rows.push({name,score,eligible:hardReasons.length===0,reasons:hardReasons,revenueFit});
+    rows.push({name,score,eligible:hardReasons.length===0,reasons:hardReasons,revenueFit,path:h.path,observedMax});
   });
   return rows.sort((x,y)=>y.score-x.score);
 }
@@ -154,6 +167,26 @@ function historicalRangeForLender(name,deposits){
     revenueMax:Math.max(...closest.map(x=>x[0]))
   };
 }
+function eligibilityOutcome(a,i){
+  const lenderRank=rankLenders(a,i);
+  const recommended=lenderRank.filter(x=>x.eligible&&x.score>=60).slice(0,2);
+  const primary=recommended[0]||null;
+  const rawEstimate=primary?historicalRangeForLender(primary.name,i.deposits):null;
+  const displayEstimate=rawEstimate?{
+    ...rawEstimate,
+    high:Math.min(rawEstimate.high,i.requested||rawEstimate.high),
+    low:Math.min(rawEstimate.low,Math.min(rawEstimate.high,i.requested||rawEstimate.high))
+  }:null;
+  const displayTier=primary?(LENDER_HISTORY[primary.name]?.path||a.tier):a.tier;
+  return{
+    lenderRank,recommended,primary,rawEstimate,displayEstimate,displayTier,
+    status:recommended.length?"Potential Financing Pathways Identified":"Advisor Review Required",
+    copy:recommended.length
+      ?"Your profile has one or more historical lender pathways worth reviewing. This is not an approval."
+      :"We should review the banking and supporting documents before suggesting a lender or funding amount.",
+    confidence:recommended.length&&i.months>=6?"Moderate":"Low"
+  };
+}
 function render(a){
   const meta={
     A:["Core Cash-Flow","Stronger overall fit"],
@@ -162,23 +195,15 @@ function render(a){
   };
   const profile=latest&&latest.i?latest.i:null;
   const deposits=profile?profile.deposits:0;
-  const lenderRank=profile?rankLenders(a,profile):[];
-  const recommended=lenderRank.filter(x=>x.eligible&&x.score>=60).slice(0,2);
-  const primaryLender=recommended[0]||null;
-  const estimate=primaryLender?historicalRangeForLender(primaryLender.name,deposits):null;
-  const requested=profile?profile.requested:0;
-  const displayEstimate=estimate?{
-    ...estimate,
-    high:Math.min(estimate.high,requested||estimate.high),
-    low:Math.min(estimate.low,Math.min(estimate.high,requested||estimate.high))
-  }:null;
-  const resultTitle=recommended.length?"Potential Financing Pathways Identified":"Advisor Review Required";
-  const resultCopy=recommended.length
-    ?"Your profile has one or more historical lender pathways worth reviewing. This is not an approval."
-    :"We should review the banking and supporting documents before suggesting a lender or funding amount.";
+  const out=profile?eligibilityOutcome(a,profile):null;
+  const recommended=out?out.recommended:[];
+  const displayEstimate=out?out.displayEstimate:null;
+  const resultTitle=out?out.status:"Advisor Review Required";
+  const resultCopy=out?out.copy:"We should review the banking and supporting documents before suggesting a lender or funding amount.";
+  const displayTier=out?out.displayTier:a.tier;
   const ordered=[
-    ...a.pathways.filter(p=>p.key===a.tier),
-    ...a.pathways.filter(p=>p.key!==a.tier)
+    ...a.pathways.filter(p=>p.key===displayTier),
+    ...a.pathways.filter(p=>p.key!==displayTier)
   ];
   const bestFit=ordered[0];
   const others=ordered.slice(1);
@@ -191,7 +216,7 @@ function render(a){
         <div class="pathway-name">${esc(bestFit.name)}</div>
         <span class="pathway-type">${esc(bestMeta[0])} · ${esc(bestMeta[1])}</span>
       </div>
-      <div class="pathway-status">${esc(bestFit.status)}</div>
+      <div class="pathway-status">${esc(recommended.length?bestFit.status:"Advisor Review")}</div>
     </div>
   </div>`;
 
@@ -221,7 +246,7 @@ function render(a){
     <div class="history-caption">We do not have enough reliable historical support to display a client-facing dollar range for this profile. An advisor should review the banking and lender criteria first.</div>
   </div>`;
 
-  result.innerHTML=`<div class="tier-box tier-${a.tier.toLowerCase()}">
+  result.innerHTML=`<div class="tier-box tier-${displayTier.toLowerCase()}">
     <div class="result-eyebrow">Preliminary Assessment</div>
     <div class="result-title">${esc(resultTitle)}</div>
     <p class="result-copy">${esc(resultCopy)}</p>
@@ -245,8 +270,8 @@ function render(a){
 }
 $("startBtn").onclick=()=>go(frontPage,page1);$("backToIntro").onclick=()=>go(page1,frontPage);$("backToEligibility").onclick=()=>go(page2,page1);$("closeConfirm").onclick=()=>{confirmOverlay.classList.remove("show");document.body.style.overflow=""};$("returnHome").onclick=()=>{if(opener&&!opener.closed){opener.focus();close()}else location.href="index.html"};
 $("eligibilityForm").onsubmit=e=>{e.preventDefault();let i=input(),a=assess(i);latest={i,a};$("tier").value=a.tier;$("score").value=a.score;render(a)};
-$("leadForm").onsubmit=async e=>{e.preventDefault();if(!latest)return;let b=$("submitBtn"),st=$("submitStatus"),i=latest.i,a=latest.a;b.disabled=true;b.textContent="Submitting...";st.textContent="";let data=new URLSearchParams({business:$("business").value,name:$("name").value,phone:$("phone").value,email:$("email").value,tier:a.tier,score:String(a.score),eligibility_status:a.status,eligibility_confidence:a.confidence,eligibility_model_version:MODEL,top_lender_pathway:a.topPath,lender_a_status:a.pathways[0].status,lender_a_score:String(a.pathways[0].score),lender_b_status:a.pathways[1].status,lender_b_score:String(a.pathways[1].score),lender_c_status:a.pathways[2].status,lender_c_score:String(a.pathways[2].score),industry:i.industry,time_in_business_months:String(i.time),monthly_deposits:String(i.deposits),requested_amount:String(i.requested),estimated_credit:i.credit,nsf_last_3_months:String(i.nsf),negative_balances:i.negative,active_financing_facilities:i.active,monthly_financing_payments:String(i.debt),deposit_trend:i.trend,statement_months_available:String(i.months),debt_service_to_deposits_ratio:(a.dr*100).toFixed(1)+"%",request_to_deposits_ratio:(a.rr*100).toFixed(1)+"%",preliminary_capacity:String(a.cap),request_within_preliminary_capacity:a.within?"Yes":"No",cash_flow_score:String(a.cash),nsf_score:String(a.nsf),balance_score:String(a.bal),debt_score:String(a.debt),coverage_score:String(a.cover),operating_history_score:String(a.age),credit_score_component:String(a.credit),request_fit_score:String(a.fit),strengths:a.strengths.join(" | "),risks:a.risks.join(" | "),recommended_lenders:(rankLenders(a,i).filter(x=>x.eligible&&x.score>=60).slice(0,2).map(x=>x.name).join(" | ")||"Advisor Review"),source:"Toronto Finance Company Website Eligibility"});try{await fetch(scriptURL,{method:"POST",body:data,mode:"no-cors"});$("leadForm").reset();confirmOverlay.classList.add("show");document.body.style.overflow="hidden"}catch(x){st.textContent="Your information could not be submitted. Please try again."}finally{b.disabled=false;b.textContent="Submit"}};
+$("leadForm").onsubmit=async e=>{e.preventDefault();if(!latest)return;let b=$("submitBtn"),st=$("submitStatus"),i=latest.i,a=latest.a,out=eligibilityOutcome(a,i),raw=out.rawEstimate;b.disabled=true;b.textContent="Submitting...";st.textContent="";let data=new URLSearchParams({business:$("business").value,name:$("name").value,phone:$("phone").value,email:$("email").value,tier:out.displayTier,score:String(a.score),eligibility_status:out.status,eligibility_confidence:out.confidence,eligibility_model_version:MODEL,top_lender_pathway:out.primary?out.primary.name:"Advisor Review",lender_a_status:a.pathways[0].status,lender_a_score:String(a.pathways[0].score),lender_b_status:a.pathways[1].status,lender_b_score:String(a.pathways[1].score),lender_c_status:a.pathways[2].status,lender_c_score:String(a.pathways[2].score),industry:i.industry,time_in_business_months:String(i.time),monthly_deposits:String(i.deposits),requested_amount:String(i.requested),estimated_credit:i.credit,nsf_last_3_months:String(i.nsf),negative_balances:i.negative,active_financing_facilities:i.active,monthly_financing_payments:String(i.debt),deposit_trend:i.trend,statement_months_available:String(i.months),debt_service_to_deposits_ratio:(a.dr*100).toFixed(1)+"%",request_to_deposits_ratio:(a.rr*100).toFixed(1)+"%",preliminary_capacity:raw?String(raw.high):"",request_within_preliminary_capacity:raw?(i.requested<=raw.high?"Yes":"No"):"Review",cash_flow_score:String(a.cash),nsf_score:String(a.nsf),balance_score:String(a.bal),debt_score:String(a.debt),coverage_score:String(a.cover),operating_history_score:String(a.age),credit_score_component:String(a.credit),request_fit_score:String(a.fit),strengths:a.strengths.join(" | "),risks:a.risks.join(" | "),recommended_lenders:(out.recommended.map(x=>x.name).join(" | ")||"Advisor Review"),observed_comparable_lender:raw?raw.lender:"",observed_comparable_low:raw?String(raw.low):"",observed_comparable_high:raw?String(raw.high):"",source:"Toronto Finance Company Website Eligibility"});try{await fetch(scriptURL,{method:"POST",body:data,mode:"no-cors"});$("leadForm").reset();confirmOverlay.classList.add("show");document.body.style.overflow="hidden"}catch(x){st.textContent="Your information could not be submitted. Please try again."}finally{b.disabled=false;b.textContent="Submit"}};
 </script>
-<script src="eligibility-guided.js?v=20261102-deckpersistent13"></script>
+<script src="eligibility-guided.js?v=20261103-audit16"></script>
 </body>
 </html>
