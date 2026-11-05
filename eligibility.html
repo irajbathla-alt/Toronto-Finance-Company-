@@ -52,7 +52,7 @@ const $=id=>document.getElementById(id),frontPage=$("frontPage"),page1=$("page1"
 function go(a,b){a.classList.remove("active");setTimeout(()=>{a.classList.add("hidden");b.classList.remove("hidden");requestAnimationFrame(()=>b.classList.add("active"));scrollTo({top:0,behavior:"smooth"})},280)}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}function r500(v){return Math.round(Math.max(0,v)/500)*500}function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
 function input(){return{industry:$("industry").value,time:+$("timeMonths").value||0,deposits:+$("monthlyDeposits").value||0,requested:+$("requestedAmount").value||0,credit:$("credit").value,nsf:+$("nsf3m").value||0,negative:$("negativeBalances").value,active:$("activeFinancing").value,debt:+$("monthlyDebt").value||0,trend:$("depositTrend").value,months:+$("statementMonths").value||0}}
-function pathwayLabel(score,type){if(type==="C"){if(score>=78)return"Strong Alternative Match";if(score>=58)return"Alternative Match";return"Possible with Advisor Review"}if(score>=80)return"Strong Match";if(score>=62)return"Possible Match";if(score>=45)return"Possible with Review";return"Advisor Review"}
+function pathwayLabel(score,type){if(type==="C"){if(score>=78)return"Strong Alternative Match";if(score>=58)return"Alternative Match";return"Possible Match"}if(score>=80)return"Strong Match";if(score>=62)return"Possible Match";if(score>=45)return"Possible with Review";return"Possible Match"}
 function assess(i){let s=[],r=[],cash=i.deposits>=100000?100:i.deposits>=50000?92:i.deposits>=25000?82:i.deposits>=15000?70:i.deposits>=10000?58:i.deposits>=5000?42:25;if(i.trend==="increasing"){cash+=7;s.push("Recent deposits are increasing.")}if(i.trend==="stable"){cash+=3;s.push("Recent deposits are stable.")}if(i.trend==="decreasing"){cash-=14;r.push("Recent deposits are decreasing.")}cash=clamp(cash,0,100);
 let nsf=i.nsf===0?100:i.nsf===1?78:i.nsf===2?58:i.nsf<5?35:15;i.nsf===0?s.push("No recent NSF activity reported."):r.push("Recent NSF / returned-payment activity reported.");let bal=i.negative==="none"?100:i.negative==="occasional"?62:25;i.negative==="none"?s.push("No recent negative balances reported."):r.push("Negative or overdrawn balances reported.");
 let dr=i.deposits?i.debt/i.deposits:1,debt=dr>.35?20:dr>.25?38:dr>.18?55:dr>.12?70:dr>.07?84:100;if(i.active==="1")debt-=8;if(i.active==="2"){debt-=22;r.push("Multiple active business financing facilities reported.")}debt=clamp(debt,0,100);if(dr>.18)r.push("Existing financing payments are high relative to deposits.");else if(i.active==="0")s.push("No material existing business-financing burden reported.");
@@ -307,9 +307,9 @@ function render(a){
       :`This is the most probable range based on the ${displayEstimate.count} closest clean ${esc(displayEstimate.lender)} approvals, weighted by similarity to your business profile. Your stated request of ${fmtMoney(profile.requested)} does not limit the estimate. It is not an approval or offer.`}</div>
     ${bankingNote}
   </div>`:`<div class="history-highlight">
-    <div class="history-label">Preliminary Review</div>
-    <div class="history-amount" style="font-size:24px">Advisor Review Required</div>
-    <div class="history-caption">The current data does not support an automated lender or amount recommendation for this profile.</div>
+    <div class="history-label">Preliminary Funding Range</div>
+    <div class="history-amount" style="font-size:24px">Funding Estimate</div>
+    <div class="history-caption">A conservative funding range is being shown from the information provided.</div>
   </div>`;
 
   const lenderCards=recommended.length?recommended.map((x,idx)=>{
