@@ -47,7 +47,7 @@ button{width:100%;margin-top:20px;padding:14px 18px;background:var(--ink);color:
 </div></div>
 <div class="confirm-overlay" id="confirmOverlay"><div class="confirm-card"><div class="confirm-icon">✓</div><h3>Thank You</h3><p>Your financing inquiry has been successfully submitted.</p><p>One of our Business Financing Advisors will carefully review your information and contact you to discuss the financing solutions best suited to your business.</p><div class="response">Typical response time: 24–48 business hours</div><button id="returnHome">Return to Home</button><button class="close-confirm" id="closeConfirm">Close</button></div></div>
 <script>
-const MODEL="TFC-FUNDING-COMPASS-6.1",scriptURL="https://script.google.com/macros/s/AKfycbxqvRdFTUynTIhWn0h2aU5W1jouIs369XrmkZGGKBPkeursr4_UBIrlwtmdzsdBjStO/exec";
+const MODEL="TFC-FUNDING-COMPASS-6.2",scriptURL="https://script.google.com/macros/s/AKfycbxqvRdFTUynTIhWn0h2aU5W1jouIs369XrmkZGGKBPkeursr4_UBIrlwtmdzsdBjStO/exec";
 const $=id=>document.getElementById(id),frontPage=$("frontPage"),page1=$("page1"),page2=$("page2"),result=$("result"),confirmOverlay=$("confirmOverlay");let latest=null;
 function go(a,b){a.classList.remove("active");setTimeout(()=>{a.classList.add("hidden");b.classList.remove("hidden");requestAnimationFrame(()=>b.classList.add("active"));scrollTo({top:0,behavior:"smooth"})},280)}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}function r500(v){return Math.round(Math.max(0,v)/500)*500}function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
@@ -144,7 +144,7 @@ function lenderFit(name,h,i){
   if(i.deposits<h.minRevenue)reasons.push("revenue");
   if(i.time<h.minTime)reasons.push("time-in-business");
   if(i.months<3)reasons.push("insufficient-statements");
-  if(i.nsf>=3)reasons.push("nsf-review");
+  if(i.nsf>=5)reasons.push("nsf-review");
   if(i.negative==="frequent")reasons.push("negative-cashflow");
   if(debtRatio>=.30||(i.active==="2"&&debtRatio>.20))reasons.push("existing-debt");
   const creditValue=creditFloorValue(i.credit);
@@ -221,12 +221,34 @@ function probableEstimateForFit(fit){
   };
 }
 
+function applyBankingRiskCap(estimate,i){
+  if(!estimate||i.nsf!==3)return estimate;
+
+  // 3–4 recent NSFs: keep an estimate, but cap it at about one month of deposits.
+  // This can only reduce a normal comparable estimate, never increase it.
+  const maxCap=r500(i.deposits);
+  const centerCap=r500(i.deposits*.90);
+  const lowCap=r500(i.deposits*.75);
+
+  const high=Math.min(estimate.high,maxCap);
+  const center=Math.min(estimate.center,centerCap,high);
+  const low=Math.min(estimate.low,lowCap,center);
+
+  return{
+    ...estimate,
+    low,
+    center,
+    high,
+    nsfCapApplied:true
+  };
+}
+
 function eligibilityOutcome(i){
   const lenderRank=rankLenders(i);
   const recommended=lenderRank.filter(x=>x.eligible).slice(0,2);
   const primary=recommended[0]||null;
   const rawEstimate=primary?probableEstimateForFit(primary):null;
-  const displayEstimate=rawEstimate;
+  const displayEstimate=applyBankingRiskCap(rawEstimate,i);
   const displayTier=primary?(LENDER_HISTORY[primary.name]?.path||"C"):"C";
 
   return{
@@ -255,11 +277,15 @@ function render(a){
       :`${fmtMoney(displayEstimate.low)} – ${fmtMoney(displayEstimate.high)}`)
     :"";
 
+  const bankingNote=displayEstimate&&displayEstimate.nsfCapApplied
+    ?'<div class="history-caption"><strong>Recent banking activity has been reflected in a more conservative estimated range.</strong></div>'
+    :'';
   const historyBlock=displayEstimate?`<div class="history-highlight">
     <div class="history-label">Observed Comparable Approval Amounts</div>
     <div class="history-amount">${amountText}</div>
     ${lenderNames?`<div class="history-lenders"><span>Lenders worth reviewing</span>${lenderNames}</div>`:""}
     <div class="history-caption">This is the most probable range based on the ${displayEstimate.count} closest clean ${esc(displayEstimate.lender)} approvals, weighted by similarity to your business profile. Your stated request of ${fmtMoney(profile.requested)} does not limit the estimate. It is not an approval or offer.</div>
+    ${bankingNote}
   </div>`:`<div class="history-highlight">
     <div class="history-label">Preliminary Review</div>
     <div class="history-amount" style="font-size:24px">Advisor Review Required</div>
@@ -310,7 +336,7 @@ function render(a){
 }
 $("startBtn").onclick=()=>go(frontPage,page1);$("backToIntro").onclick=()=>go(page1,frontPage);$("backToEligibility").onclick=()=>go(page2,page1);$("closeConfirm").onclick=()=>{confirmOverlay.classList.remove("show");document.body.style.overflow=""};$("returnHome").onclick=()=>{if(opener&&!opener.closed){opener.focus();close()}else location.href="index.html"};
 $("eligibilityForm").onsubmit=e=>{e.preventDefault();let i=input(),a=assess(i),out=eligibilityOutcome(i);latest={i,a};$("tier").value=out.displayTier;$("score").value=out.routingScore;render(a)};
-$("leadForm").onsubmit=async e=>{e.preventDefault();if(!latest)return;let b=$("submitBtn"),st=$("submitStatus"),i=latest.i,a=latest.a,out=eligibilityOutcome(i),raw=out.rawEstimate;b.disabled=true;b.textContent="Submitting...";st.textContent="";let data=new URLSearchParams({business:$("business").value,name:$("name").value,phone:$("phone").value,email:$("email").value,tier:out.displayTier,score:String(out.routingScore),eligibility_status:out.status,eligibility_confidence:out.confidence,eligibility_model_version:MODEL,top_lender_pathway:out.primary?out.primary.name:"Advisor Review",industry:i.industry,time_in_business_months:String(i.time),monthly_deposits:String(i.deposits),requested_amount:String(i.requested),estimated_credit:i.credit,nsf_last_3_months:String(i.nsf),negative_balances:i.negative,active_financing_facilities:i.active,monthly_financing_payments:String(i.debt),deposit_trend:i.trend,statement_months_available:String(i.months),debt_service_to_deposits_ratio:(a.dr*100).toFixed(1)+"%",request_to_deposits_ratio:(a.rr*100).toFixed(1)+"%",preliminary_capacity:out.displayEstimate?String(out.displayEstimate.high):"",request_within_preliminary_capacity:out.displayEstimate?(i.requested<=out.displayEstimate.high?"Yes":"No"):"Review",cash_flow_score:String(a.cash),nsf_score:String(a.nsf),balance_score:String(a.bal),debt_score:String(a.debt),coverage_score:String(a.cover),operating_history_score:String(a.age),credit_score_component:String(a.credit),request_fit_score:String(a.fit),strengths:a.strengths.join(" | "),risks:a.risks.join(" | "),recommended_lenders:(out.recommended.map(x=>x.name).join(" | ")||"Advisor Review"),observed_comparable_lender:raw?raw.lender:"",observed_comparable_low:raw?String(raw.low):"",observed_comparable_high:raw?String(raw.high):"",displayed_estimate_low:out.displayEstimate?String(out.displayEstimate.low):"",displayed_estimate_high:out.displayEstimate?String(out.displayEstimate.high):"",source:"Toronto Finance Company Website Eligibility"});try{await fetch(scriptURL,{method:"POST",body:data,mode:"no-cors"});$("leadForm").reset();confirmOverlay.classList.add("show");document.body.style.overflow="hidden"}catch(x){st.textContent="Your information could not be submitted. Please try again."}finally{b.disabled=false;b.textContent="Submit"}};
+$("leadForm").onsubmit=async e=>{e.preventDefault();if(!latest)return;let b=$("submitBtn"),st=$("submitStatus"),i=latest.i,a=latest.a,out=eligibilityOutcome(i),raw=out.rawEstimate;b.disabled=true;b.textContent="Submitting...";st.textContent="";let data=new URLSearchParams({business:$("business").value,name:$("name").value,phone:$("phone").value,email:$("email").value,tier:out.displayTier,score:String(out.routingScore),eligibility_status:out.status,eligibility_confidence:out.confidence,eligibility_model_version:MODEL,top_lender_pathway:out.primary?out.primary.name:"Advisor Review",industry:i.industry,time_in_business_months:String(i.time),monthly_deposits:String(i.deposits),requested_amount:String(i.requested),estimated_credit:i.credit,nsf_last_3_months:String(i.nsf),negative_balances:i.negative,active_financing_facilities:i.active,monthly_financing_payments:String(i.debt),deposit_trend:i.trend,statement_months_available:String(i.months),debt_service_to_deposits_ratio:(a.dr*100).toFixed(1)+"%",request_to_deposits_ratio:(a.rr*100).toFixed(1)+"%",preliminary_capacity:out.displayEstimate?String(out.displayEstimate.high):"",request_within_preliminary_capacity:out.displayEstimate?(i.requested<=out.displayEstimate.high?"Yes":"No"):"Review",cash_flow_score:String(a.cash),nsf_score:String(a.nsf),balance_score:String(a.bal),debt_score:String(a.debt),coverage_score:String(a.cover),operating_history_score:String(a.age),credit_score_component:String(a.credit),request_fit_score:String(a.fit),strengths:a.strengths.join(" | "),risks:a.risks.join(" | "),recommended_lenders:(out.recommended.map(x=>x.name).join(" | ")||"Advisor Review"),observed_comparable_lender:raw?raw.lender:"",observed_comparable_low:raw?String(raw.low):"",observed_comparable_high:raw?String(raw.high):"",displayed_estimate_low:out.displayEstimate?String(out.displayEstimate.low):"",displayed_estimate_high:out.displayEstimate?String(out.displayEstimate.high):"",nsf_estimate_cap_applied:out.displayEstimate&&out.displayEstimate.nsfCapApplied?"Yes":"No",source:"Toronto Finance Company Website Eligibility"});try{await fetch(scriptURL,{method:"POST",body:data,mode:"no-cors"});$("leadForm").reset();confirmOverlay.classList.add("show");document.body.style.overflow="hidden"}catch(x){st.textContent="Your information could not be submitted. Please try again."}finally{b.disabled=false;b.textContent="Submit"}};
 </script>
 <script src="eligibility-guided.js?v=20261103-audit18"></script>
 </body>
