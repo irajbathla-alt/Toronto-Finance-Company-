@@ -47,7 +47,7 @@ button{width:100%;margin-top:20px;padding:14px 18px;background:var(--ink);color:
 </div></div>
 <div class="confirm-overlay" id="confirmOverlay"><div class="confirm-card"><div class="confirm-icon">✓</div><h3>Thank You</h3><p>Your financing inquiry has been successfully submitted.</p><p>One of our Business Financing Advisors will carefully review your information and contact you to discuss the financing solutions best suited to your business.</p><div class="response">Typical response time: 24–48 business hours</div><button id="returnHome">Return to Home</button><button class="close-confirm" id="closeConfirm">Close</button></div></div>
 <script>
-const MODEL="TFC-FUNDING-COMPASS-6.3",scriptURL="https://script.google.com/macros/s/AKfycbxqvRdFTUynTIhWn0h2aU5W1jouIs369XrmkZGGKBPkeursr4_UBIrlwtmdzsdBjStO/exec";
+const MODEL="TFC-FUNDING-COMPASS-6.4",scriptURL="https://script.google.com/macros/s/AKfycbxqvRdFTUynTIhWn0h2aU5W1jouIs369XrmkZGGKBPkeursr4_UBIrlwtmdzsdBjStO/exec";
 const $=id=>document.getElementById(id),frontPage=$("frontPage"),page1=$("page1"),page2=$("page2"),result=$("result"),confirmOverlay=$("confirmOverlay");let latest=null;
 function go(a,b){a.classList.remove("active");setTimeout(()=>{a.classList.add("hidden");b.classList.remove("hidden");requestAnimationFrame(()=>b.classList.add("active"));scrollTo({top:0,behavior:"smooth"})},280)}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}function r500(v){return Math.round(Math.max(0,v)/500)*500}function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
@@ -271,10 +271,10 @@ function eligibilityOutcome(i){
 
   return{
     lenderRank,recommended,primary,rawEstimate,displayEstimate,displayTier,
-    status:"Funding Estimate",
+    status:"Your Estimated Funding Range",
     copy:recommended.length
-      ?"Your business profile is similar to actual approved files with the lender(s) shown below. The amount you requested does not limit this estimate."
-      :"Based on the information provided, we are showing a conservative preliminary funding range based primarily on your monthly business deposits.",
+      ?"Based on the information you provided, your business may qualify for funding within the estimated range below."
+      :"Based on the information you provided, we have calculated a conservative preliminary funding range for your business.",
     confidence:primary?(primary.fit<=primary.fitLimit*.65?"High":"Moderate"):"Low",
     routingScore:primary?primary.score:0
   };
@@ -284,8 +284,8 @@ function render(a){
   const out=profile?eligibilityOutcome(profile):null;
   const recommended=out?out.recommended:[];
   const displayEstimate=out?out.displayEstimate:null;
-  const resultTitle=out?out.status:"Funding Estimate";
-  const resultCopy=out?out.copy:"Based on the information provided, we are showing a conservative preliminary funding range.";
+  const resultTitle=out?out.status:"Your Estimated Funding Range";
+  const resultCopy=out?out.copy:"Based on the information provided, we have calculated a preliminary funding range for your business.";
   const displayTier=out?out.displayTier:a.tier;
 
   const lenderNames=recommended.map(x=>esc(x.name)).join(" · ");
@@ -299,12 +299,12 @@ function render(a){
     ?'<div class="history-caption"><strong>Recent banking activity has been reflected in a more conservative estimated range.</strong></div>'
     :'';
   const historyBlock=displayEstimate?`<div class="history-highlight">
-    <div class="history-label">${displayEstimate.fallback?"Preliminary Funding Range":"Observed Comparable Approval Amounts"}</div>
+    <div class="history-label">${displayEstimate.fallback?"Estimated Funding Range":"Estimated Funding Range"}</div>
     <div class="history-amount">${amountText}</div>
     ${lenderNames?`<div class="history-lenders"><span>Lenders worth reviewing</span>${lenderNames}</div>`:""}
     <div class="history-caption">${displayEstimate.fallback
-      ?"This conservative range is based primarily on your stated monthly business deposits and is capped at approximately one month of deposits. Your requested amount does not limit the estimate. It is not an approval or offer."
-      :`This is the most probable range based on the ${displayEstimate.count} closest clean ${esc(displayEstimate.lender)} approvals, weighted by similarity to your business profile. Your stated request of ${fmtMoney(profile.requested)} does not limit the estimate. It is not an approval or offer.`}</div>
+      ?"This preliminary estimate is based on the business information you provided. Final funding is subject to document verification and lender underwriting."
+      :`This preliminary estimate is based on similar historical approvals and the business information you provided. Final funding is subject to document verification and lender underwriting.`}</div>
     ${bankingNote}
   </div>`:`<div class="history-highlight">
     <div class="history-label">Preliminary Funding Range</div>
@@ -335,11 +335,11 @@ function render(a){
 
     ${historyBlock}
 
-    <button id="continueBtn" class="range-cta">Continue ⟶</button>
+    <button id="continueBtn" class="range-cta">Continue My Application ⟶</button>
 
     ${lenderCards}
 
-    <div class="disclaimer">TFC Funding Compass™ is a preliminary routing aid based on your self-reported information and verified historical outcomes. Historical results do not guarantee future lender decisions. Final eligibility, lender selection and funding amount require document verification and lender underwriting.</div>
+    <div class="disclaimer">Preliminary estimate only. Final eligibility, lender selection and funding amount are subject to document verification and lender underwriting.</div>
   </div>`;
 
   result.classList.remove("hidden");
