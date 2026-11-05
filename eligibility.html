@@ -47,7 +47,7 @@ button{width:100%;margin-top:20px;padding:14px 18px;background:var(--ink);color:
 </div></div>
 <div class="confirm-overlay" id="confirmOverlay"><div class="confirm-card"><div class="confirm-icon">✓</div><h3>Thank You</h3><p>Your financing inquiry has been successfully submitted.</p><p>One of our Business Financing Advisors will carefully review your information and contact you to discuss the financing solutions best suited to your business.</p><div class="response">Typical response time: 24–48 business hours</div><button id="returnHome">Return to Home</button><button class="close-confirm" id="closeConfirm">Close</button></div></div>
 <script>
-const MODEL="TFC-FUNDING-COMPASS-6.0",scriptURL="https://script.google.com/macros/s/AKfycbxqvRdFTUynTIhWn0h2aU5W1jouIs369XrmkZGGKBPkeursr4_UBIrlwtmdzsdBjStO/exec";
+const MODEL="TFC-FUNDING-COMPASS-6.1",scriptURL="https://script.google.com/macros/s/AKfycbxqvRdFTUynTIhWn0h2aU5W1jouIs369XrmkZGGKBPkeursr4_UBIrlwtmdzsdBjStO/exec";
 const $=id=>document.getElementById(id),frontPage=$("frontPage"),page1=$("page1"),page2=$("page2"),result=$("result"),confirmOverlay=$("confirmOverlay");let latest=null;
 function go(a,b){a.classList.remove("active");setTimeout(()=>{a.classList.add("hidden");b.classList.remove("hidden");requestAnimationFrame(()=>b.classList.add("active"));scrollTo({top:0,behavior:"smooth"})},280)}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}function r500(v){return Math.round(Math.max(0,v)/500)*500}function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
@@ -57,7 +57,7 @@ function assess(i){let s=[],r=[],cash=i.deposits>=100000?100:i.deposits>=50000?9
 let nsf=i.nsf===0?100:i.nsf===1?78:i.nsf===2?58:i.nsf<5?35:15;i.nsf===0?s.push("No recent NSF activity reported."):r.push("Recent NSF / returned-payment activity reported.");let bal=i.negative==="none"?100:i.negative==="occasional"?62:25;i.negative==="none"?s.push("No recent negative balances reported."):r.push("Negative or overdrawn balances reported.");
 let dr=i.deposits?i.debt/i.deposits:1,debt=dr>.35?20:dr>.25?38:dr>.18?55:dr>.12?70:dr>.07?84:100;if(i.active==="1")debt-=8;if(i.active==="2"){debt-=22;r.push("Multiple active business financing facilities reported.")}debt=clamp(debt,0,100);if(dr>.18)r.push("Existing financing payments are high relative to deposits.");else if(i.active==="0")s.push("No material existing business-financing burden reported.");
 let cover=i.months>=6?100:i.months>=4?82:i.months>=3?68:50;i.months>=6?s.push("Six or more months of business banking available."):r.push("Limited statement history may reduce confidence.");let age=i.time>=36?100:i.time>=24?92:i.time>=12?80:i.time>=6?55:30;i.time>=24?s.push("Established operating history."):i.time<6&&r.push("Very short time in business may limit some lender options.");
-let cm={"700+":100,"649-699":90,"600-648":78,"550-599":62,"500-549":45,"below-500":25,"unknown":60},credit=cm[i.credit]||60,rr=i.deposits?i.requested/i.deposits:10,fit=rr<=.5?100:rr<=.8?90:rr<=1?80:rr<=1.25?68:rr<=1.5?55:rr<=2?38:15;if(rr<=1)s.push("Requested amount is proportionate to stated deposits.");if(rr>1.5)r.push("Requested amount may need a different structure or lender program.");
+let cm={"700+":100,"649-699":90,"600-648":78,"550-599":62,"500-549":45,"below-500":25,"unknown":60},credit=cm[i.credit]||60,rr=i.deposits?i.requested/i.deposits:0,fit=100;
 let depA=i.deposits>=50000?100:i.deposits>=25000?85:i.deposits>=20000?70:i.deposits>=15000?50:i.deposits>=10000?30:10;
 let depB=i.deposits>=25000?100:i.deposits>=20000?90:i.deposits>=10000?72:i.deposits>=7500?55:i.deposits>=5000?40:20;
 let depC=i.deposits>=20000?100:i.deposits>=10000?85:i.deposits>=5000?70:i.deposits>=3000?50:30;
@@ -68,7 +68,7 @@ let aScore=Math.round(depA*.30+credit*.20+ageA*.15+nsf*.15+debt*.10+fit*.10);
 let bScore=Math.round(depB*.34+creditB*.10+ageB*.10+nsf*.14+clamp(debt+10,0,100)*.14+clamp(fit+10,0,100)*.13+cash*.05);
 let cScore=Math.round(depC*.30+creditC*.05+ageC*.10+nsf*.12+clamp(debt+20,0,100)*.13+clamp(fit+20,0,100)*.20+cash*.10);
 if(["financial","travel"].includes(i.industry)){aScore-=8;bScore-=4;r.push("Industry may require product-specific lender review.")}aScore=clamp(aScore,0,100);bScore=clamp(bScore,0,100);cScore=clamp(cScore,0,100);
-let pathways=[{key:"A",name:"Lender A Criteria",score:aScore,status:pathwayLabel(aScore,"A")},{key:"B",name:"Lender B Criteria",score:bScore,status:pathwayLabel(bScore,"B")},{key:"C",name:"Lender C Criteria",score:cScore,status:pathwayLabel(cScore,"C")}];let top=pathways.slice().sort((x,y)=>y.score-x.score)[0],score=top.score,tier=top.key,status="Financing Options May Be Available",confidence=i.months>=6?"High":i.months>=3?"Moderate":"Low",cap=r500(i.deposits*(score>=82?.95:score>=70?.8:score>=58?.65:score>=45?.45:.3)*clamp(1-dr*.7,.45,1)),within=cap>0&&i.requested<=cap;if(!within)r.push("Requested amount may require a different amount or structure after lender review.");return{score,tier,status,confidence,cap,within,dr,rr,cash,nsf,bal,debt,cover,age,credit,fit,pathways,topPath:top.name,strengths:[...new Set(s)].slice(0,5),risks:[...new Set(r)].slice(0,6)}}
+let pathways=[{key:"A",name:"Lender A Criteria",score:aScore,status:pathwayLabel(aScore,"A")},{key:"B",name:"Lender B Criteria",score:bScore,status:pathwayLabel(bScore,"B")},{key:"C",name:"Lender C Criteria",score:cScore,status:pathwayLabel(cScore,"C")}];let top=pathways.slice().sort((x,y)=>y.score-x.score)[0],score=top.score,tier=top.key,status="Financing Options May Be Available",confidence=i.months>=6?"High":i.months>=3?"Moderate":"Low",cap=r500(i.deposits*(score>=82?.95:score>=70?.8:score>=58?.65:score>=45?.45:.3)*clamp(1-dr*.7,.45,1)),within=true;return{score,tier,status,confidence,cap,within,dr,rr,cash,nsf,bal,debt,cover,age,credit,fit,pathways,topPath:top.name,strengths:[...new Set(s)].slice(0,5),risks:[...new Set(r)].slice(0,6)}}
 const LENDER_HISTORY={
   // Only clean Training Record -> Structured Feature matches are used here.
   // 4 ambiguous duplicate feature rows and the corrupted Amber Trucking feature row are excluded.
@@ -88,7 +88,7 @@ const LENDER_HISTORY={
     approvals:[[5623.46,15000],[10788.09,45000],[21982.50,45000],[26585.47,50000],[70378.16,7500],[102289.50,75000]],
     sample:6,minRevenue:5000,minTime:6,minCredit:649,path:"C"
   },
-  "iCapital Financing":{
+  "iCapital Financial":{
     approvals:[[18591.67,19000],[55436.50,19000]],sample:2,limited:true,path:"C"
   },
   "KM Capital":{
