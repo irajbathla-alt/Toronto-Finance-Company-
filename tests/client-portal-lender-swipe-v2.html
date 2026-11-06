@@ -34,8 +34,7 @@ button,input{font:inherit}
   padding:26px 30px 22px;display:flex;justify-content:space-between;gap:20px;align-items:center;
   border-bottom:1px solid rgba(185,137,63,.18);
 }
-.brand{font-family:"Cormorant Garamond",serif;font-size:29px;line-height:.9;text-transform:uppercase;font-weight:300}
-.brand span{display:block}
+.brand{font-family:"Cormorant Garamond",serif;font-size:27px;line-height:1;text-transform:uppercase;font-weight:300;white-space:nowrap}
 .tag{font-size:8px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:#987344;margin-top:9px}
 .sample{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#8f806f;border:1px solid var(--line);padding:8px 11px;border-radius:999px;background:rgba(255,255,255,.62)}
 .content{padding:38px 34px 42px}
@@ -141,9 +140,11 @@ button,input{font:inherit}
     min-height:auto
   }
   .brand{
-    font-size:21px!important;
-    line-height:.88!important;
-    max-width:190px
+    font-size:clamp(17px,4.9vw,22px)!important;
+    line-height:1!important;
+    max-width:none;
+    white-space:nowrap;
+    letter-spacing:-.01em
   }
   .tag{
     margin-top:7px!important;
@@ -167,10 +168,12 @@ button,input{font:inherit}
     margin-bottom:8px
   }
   .hero h1{
-    font-size:clamp(29px,9.2vw,38px)!important;
-    line-height:.94!important;
+    font-size:clamp(25px,7.1vw,34px)!important;
+    line-height:1!important;
     margin:0 0 9px!important;
-    max-width:330px
+    max-width:none;
+    white-space:nowrap;
+    letter-spacing:-.025em
   }
   .hero p{
     font-size:10px!important;
@@ -252,6 +255,11 @@ button,input{font:inherit}
     margin-top:3px;
     font-size:7px
   }
+  @media(max-width:390px){
+    .brand{font-size:16px!important}
+    .sample{font-size:5.8px;padding:6px 7px}
+    .hero h1{font-size:24px!important;white-space:normal;max-width:100%}
+  }
   .helper{
     margin-top:13px!important;
     font-size:7.5px!important;
@@ -269,7 +277,7 @@ button,input{font:inherit}
 <div class="shell">
   <header class="top">
     <div>
-      <div class="brand"><span>Toronto</span><span>Finance Company</span></div>
+      <div class="brand">Toronto Finance Company</div>
       <div class="tag">Business Financing Solutions</div>
     </div>
     <div class="sample">Client Portal Sample</div>
@@ -278,7 +286,7 @@ button,input{font:inherit}
   <main class="content">
     <section class="hero">
       <div class="eyebrow">Choose Your Application Route</div>
-      <h1>Continue your financing application.</h1>
+      <h1>Continue your application.</h1>
       <p>Select the funding partner you would like to continue with. Direct lender applications open securely in a new tab. Toronto Finance Company keeps the application and document steps together in one guided experience.</p>
     </section>
 
@@ -434,7 +442,7 @@ carouselPrev.onclick=()=>prevCard();
 
 lenderCarousel.addEventListener('pointerdown',e=>{
   const top=lenderCards[currentCard];
-  if(!top.contains(e.target) || e.target.closest('button')) return;
+  if(!top.contains(e.target)) return;
   dragCard=top;dragStartX=e.clientX;dragStartY=e.clientY;dragX=0;dragY=0;suppressCardClick=false;
   top.classList.add('dragging');
   try{top.setPointerCapture(e.pointerId)}catch(_){}
@@ -453,8 +461,13 @@ function finishDrag(e){
   try{card.releasePointerCapture(e.pointerId)}catch(_){}
   card.classList.remove('dragging');
   card.style.transform='';
-  if(Math.abs(dragX)>90) nextCard(dragX>0?'right':'left');
-  else renderDeck();
+  if(Math.abs(dragX)>90){
+    suppressCardClick=true;
+    nextCard(dragX>0?'right':'left');
+    setTimeout(()=>{suppressCardClick=false},350);
+  }else{
+    renderDeck();
+  }
 }
 lenderCarousel.addEventListener('pointerup',finishDrag);
 lenderCarousel.addEventListener('pointercancel',finishDrag);
