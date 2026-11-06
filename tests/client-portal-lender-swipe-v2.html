@@ -92,6 +92,61 @@ button,input{font:inherit}
 .swipe-hint{text-align:center;margin-top:10px;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:#9c8e7e}
 .deck-status{text-align:center;margin-top:4px;font-size:9px;color:#9b8d7d}
 
+
+.lender-subtitle{
+  margin-top:3px;font-size:10px;line-height:1.35;color:var(--muted)
+}
+.product-tag{
+  display:inline-flex;align-items:center;width:max-content;
+  margin-top:12px;padding:6px 9px;border-radius:8px;
+  background:rgba(23,19,15,.055);color:#5e544a;
+  font-size:7px;font-weight:700;letter-spacing:.04em
+}
+.why-label{
+  margin-top:17px;font-size:6.6px;font-weight:700;
+  letter-spacing:.15em;text-transform:uppercase;color:#9b8d7d
+}
+.why-copy{
+  margin-top:6px!important;max-width:100%!important;
+  font-size:10.5px!important;line-height:1.5!important;
+  color:#40372f!important;opacity:1!important
+}
+.lender-metrics{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:13px 18px;margin-top:18px
+}
+.lender-metric small{
+  display:block;font-size:7px;line-height:1.2;color:#8b8176;
+  margin-bottom:4px
+}
+.lender-metric strong{
+  display:block;font-size:11px;line-height:1.25;font-weight:600;color:#17130f
+}
+.card-cta{
+  margin-top:auto;padding-top:18px
+}
+.card-apply{
+  width:100%;border:0;border-radius:10px;background:#17130f;color:#fff;
+  padding:11px 14px;text-align:center;text-decoration:none;
+  font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  display:block;cursor:pointer
+}
+.route.journey .card-apply{background:#253466}
+.route.merchant .card-apply{background:#0873a7}
+.route.xuper .card-apply{background:#d9402d}
+.route.tfc .card-apply{background:#17130f}
+.card-details{
+  display:block;width:100%;border:0;background:none;color:#9b7137;
+  margin-top:9px;padding:3px;text-align:center;cursor:pointer;
+  font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase
+}
+.card-extra{
+  display:none;margin-top:10px;padding:10px 11px;border-radius:10px;
+  background:rgba(255,255,255,.55);border:1px solid rgba(23,19,15,.07);
+  font-size:8px;line-height:1.5;color:#6d6257
+}
+.card-extra.show{display:block}
+
 .about-label{
   margin-top:15px;
   font-size:6.8px;
@@ -396,63 +451,87 @@ button,input{font:inherit}
 
     <div class="deck-wrap"><section class="route-grid" id="lenderCarousel" aria-label="Funding application routes">
       <button class="route tfc" id="openTfc" type="button">
-        <div class="route-logo"><div style="width:62px;height:62px;border-radius:15px;background:#17130f;color:#d0a15b;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:23px">TFC</div><strong>Toronto Finance Company</strong></div>
-        <div class="route-kicker">Toronto Finance Company</div>
-        <h2>Apply With Us</h2>
-        <p>Review and sign the Toronto Finance Company application, then prepare your recent business bank statements.</p>
-        <div class="about-label">About Toronto Finance Company</div>
-        <ul class="card-features">
-          <li>Term Loans, Business Lines of Credit, Flex Funds &amp; MCA</li>
-          <li>Access to 5+ Canadian financing partners</li>
-          <li>Advisor-guided application process</li>
-          <li>Potential initial response within 24 hours</li>
-        </ul>
-        <div class="arrow">→</div>
+        <div class="route-logo">
+          <div style="width:62px;height:62px;border-radius:15px;background:#17130f;color:#d0a15b;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:23px">TFC</div>
+          <div><strong>Toronto Finance Company</strong><div class="lender-subtitle">Business financing solutions</div></div>
+        </div>
+        <div class="product-tag">4 financing solutions · 5+ partners</div>
+        <div class="why-label">Why choose us</div>
+        <p class="why-copy">One guided application experience with access to multiple Canadian financing partners.</p>
+        <div class="lender-metrics">
+          <div class="lender-metric"><small>Funding amount</small><strong>Based on lender</strong></div>
+          <div class="lender-metric"><small>Estimated cost</small><strong>Available at offer</strong></div>
+          <div class="lender-metric"><small>Initial response</small><strong>Potentially within 24 hrs</strong></div>
+          <div class="lender-metric"><small>Products</small><strong>Term · LOC · Flex · MCA</strong></div>
+        </div>
+        <div class="card-cta">
+          <div class="card-apply" data-tfc-open>Continue with TFC →</div>
+          <button class="card-details" type="button">View details →</button>
+          <div class="card-extra">Advisor-guided process with review &amp; sign, bank-statement upload, and financing options from Toronto Finance Company partners.</div>
+        </div>
       </button>
 
-      <a class="route journey" href="https://app.journeycapital.ca/elending?ls=rajkunwarsingh&emlredir=true" target="_blank" rel="noopener noreferrer">
-        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=journeycapital.ca&sz=128" alt=""><strong>Journey Capital</strong></div>
-        <div class="route-kicker">Direct Application</div>
-        <h2>Journey Capital</h2>
-        <p>Continue directly to Journey Capital's customer application.</p>
-        <div class="about-label">About Journey Capital</div>
-        <ul class="card-features">
-          <li>Direct Canadian business lender</li>
-          <li>Term Loan, Line of Credit &amp; Flex Funds</li>
-          <li>Online application in about 10 minutes</li>
-          <li>Funding can be available in as little as 24 hours</li>
-        </ul>
-        <div class="arrow">↗</div>
-      </a>
+      <article class="route journey" data-url="https://app.journeycapital.ca/elending?ls=rajkunwarsingh&emlredir=true">
+        <div class="route-logo">
+          <img src="https://www.google.com/s2/favicons?domain=journeycapital.ca&sz=128" alt="">
+          <div><strong>Journey Capital</strong><div class="lender-subtitle">Canadian business lender</div></div>
+        </div>
+        <div class="product-tag">Term Loan · Line of Credit · Flex Funds</div>
+        <div class="why-label">Why choose them</div>
+        <p class="why-copy">Flexible business financing with online applications and multiple product options.</p>
+        <div class="lender-metrics">
+          <div class="lender-metric"><small>Funding amount</small><strong>Up to $500K</strong></div>
+          <div class="lender-metric"><small>Estimated cost</small><strong>Available at offer</strong></div>
+          <div class="lender-metric"><small>Funding available</small><strong>24–72 hrs typical processing</strong></div>
+          <div class="lender-metric"><small>Key eligibility</small><strong>6+ mo · $120K annual · 600 credit</strong></div>
+        </div>
+        <div class="card-cta">
+          <div class="card-apply">Apply now ↗</div>
+          <button class="card-details" type="button">View details →</button>
+          <div class="card-extra">Journey Capital says eligible businesses generally need at least six months in operation, $120,000 annual revenue, a Canadian business bank account and a registered Canadian business.</div>
+        </div>
+      </article>
 
-      <a class="route merchant" href="https://new.merchantgrowth.com/welcome?userId=005JR00000ArwOHYAZ" target="_blank" rel="noopener noreferrer">
-        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=merchantgrowth.com&sz=128" alt=""><strong>Merchant Growth</strong></div>
-        <div class="route-kicker">Direct Application</div>
-        <h2>Merchant Growth</h2>
-        <p>Continue directly to Merchant Growth's customer application.</p>
-        <div class="about-label">About Merchant Growth</div>
-        <ul class="card-features">
-          <li>Canadian small-business financing provider</li>
-          <li>Term financing up to $1 million</li>
-          <li>Business line of credit up to $125,000</li>
-          <li>Applications reviewed as quickly as the same day</li>
-        </ul>
-        <div class="arrow">↗</div>
-      </a>
+      <article class="route merchant" data-url="https://new.merchantgrowth.com/welcome?userId=005JR00000ArwOHYAZ">
+        <div class="route-logo">
+          <img src="https://www.google.com/s2/favicons?domain=merchantgrowth.com&sz=128" alt="">
+          <div><strong>Merchant Growth</strong><div class="lender-subtitle">Direct Canadian business lender</div></div>
+        </div>
+        <div class="product-tag">Term Financing · Business Line of Credit</div>
+        <div class="why-label">Why choose them</div>
+        <p class="why-copy">Fast financing from an established Canadian lender with term and revolving credit options.</p>
+        <div class="lender-metrics">
+          <div class="lender-metric"><small>Funding amount</small><strong>$5K–$1M term · LOC to $125K</strong></div>
+          <div class="lender-metric"><small>Estimated cost</small><strong>Available at offer</strong></div>
+          <div class="lender-metric"><small>Funding available</small><strong>6–24 hrs average processing</strong></div>
+          <div class="lender-metric"><small>Key eligibility</small><strong>6+ mo · $10K+ monthly revenue</strong></div>
+        </div>
+        <div class="card-cta">
+          <div class="card-apply">Apply now ↗</div>
+          <button class="card-details" type="button">View details →</button>
+          <div class="card-extra">Merchant Growth states the business must be located in Canada, operating for more than six months, and generating at least $10,000 in monthly revenue.</div>
+        </div>
+      </article>
 
-      <a class="route xuper" href="https://app.xpfunding.com/xf-en/f/get-funded-today-vancouver-finance-company-inc" target="_blank" rel="noopener noreferrer">
-        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=xpfunding.com&sz=128" alt=""><strong>Xuper Funding</strong></div>
-        <div class="route-kicker">Direct Application</div>
-        <h2>Xuper Funding</h2>
-        <p>Continue directly to Xuper Funding's customer application.</p>
-        <div class="about-label">About Xuper Funding</div>
-        <ul class="card-features">
-          <li>Business funding from $10,000 to $750,000</li>
-          <li>Working-capital focused financing</li>
-          <li>Quick online application process</li>
-          <li>Funding advertised in less than 24 hours</li>
-        </ul>
-        <div class="arrow">↗</div>
+      <article class="route xuper" data-url="https://app.xpfunding.com/xf-en/f/get-funded-today-vancouver-finance-company-inc">
+        <div class="route-logo">
+          <img src="https://www.google.com/s2/favicons?domain=xpfunding.com&sz=128" alt="">
+          <div><strong>Xuper Funding</strong><div class="lender-subtitle">Revenue-based business funding</div></div>
+        </div>
+        <div class="product-tag">Working Capital · Revenue-Based Funding</div>
+        <div class="why-label">Why choose them</div>
+        <p class="why-copy">Fast working capital with sales-linked funding and flexible underwriting.</p>
+        <div class="lender-metrics">
+          <div class="lender-metric"><small>Funding amount</small><strong>$10K–$750K advertised</strong></div>
+          <div class="lender-metric"><small>Estimated cost</small><strong>Fixed fee at offer</strong></div>
+          <div class="lender-metric"><small>Funding available</small><strong>Less than 24 hrs advertised</strong></div>
+          <div class="lender-metric"><small>Key eligibility</small><strong>Typically $5K+ monthly revenue</strong></div>
+        </div>
+        <div class="card-cta">
+          <div class="card-apply">Apply now ↗</div>
+          <button class="card-details" type="button">View details →</button>
+          <div class="card-extra">Xuper Funding describes its core product as revenue-based / royalty-based business funding and says applications may be considered with a range of credit profiles.</div>
+        </div>
       </a>
     </section>
     <div class="carousel-controls">
@@ -658,6 +737,33 @@ lenderCards.forEach(card=>{
       suppressCardClick=false;
     }
   },true);
+});
+
+document.querySelectorAll('.card-details').forEach(button=>{
+  button.addEventListener('click',e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    const extra=button.nextElementSibling;
+    const show=!extra.classList.contains('show');
+    document.querySelectorAll('.card-extra.show').forEach(x=>x.classList.remove('show'));
+    extra.classList.toggle('show',show);
+    button.textContent=show?'Hide details ↑':'View details →';
+  });
+});
+
+lenderCards.forEach(card=>{
+  const apply=card.querySelector('.card-apply');
+  if(!apply)return;
+  apply.addEventListener('click',e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    if(card.classList.contains('tfc')){
+      openTfc.click();
+      return;
+    }
+    const url=card.dataset.url;
+    if(url) window.open(url,'_blank','noopener,noreferrer');
+  });
 });
 
 function showTask(which){
