@@ -44,11 +44,11 @@ button,input{font:inherit}
 .hero p{font-size:11.5px;line-height:1.62;color:var(--muted);margin:0;max-width:720px}
 .deck-wrap{max-width:560px;margin:6px auto 0;position:relative}
 .route-grid{
-  position:relative;height:560px;overflow:visible;margin:0 auto;
+  position:relative;height:610px;overflow:visible;margin:0 auto;
   touch-action:pan-y;user-select:none
 }
 .route{
-  position:absolute;inset:0;margin:auto;width:min(460px,82vw);height:520px;padding:24px 22px;
+  position:absolute;inset:0;margin:auto;width:min(470px,84vw);height:570px;padding:22px 22px 20px;
   text-decoration:none;color:var(--ink);text-align:left;border:1px solid rgba(98,78,57,.18);
   border-radius:20px;box-shadow:0 18px 48px rgba(40,28,18,.11);
   display:flex;flex-direction:column;justify-content:space-between;
@@ -74,7 +74,7 @@ button,input{font:inherit}
   position:absolute;right:18px;bottom:18px;width:34px;height:34px;border-radius:50%;
   display:grid;place-items:center;background:#fff;border:1px solid rgba(23,19,15,.12);font-size:16px
 }
-.route-logo{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.route-logo{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .route-logo img{width:44px;height:44px;border-radius:11px;object-fit:contain;background:#fff;padding:6px;border:1px solid rgba(23,19,15,.08)}
 .route-logo strong{font-size:9px;letter-spacing:.07em;text-transform:uppercase}
 .route.journey{background:#f8f2ef;border-color:rgba(41,55,105,.18)}
@@ -94,41 +94,42 @@ button,input{font:inherit}
 
 
 .lender-subtitle{
-  margin-top:3px;font-size:10px;line-height:1.35;color:var(--muted)
+  margin-top:2px;font-size:9px;line-height:1.25;color:var(--muted)
 }
 .product-tag{
-  display:inline-flex;align-items:center;width:max-content;
-  margin-top:12px;padding:6px 9px;border-radius:8px;
+  display:inline-flex;align-items:center;width:max-content;max-width:100%;
+  margin-top:8px;padding:6px 8px;border-radius:8px;
   background:rgba(23,19,15,.055);color:#5e544a;
-  font-size:7px;font-weight:700;letter-spacing:.04em
+  font-size:6.5px;font-weight:700;letter-spacing:.03em;
+  white-space:normal;line-height:1.25
 }
 .why-label{
-  margin-top:17px;font-size:6.6px;font-weight:700;
-  letter-spacing:.15em;text-transform:uppercase;color:#9b8d7d
+  margin-top:13px;font-size:6.4px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:#9b8d7d
 }
 .why-copy{
-  margin-top:6px!important;max-width:100%!important;
-  font-size:10.5px!important;line-height:1.5!important;
+  margin-top:5px!important;max-width:100%!important;
+  font-size:9.6px!important;line-height:1.42!important;
   color:#40372f!important;opacity:1!important
 }
 .lender-metrics{
   display:grid;grid-template-columns:1fr 1fr;
-  gap:13px 18px;margin-top:18px
+  gap:10px 14px;margin-top:14px
 }
 .lender-metric small{
-  display:block;font-size:7px;line-height:1.2;color:#8b8176;
-  margin-bottom:4px
+  display:block;font-size:6.4px;line-height:1.15;color:#8b8176;
+  margin-bottom:3px
 }
 .lender-metric strong{
-  display:block;font-size:11px;line-height:1.25;font-weight:600;color:#17130f
+  display:block;font-size:9.6px;line-height:1.22;font-weight:600;color:#17130f
 }
 .card-cta{
-  margin-top:auto;padding-top:18px
+  margin-top:auto;padding-top:14px
 }
 .card-apply{
   width:100%;border:0;border-radius:10px;background:#17130f;color:#fff;
-  padding:11px 14px;text-align:center;text-decoration:none;
-  font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:10px 12px;text-align:center;text-decoration:none;
+  font-size:7.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
   display:block;cursor:pointer
 }
 .route.journey .card-apply{background:#253466}
@@ -141,9 +142,9 @@ button,input{font:inherit}
   font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase
 }
 .card-extra{
-  display:none;margin-top:10px;padding:10px 11px;border-radius:10px;
+  display:none;margin-top:8px;padding:9px 10px;border-radius:10px;
   background:rgba(255,255,255,.55);border:1px solid rgba(23,19,15,.07);
-  font-size:8px;line-height:1.5;color:#6d6257
+  font-size:7.5px;line-height:1.42;color:#6d6257
 }
 .card-extra.show{display:block}
 
@@ -233,8 +234,8 @@ button,input{font:inherit}
   padding:10px 16px;font-size:8px;letter-spacing:.11em;text-transform:uppercase;cursor:pointer
 }
 @media(max-width:760px){
-  .about-label{margin-top:12px;font-size:6px}
-  .card-features{gap:7px 8px;margin-top:8px;max-width:100%}
+  .about-label{margin-top:10px;font-size:5.8px}
+  .card-features{gap:6px 7px;margin-top:7px;max-width:100%}
   .card-features li{font-size:8.5px;padding-left:13px}
 }
 
@@ -333,43 +334,43 @@ button,input{font:inherit}
     margin-top:2px
   }
   .route-grid{
-    height:470px;
+    height:535px;
     margin:0;
   }
   .route{
-    width:min(78vw,360px);
-    height:435px;
+    width:min(82vw,370px);
+    height:500px;
     min-height:0!important;
-    padding:20px 18px;
+    padding:18px 17px 16px;
     border-radius:20px
   }
   .route h2{
-    font-size:clamp(24px,7.3vw,31px)!important;
+    font-size:clamp(22px,6.6vw,28px)!important;
     line-height:.98;
-    margin:9px 0 7px
+    margin:7px 0 6px
   }
   .route p{
-    font-size:9.8px!important;
-    line-height:1.5!important;
-    max-width:92%
+    font-size:9.2px!important;
+    line-height:1.42!important;
+    max-width:100%
   }
   .route .route-kicker{
     font-size:5.8px;
     letter-spacing:.14em
   }
   .route-logo{
-    gap:9px;
-    margin-bottom:15px
+    gap:8px;
+    margin-bottom:9px
   }
   .route-logo img{
-    width:34px;
-    height:34px;
+    width:36px;
+    height:36px;
     border-radius:9px;
     padding:5px
   }
   .route-logo>div{
-    width:34px!important;
-    height:34px!important;
+    width:36px!important;
+    height:36px!important;
     border-radius:9px!important;
     font-size:14px!important
   }
@@ -384,7 +385,17 @@ button,input{font:inherit}
     height:31px;
     font-size:14px
   }
-  .route[data-pos="1"]{transform:translateY(12px) scale(.97)}
+  .product-tag{font-size:5.8px;padding:5px 7px;margin-top:6px}
+  .why-label{margin-top:10px;font-size:5.8px}
+  .why-copy{font-size:8.7px!important;line-height:1.38!important}
+  .lender-metrics{gap:8px 10px;margin-top:11px}
+  .lender-metric small{font-size:5.8px}
+  .lender-metric strong{font-size:8.7px;line-height:1.18}
+  .card-cta{padding-top:11px}
+  .card-apply{padding:9px 10px;font-size:7px}
+  .card-details{margin-top:7px;font-size:6.3px}
+  .card-extra{font-size:7px;line-height:1.35}
+    .route[data-pos="1"]{transform:translateY(12px) scale(.97)}
   .route[data-pos="2"]{transform:translateY(24px) scale(.94)}
   .route[data-pos="3"]{transform:translateY(35px) scale(.91)}
   .route[data-pos="hidden"]{transform:translateY(44px) scale(.89)}
