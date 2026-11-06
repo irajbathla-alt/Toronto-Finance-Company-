@@ -44,11 +44,11 @@ button,input{font:inherit}
 .hero p{font-size:11.5px;line-height:1.62;color:var(--muted);margin:0;max-width:720px}
 .deck-wrap{max-width:560px;margin:6px auto 0;position:relative}
 .route-grid{
-  position:relative;height:610px;overflow:visible;margin:0 auto;
+  position:relative;height:560px;overflow:visible;margin:0 auto;
   touch-action:pan-y;user-select:none
 }
 .route{
-  position:absolute;inset:0;margin:auto;width:min(470px,84vw);height:570px;padding:22px 22px 20px;
+  position:absolute;inset:0;margin:auto;width:min(460px,82vw);height:520px;padding:24px 22px;
   text-decoration:none;color:var(--ink);text-align:left;border:1px solid rgba(98,78,57,.18);
   border-radius:20px;box-shadow:0 18px 48px rgba(40,28,18,.11);
   display:flex;flex-direction:column;justify-content:space-between;
@@ -74,7 +74,7 @@ button,input{font:inherit}
   position:absolute;right:18px;bottom:18px;width:34px;height:34px;border-radius:50%;
   display:grid;place-items:center;background:#fff;border:1px solid rgba(23,19,15,.12);font-size:16px
 }
-.route-logo{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.route-logo{display:flex;align-items:center;gap:10px;margin-bottom:18px}
 .route-logo img{width:44px;height:44px;border-radius:11px;object-fit:contain;background:#fff;padding:6px;border:1px solid rgba(23,19,15,.08)}
 .route-logo strong{font-size:9px;letter-spacing:.07em;text-transform:uppercase}
 .route.journey{background:#f8f2ef;border-color:rgba(41,55,105,.18)}
@@ -91,154 +91,6 @@ button,input{font:inherit}
 .carousel-dot.active{width:22px;border-radius:999px;background:#9f7434}
 .swipe-hint{text-align:center;margin-top:10px;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:#9c8e7e}
 .deck-status{text-align:center;margin-top:4px;font-size:9px;color:#9b8d7d}
-
-
-.lender-subtitle{
-  margin-top:2px;font-size:9px;line-height:1.25;color:var(--muted)
-}
-.product-tag{
-  display:inline-flex;align-items:center;width:max-content;max-width:100%;
-  margin-top:8px;padding:6px 8px;border-radius:8px;
-  background:rgba(23,19,15,.055);color:#5e544a;
-  font-size:6.5px;font-weight:700;letter-spacing:.03em;
-  white-space:normal;line-height:1.25
-}
-.why-label{
-  margin-top:13px;font-size:6.4px;font-weight:700;
-  letter-spacing:.14em;text-transform:uppercase;color:#9b8d7d
-}
-.why-copy{
-  margin-top:5px!important;max-width:100%!important;
-  font-size:9.6px!important;line-height:1.42!important;
-  color:#40372f!important;opacity:1!important
-}
-.lender-metrics{
-  display:grid;grid-template-columns:1fr 1fr;
-  gap:10px 14px;margin-top:14px
-}
-.lender-metric small{
-  display:block;font-size:6.4px;line-height:1.15;color:#8b8176;
-  margin-bottom:3px
-}
-.lender-metric strong{
-  display:block;font-size:9.6px;line-height:1.22;font-weight:600;color:#17130f
-}
-.card-cta{
-  margin-top:auto;padding-top:14px
-}
-.card-apply{
-  width:100%;border:0;border-radius:10px;background:#17130f;color:#fff;
-  padding:10px 12px;text-align:center;text-decoration:none;
-  font-size:7.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-  display:block;cursor:pointer
-}
-.route.journey .card-apply{background:#253466}
-.route.merchant .card-apply{background:#0873a7}
-.route.xuper .card-apply{background:#d9402d}
-.route.tfc .card-apply{background:#17130f}
-.card-details{
-  display:block;width:100%;border:0;background:none;color:#9b7137;
-  margin-top:9px;padding:3px;text-align:center;cursor:pointer;
-  font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase
-}
-.card-extra{
-  display:none;margin-top:8px;padding:9px 10px;border-radius:10px;
-  background:rgba(255,255,255,.55);border:1px solid rgba(23,19,15,.07);
-  font-size:7.5px;line-height:1.42;color:#6d6257
-}
-.card-extra.show{display:block}
-
-.about-label{
-  margin-top:15px;
-  font-size:6.8px;
-  font-weight:700;
-  letter-spacing:.16em;
-  text-transform:uppercase;
-  color:#9b763f
-}
-.card-features{
-  list-style:none;padding:0;margin:16px 0 0;
-  display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;
-  max-width:360px
-}
-.card-features li{
-  position:relative;padding-left:15px;
-  font-size:9.5px;line-height:1.35;color:rgba(23,19,15,.72)
-}
-.card-features li:before{
-  content:"";position:absolute;left:0;top:.45em;width:6px;height:6px;
-  border-radius:50%;background:currentColor;opacity:.35
-}
-.route.journey .card-features li{color:#253466}
-.route.merchant .card-features li{color:#0873a7}
-.route.xuper .card-features li{color:#c63e2e}
-.route.tfc .card-features li{color:#8e6732}
-
-.swipe-onboarding{
-  position:fixed;inset:0;z-index:120;
-  display:grid;place-items:center;
-  background:rgba(16,13,10,.56);
-  backdrop-filter:blur(5px);
-  opacity:0;visibility:hidden;
-  transition:opacity .25s ease,visibility .25s ease;
-  padding:20px
-}
-.swipe-onboarding.show{opacity:1;visibility:visible}
-.onboarding-card{
-  width:min(330px,88vw);
-  border-radius:22px;
-  background:rgba(255,250,243,.98);
-  border:1px solid rgba(198,150,78,.28);
-  box-shadow:0 26px 80px rgba(0,0,0,.32);
-  padding:28px 24px 22px;
-  text-align:center
-}
-.onboarding-kicker{
-  font-size:7px;letter-spacing:.18em;text-transform:uppercase;
-  color:#9b763f;font-weight:700
-}
-.onboarding-card h3{
-  font-family:"Cormorant Garamond",serif;
-  font-size:30px;line-height:1;margin:8px 0 8px;
-  font-weight:400;text-transform:none
-}
-.onboarding-card p{
-  font-size:10px;line-height:1.55;color:#786f65;margin:0
-}
-.swipe-demo{
-  position:relative;height:82px;margin:18px 0 10px
-}
-.demo-card{
-  position:absolute;left:50%;top:10px;
-  width:128px;height:64px;border-radius:14px;
-  background:linear-gradient(145deg,#fffaf2,#f0e2cc);
-  border:1px solid rgba(185,137,63,.3);
-  transform:translateX(-50%);
-  box-shadow:0 10px 24px rgba(23,19,15,.10)
-}
-.demo-hand{
-  position:absolute;left:50%;top:32px;
-  font-size:28px;transform:translateX(-50%);
-  animation:swipeTeach 1.6s ease-in-out infinite
-}
-@keyframes swipeTeach{
-  0%,100%{transform:translateX(-50%) translateX(-28px) rotate(-8deg)}
-  50%{transform:translateX(-50%) translateX(28px) rotate(8deg)}
-}
-.tap-hint{
-  margin-top:8px;font-size:7px;letter-spacing:.14em;
-  text-transform:uppercase;color:#9a8b79
-}
-.onboarding-skip{
-  margin-top:16px;border:0;border-radius:999px;background:#17130f;color:#fff;
-  padding:10px 16px;font-size:8px;letter-spacing:.11em;text-transform:uppercase;cursor:pointer
-}
-@media(max-width:760px){
-  .about-label{margin-top:10px;font-size:5.8px}
-  .card-features{gap:6px 7px;margin-top:7px;max-width:100%}
-  .card-features li{font-size:8.5px;padding-left:13px}
-}
-
 .helper{margin:17px 2px 0;font-size:10px;line-height:1.6;color:#9b8d7d}
 .internal{display:none;margin-top:28px;border-top:1px solid rgba(23,19,15,.08);padding-top:30px}
 .internal.show{display:block;animation:fadeUp .28s ease both}
@@ -334,43 +186,43 @@ button,input{font:inherit}
     margin-top:2px
   }
   .route-grid{
-    height:535px;
+    height:470px;
     margin:0;
   }
   .route{
-    width:min(82vw,370px);
-    height:500px;
+    width:min(78vw,360px);
+    height:435px;
     min-height:0!important;
-    padding:18px 17px 16px;
+    padding:20px 18px;
     border-radius:20px
   }
   .route h2{
-    font-size:clamp(22px,6.6vw,28px)!important;
+    font-size:clamp(24px,7.3vw,31px)!important;
     line-height:.98;
-    margin:7px 0 6px
+    margin:9px 0 7px
   }
   .route p{
-    font-size:9.2px!important;
-    line-height:1.42!important;
-    max-width:100%
+    font-size:9.8px!important;
+    line-height:1.5!important;
+    max-width:92%
   }
   .route .route-kicker{
     font-size:5.8px;
     letter-spacing:.14em
   }
   .route-logo{
-    gap:8px;
-    margin-bottom:9px
+    gap:9px;
+    margin-bottom:15px
   }
   .route-logo img{
-    width:36px;
-    height:36px;
+    width:34px;
+    height:34px;
     border-radius:9px;
     padding:5px
   }
   .route-logo>div{
-    width:36px!important;
-    height:36px!important;
+    width:34px!important;
+    height:34px!important;
     border-radius:9px!important;
     font-size:14px!important
   }
@@ -385,17 +237,7 @@ button,input{font:inherit}
     height:31px;
     font-size:14px
   }
-  .product-tag{font-size:5.8px;padding:5px 7px;margin-top:6px}
-  .why-label{margin-top:10px;font-size:5.8px}
-  .why-copy{font-size:8.7px!important;line-height:1.38!important}
-  .lender-metrics{gap:8px 10px;margin-top:11px}
-  .lender-metric small{font-size:5.8px}
-  .lender-metric strong{font-size:8.7px;line-height:1.18}
-  .card-cta{padding-top:11px}
-  .card-apply{padding:9px 10px;font-size:7px}
-  .card-details{margin-top:7px;font-size:6.3px}
-  .card-extra{font-size:7px;line-height:1.35}
-    .route[data-pos="1"]{transform:translateY(12px) scale(.97)}
+  .route[data-pos="1"]{transform:translateY(12px) scale(.97)}
   .route[data-pos="2"]{transform:translateY(24px) scale(.94)}
   .route[data-pos="3"]{transform:translateY(35px) scale(.91)}
   .route[data-pos="hidden"]{transform:translateY(44px) scale(.89)}
@@ -461,89 +303,37 @@ button,input{font:inherit}
     </section>
 
     <div class="deck-wrap"><section class="route-grid" id="lenderCarousel" aria-label="Funding application routes">
-      <article class="route tfc" id="openTfc">
-        <div class="route-logo">
-          <div style="width:62px;height:62px;border-radius:15px;background:#17130f;color:#d0a15b;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:23px">TFC</div>
-          <div><strong>Toronto Finance Company</strong><div class="lender-subtitle">Business financing solutions</div></div>
-        </div>
-        <div class="product-tag">4 financing solutions · 5+ partners</div>
-        <div class="why-label">Why choose us</div>
-        <p class="why-copy">One guided application experience with access to multiple Canadian financing partners.</p>
-        <div class="lender-metrics">
-          <div class="lender-metric"><small>Funding amount</small><strong>Based on lender</strong></div>
-          <div class="lender-metric"><small>Estimated cost</small><strong>Available at offer</strong></div>
-          <div class="lender-metric"><small>Initial response</small><strong>Potentially within 24 hrs</strong></div>
-          <div class="lender-metric"><small>Products</small><strong>Term · LOC · Flex · MCA</strong></div>
-        </div>
-        <div class="card-cta">
-          <div class="card-apply" data-tfc-open>Continue with TFC →</div>
-          <button class="card-details" type="button">View details →</button>
-          <div class="card-extra">Advisor-guided process with review &amp; sign, bank-statement upload, and financing options from Toronto Finance Company partners.</div>
-        </div>
-      </article>
+      <button class="route tfc" id="openTfc" type="button">
+        <div class="route-logo"><div style="width:62px;height:62px;border-radius:15px;background:#17130f;color:#d0a15b;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:23px">TFC</div><strong>Toronto Finance Company</strong></div>
+        <div class="route-kicker">Toronto Finance Company</div>
+        <h2>Apply With Us</h2>
+        <p>Review and sign the Toronto Finance Company application, then prepare your recent business bank statements.</p>
+        <div class="arrow">→</div>
+      </button>
 
-      <article class="route journey" data-url="https://app.journeycapital.ca/elending?ls=rajkunwarsingh&emlredir=true">
-        <div class="route-logo">
-          <img src="https://www.google.com/s2/favicons?domain=journeycapital.ca&sz=128" alt="">
-          <div><strong>Journey Capital</strong><div class="lender-subtitle">Canadian business lender</div></div>
-        </div>
-        <div class="product-tag">Term Loan · Line of Credit · Flex Funds</div>
-        <div class="why-label">Why choose them</div>
-        <p class="why-copy">Flexible business financing with online applications and multiple product options.</p>
-        <div class="lender-metrics">
-          <div class="lender-metric"><small>Funding amount</small><strong>Up to $500K</strong></div>
-          <div class="lender-metric"><small>Estimated cost</small><strong>Available at offer</strong></div>
-          <div class="lender-metric"><small>Funding available</small><strong>24–72 hrs typical processing</strong></div>
-          <div class="lender-metric"><small>Key eligibility</small><strong>6+ mo · $120K annual · 600 credit</strong></div>
-        </div>
-        <div class="card-cta">
-          <div class="card-apply">Apply now ↗</div>
-          <button class="card-details" type="button">View details →</button>
-          <div class="card-extra">Journey Capital says eligible businesses generally need at least six months in operation, $120,000 annual revenue, a Canadian business bank account and a registered Canadian business.</div>
-        </div>
-      </article>
+      <a class="route journey" href="https://app.journeycapital.ca/elending?ls=rajkunwarsingh&emlredir=true" target="_blank" rel="noopener noreferrer">
+        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=journeycapital.ca&sz=128" alt=""><strong>Journey Capital</strong></div>
+        <div class="route-kicker">Direct Application</div>
+        <h2>Journey Capital</h2>
+        <p>Continue directly to Journey Capital's customer application.</p>
+        <div class="arrow">↗</div>
+      </a>
 
-      <article class="route merchant" data-url="https://new.merchantgrowth.com/welcome?userId=005JR00000ArwOHYAZ">
-        <div class="route-logo">
-          <img src="https://www.google.com/s2/favicons?domain=merchantgrowth.com&sz=128" alt="">
-          <div><strong>Merchant Growth</strong><div class="lender-subtitle">Direct Canadian business lender</div></div>
-        </div>
-        <div class="product-tag">Term Financing · Business Line of Credit</div>
-        <div class="why-label">Why choose them</div>
-        <p class="why-copy">Fast financing from an established Canadian lender with term and revolving credit options.</p>
-        <div class="lender-metrics">
-          <div class="lender-metric"><small>Funding amount</small><strong>$5K–$1M term · LOC to $125K</strong></div>
-          <div class="lender-metric"><small>Estimated cost</small><strong>Available at offer</strong></div>
-          <div class="lender-metric"><small>Funding available</small><strong>6–24 hrs average processing</strong></div>
-          <div class="lender-metric"><small>Key eligibility</small><strong>6+ mo · $10K+ monthly revenue</strong></div>
-        </div>
-        <div class="card-cta">
-          <div class="card-apply">Apply now ↗</div>
-          <button class="card-details" type="button">View details →</button>
-          <div class="card-extra">Merchant Growth states the business must be located in Canada, operating for more than six months, and generating at least $10,000 in monthly revenue.</div>
-        </div>
-      </article>
+      <a class="route merchant" href="https://new.merchantgrowth.com/welcome?userId=005JR00000ArwOHYAZ" target="_blank" rel="noopener noreferrer">
+        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=merchantgrowth.com&sz=128" alt=""><strong>Merchant Growth</strong></div>
+        <div class="route-kicker">Direct Application</div>
+        <h2>Merchant Growth</h2>
+        <p>Continue directly to Merchant Growth's customer application.</p>
+        <div class="arrow">↗</div>
+      </a>
 
-      <article class="route xuper" data-url="https://app.xpfunding.com/xf-en/f/get-funded-today-vancouver-finance-company-inc">
-        <div class="route-logo">
-          <img src="https://www.google.com/s2/favicons?domain=xpfunding.com&sz=128" alt="">
-          <div><strong>Xuper Funding</strong><div class="lender-subtitle">Revenue-based business funding</div></div>
-        </div>
-        <div class="product-tag">Working Capital · Revenue-Based Funding</div>
-        <div class="why-label">Why choose them</div>
-        <p class="why-copy">Fast working capital with sales-linked funding and flexible underwriting.</p>
-        <div class="lender-metrics">
-          <div class="lender-metric"><small>Funding amount</small><strong>$10K–$750K advertised</strong></div>
-          <div class="lender-metric"><small>Estimated cost</small><strong>Fixed fee at offer</strong></div>
-          <div class="lender-metric"><small>Funding available</small><strong>Less than 24 hrs advertised</strong></div>
-          <div class="lender-metric"><small>Key eligibility</small><strong>Typically $5K+ monthly revenue</strong></div>
-        </div>
-        <div class="card-cta">
-          <div class="card-apply">Apply now ↗</div>
-          <button class="card-details" type="button">View details →</button>
-          <div class="card-extra">Xuper Funding describes its core product as revenue-based / royalty-based business funding and says applications may be considered with a range of credit profiles.</div>
-        </div>
-      </article>
+      <a class="route xuper" href="https://app.xpfunding.com/xf-en/f/get-funded-today-vancouver-finance-company-inc" target="_blank" rel="noopener noreferrer">
+        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=xpfunding.com&sz=128" alt=""><strong>Xuper Funding</strong></div>
+        <div class="route-kicker">Direct Application</div>
+        <h2>Xuper Funding</h2>
+        <p>Continue directly to Xuper Funding's customer application.</p>
+        <div class="arrow">↗</div>
+      </a>
     </section>
     <div class="carousel-controls">
       <button class="carousel-arrow" id="carouselPrev" type="button" aria-label="Previous lender">←</button>
@@ -600,20 +390,6 @@ button,input{font:inherit}
       </section>
     </section>
   </main>
-</div>
-
-<div class="swipe-onboarding" id="swipeOnboarding" aria-hidden="true">
-  <div class="onboarding-card">
-    <div class="onboarding-kicker">Quick Tip</div>
-    <h3>Explore your funding options.</h3>
-    <p>Swipe left or right to view each funding partner.</p>
-    <div class="swipe-demo" aria-hidden="true">
-      <div class="demo-card"></div>
-      <div class="demo-hand">☝️</div>
-    </div>
-    <div class="tap-hint">Then tap the active card to continue</div>
-    <button class="onboarding-skip" id="onboardingSkip" type="button">Got It</button>
-  </div>
 </div>
 
 <script>
@@ -710,36 +486,6 @@ lenderCarousel.addEventListener('pointercancel',finishDrag);
 
 renderDeck();
 
-const swipeOnboarding=document.getElementById('swipeOnboarding');
-const onboardingSkip=document.getElementById('onboardingSkip');
-const ONBOARDING_KEY='tfc-lender-swipe-tutorial-seen';
-function hideOnboarding(){
-  swipeOnboarding.classList.remove('show');
-  swipeOnboarding.setAttribute('aria-hidden','true');
-  try{localStorage.setItem(ONBOARDING_KEY,'yes')}catch(_){}
-}
-function showOnboarding(){
-  swipeOnboarding.classList.add('show');
-  swipeOnboarding.setAttribute('aria-hidden','false');
-}
-try{
-  if(localStorage.getItem(ONBOARDING_KEY)!=='yes'){
-    setTimeout(showOnboarding,450);
-  }
-}catch(_){
-  setTimeout(showOnboarding,450);
-}
-onboardingSkip.addEventListener('click',hideOnboarding);
-swipeOnboarding.addEventListener('click',e=>{
-  if(e.target===swipeOnboarding) hideOnboarding();
-});
-lenderCarousel.addEventListener('pointerdown',()=>{
-  if(swipeOnboarding.classList.contains('show')) hideOnboarding();
-},{passive:true});
-lenderCards.forEach(card=>card.addEventListener('click',()=>{
-  if(swipeOnboarding.classList.contains('show')) hideOnboarding();
-},{capture:true}));
-
 lenderCards.forEach(card=>{
   card.addEventListener('click',e=>{
     if(suppressCardClick){
@@ -748,33 +494,6 @@ lenderCards.forEach(card=>{
       suppressCardClick=false;
     }
   },true);
-});
-
-document.querySelectorAll('.card-details').forEach(button=>{
-  button.addEventListener('click',e=>{
-    e.preventDefault();
-    e.stopPropagation();
-    const extra=button.nextElementSibling;
-    const show=!extra.classList.contains('show');
-    document.querySelectorAll('.card-extra.show').forEach(x=>x.classList.remove('show'));
-    extra.classList.toggle('show',show);
-    button.textContent=show?'Hide details ↑':'View details →';
-  });
-});
-
-lenderCards.forEach(card=>{
-  const apply=card.querySelector('.card-apply');
-  if(!apply)return;
-  apply.addEventListener('click',e=>{
-    e.preventDefault();
-    e.stopPropagation();
-    if(card.classList.contains('tfc')){
-      openTfc.click();
-      return;
-    }
-    const url=card.dataset.url;
-    if(url) window.open(url,'_blank','noopener,noreferrer');
-  });
 });
 
 function showTask(which){
@@ -786,8 +505,7 @@ function showTask(which){
   requestAnimationFrame(()=>document.querySelector('.panel.show')?.scrollIntoView({behavior:'smooth',block:'start'}));
 }
 
-openTfc.addEventListener('click',e=>{
-  if(e.target.closest('.card-details')) return;
+openTfc.addEventListener('click',()=>{
   tfcFlow.classList.add('show');
   showTask('sign');
   requestAnimationFrame(()=>tfcFlow.scrollIntoView({behavior:'smooth',block:'start'}));
@@ -822,8 +540,5 @@ statements.addEventListener('change',()=>{
   });
 });
 </script>
-
-
-
 </body>
 </html>
