@@ -84,7 +84,47 @@ button,input{font:inherit}
 .route.xuper{background:linear-gradient(145deg,#fff8f3,#fff0e8);border-color:rgba(227,67,47,.2)}
 .route.xuper .route-logo strong{color:#d9402d}
 .route.tfc{background:linear-gradient(145deg,#fffaf2,#f3e5cf);border-color:rgba(185,137,63,.42)}
+
 .route.tfc .route-logo strong{color:#9b7137}
+.tfc-pills{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin:12px 0 10px;
+}
+.tfc-pill{
+  border:0;
+  border-radius:999px;
+  padding:9px 16px;
+  font-size:8px;
+  line-height:1;
+  font-weight:600;
+  letter-spacing:.05em;
+  cursor:pointer;
+  box-shadow:0 4px 12px rgba(23,19,15,.07);
+  transition:transform .16s ease,box-shadow .16s ease,filter .16s ease;
+}
+.tfc-pill:hover{
+  transform:translateY(-1px);
+  box-shadow:0 7px 16px rgba(23,19,15,.11);
+}
+.tfc-pill.apply{background:#6F89A8;color:#fff}
+.tfc-pill.more{background:#B08A57;color:#fff}
+.tfc-more-copy{
+  display:none;
+  margin:-1px 0 8px!important;
+  max-width:350px!important;
+  font-size:9px!important;
+  line-height:1.42!important;
+  color:#6f6256!important;
+  opacity:1!important;
+}
+.tfc-more-copy.show{display:block}
+@media(max-width:760px){
+  .tfc-pills{gap:8px;margin:10px 0 9px}
+  .tfc-pill{padding:8px 13px;font-size:7px}
+  .tfc-more-copy{font-size:8px!important;line-height:1.38!important}
+}
 .carousel-controls{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:4px}
 .carousel-arrow{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:16px}
 .carousel-dots{display:flex;gap:7px}.carousel-dot{width:7px;height:7px;border:0;padding:0;border-radius:50%;background:#cfc4b7;cursor:pointer}
@@ -308,13 +348,18 @@ button,input{font:inherit}
     </section>
 
     <div class="deck-wrap"><section class="route-grid" id="lenderCarousel" aria-label="Funding application routes">
-      <button class="route tfc" id="openTfc" type="button">
+      <article class="route tfc" id="openTfc">
         <div class="route-logo"><div style="width:62px;height:62px;border-radius:15px;background:#17130f;color:#d0a15b;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:23px">TFC</div><strong>Toronto Finance Company</strong></div>
         <div class="route-kicker">Toronto Finance Company</div>
         <h2>Apply With Us</h2>
+        <div class="tfc-pills">
+          <button class="tfc-pill apply" id="tfcApplyPill" type="button">Apply Now</button>
+          <button class="tfc-pill more" id="tfcMorePill" type="button">Know More</button>
+        </div>
+        <p class="tfc-more-copy" id="tfcMoreCopy">Complete one guided application with Toronto Finance Company, then provide your recent business bank statements for review.</p>
         <p>Review and sign the Toronto Finance Company application, then prepare your recent business bank statements.</p>
         <div class="arrow">→</div>
-      </button>
+      </article>
 
       <article class="route journey" data-url="https://app.journeycapital.ca/elending?ls=rajkunwarsingh&emlredir=true">
         <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=journeycapital.ca&sz=128" alt=""><strong>Journey Capital</strong></div>
@@ -399,6 +444,9 @@ button,input{font:inherit}
 
 <script>
 const openTfc=document.getElementById('openTfc');
+const tfcApplyPill=document.getElementById('tfcApplyPill');
+const tfcMorePill=document.getElementById('tfcMorePill');
+const tfcMoreCopy=document.getElementById('tfcMoreCopy');
 const tfcFlow=document.getElementById('tfcFlow');
 const closeTfc=document.getElementById('closeTfc');
 const taskSign=document.getElementById('taskSign');
@@ -528,10 +576,26 @@ function showTask(which){
   requestAnimationFrame(()=>document.querySelector('.panel.show')?.scrollIntoView({behavior:'smooth',block:'start'}));
 }
 
-openTfc.addEventListener('click',()=>{
+function openTfcFlow(){
   tfcFlow.classList.add('show');
   showTask('sign');
   requestAnimationFrame(()=>tfcFlow.scrollIntoView({behavior:'smooth',block:'start'}));
+}
+openTfc.addEventListener('click',e=>{
+  if(e.target.closest('.tfc-pill')) return;
+  openTfcFlow();
+});
+tfcApplyPill.addEventListener('click',e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  openTfcFlow();
+});
+tfcMorePill.addEventListener('click',e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  const show=!tfcMoreCopy.classList.contains('show');
+  tfcMoreCopy.classList.toggle('show',show);
+  tfcMorePill.textContent=show?'Close':'Know More';
 });
 closeTfc.addEventListener('click',()=>tfcFlow.classList.remove('show'));
 taskSign.addEventListener('click',()=>showTask('sign'));
