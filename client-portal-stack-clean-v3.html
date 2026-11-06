@@ -128,6 +128,11 @@ button,input{font:inherit}
 .progress{height:7px;border-radius:999px;background:#e9e2d8;margin-top:16px;overflow:hidden}
 .progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#b9873e,#d6ad69);transition:.25s ease}
 .local-note{margin-top:13px;font-size:9px;line-height:1.6;color:#9b8d7d}
+@media(min-width:761px){
+  .route{cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;will-change:transform}
+  .route.dragging{cursor:grabbing}
+  .route img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
+}
 @media(max-width:760px){
   body{background:#15120f}
   .shell{
@@ -311,7 +316,7 @@ button,input{font:inherit}
         <div class="arrow">→</div>
       </button>
 
-      <a class="route journey" href="https://app.journeycapital.ca/elending?ls=rajkunwarsingh&emlredir=true" target="_blank" rel="noopener noreferrer">
+      <a class="route journey" draggable="false" href="https://app.journeycapital.ca/elending?ls=rajkunwarsingh&emlredir=true" target="_blank" rel="noopener noreferrer">
         <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=journeycapital.ca&sz=128" alt=""><strong>Journey Capital</strong></div>
         <div class="route-kicker">Direct Application</div>
         <h2>Journey Capital</h2>
@@ -319,7 +324,7 @@ button,input{font:inherit}
         <div class="arrow">↗</div>
       </a>
 
-      <a class="route merchant" href="https://new.merchantgrowth.com/welcome?userId=005JR00000ArwOHYAZ" target="_blank" rel="noopener noreferrer">
+      <a class="route merchant" draggable="false" href="https://new.merchantgrowth.com/welcome?userId=005JR00000ArwOHYAZ" target="_blank" rel="noopener noreferrer">
         <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=merchantgrowth.com&sz=128" alt=""><strong>Merchant Growth</strong></div>
         <div class="route-kicker">Direct Application</div>
         <h2>Merchant Growth</h2>
@@ -327,7 +332,7 @@ button,input{font:inherit}
         <div class="arrow">↗</div>
       </a>
 
-      <a class="route xuper" href="https://app.xpfunding.com/xf-en/f/get-funded-today-vancouver-finance-company-inc" target="_blank" rel="noopener noreferrer">
+      <a class="route xuper" draggable="false" href="https://app.xpfunding.com/xf-en/f/get-funded-today-vancouver-finance-company-inc" target="_blank" rel="noopener noreferrer">
         <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=xpfunding.com&sz=128" alt=""><strong>Xuper Funding</strong></div>
         <div class="route-kicker">Direct Application</div>
         <h2>Xuper Funding</h2>
@@ -412,6 +417,7 @@ const carouselNext=document.getElementById('carouselNext');
 const deckStatus=document.getElementById('deckStatus');
 let currentCard=0;
 let dragCard=null,dragStartX=0,dragStartY=0,dragX=0,dragY=0,suppressCardClick=false;
+let dragStartTime=0,lastMoveX=0,lastMoveTime=0,dragVelocityX=0;
 
 lenderCards.forEach((_,i)=>{
   const b=document.createElement('button');
@@ -455,16 +461,24 @@ carouselPrev.onclick=()=>prevCard();
 lenderCarousel.addEventListener('pointerdown',e=>{
   const top=lenderCards[currentCard];
   if(!top.contains(e.target)) return;
-  dragCard=top;dragStartX=e.clientX;dragStartY=e.clientY;dragX=0;dragY=0;suppressCardClick=false;
+  if(e.pointerType==='mouse' && e.button!==0) return;
+  dragCard=top;
+  dragStartX=e.clientX;dragStartY=e.clientY;dragX=0;dragY=0;suppressCardClick=false;
+  dragStartTime=performance.now();lastMoveX=e.clientX;lastMoveTime=dragStartTime;dragVelocityX=0;
   top.classList.add('dragging');
   try{top.setPointerCapture(e.pointerId)}catch(_){}
 });
 lenderCarousel.addEventListener('pointermove',e=>{
   if(!dragCard)return;
   dragX=e.clientX-dragStartX;dragY=e.clientY-dragStartY;
-  if(Math.abs(dragX)>8) suppressCardClick=true;
-  const rotation=Math.max(-10,Math.min(10,dragX/22));
-  dragCard.style.transform='translate('+dragX+'px,'+(dragY*.18)+'px) rotate('+rotation+'deg)';
+  const now=performance.now();
+  const dt=Math.max(1,now-lastMoveTime);
+  dragVelocityX=(e.clientX-lastMoveX)/dt;
+  lastMoveX=e.clientX;lastMoveTime=now;
+  if(Math.abs(dragX)>5) suppressCardClick=true;
+  const rotation=Math.max(-9,Math.min(9,dragX/30));
+  const vertical=e.pointerType==='mouse'?dragY*.08:dragY*.18;
+  dragCard.style.transform='translate3d('+dragX+'px,'+vertical+'px,0) rotate('+rotation+'deg)';
 });
 function finishDrag(e){
   if(!dragCard)return;
@@ -473,9 +487,14 @@ function finishDrag(e){
   try{card.releasePointerCapture(e.pointerId)}catch(_){}
   card.classList.remove('dragging');
   card.style.transform='';
-  if(Math.abs(dragX)>90){
+  const desktop=e.pointerType==='mouse';
+  const distanceThreshold=desktop?52:90;
+  const velocityThreshold=desktop?.45:.65;
+  const shouldSwipe=Math.abs(dragX)>distanceThreshold || Math.abs(dragVelocityX)>velocityThreshold;
+  if(shouldSwipe){
     suppressCardClick=true;
-    nextCard(dragX>0?'right':'left');
+    const direction=(Math.abs(dragX)>10?dragX:dragVelocityX)>0?'right':'left';
+    nextCard(direction);
     setTimeout(()=>{suppressCardClick=false},350);
   }else{
     renderDeck();
@@ -485,6 +504,8 @@ lenderCarousel.addEventListener('pointerup',finishDrag);
 lenderCarousel.addEventListener('pointercancel',finishDrag);
 
 renderDeck();
+
+lenderCards.forEach(card=>card.addEventListener('dragstart',e=>e.preventDefault()));
 
 lenderCards.forEach(card=>{
   card.addEventListener('click',e=>{
