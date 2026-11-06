@@ -43,32 +43,41 @@ button,input{font:inherit}
 .hero{max-width:760px;margin-bottom:30px}
 .hero h1{font-family:"Cormorant Garamond",serif;font-size:clamp(42px,6vw,64px);line-height:.92;font-weight:400;margin:0 0 14px;letter-spacing:-.025em}
 .hero p{font-size:13px;line-height:1.75;color:var(--muted);margin:0;max-width:700px}
+.deck-wrap{max-width:760px;margin:8px auto 0;position:relative}
 .route-grid{
-  display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;
-  scrollbar-width:none;padding:8px max(5vw,18px) 20px;margin:0 -34px;cursor:grab
+  position:relative;height:390px;overflow:visible;margin:0 auto;
+  touch-action:pan-y;user-select:none
 }
-.route-grid::-webkit-scrollbar{display:none}
-.route-grid.dragging{cursor:grabbing;scroll-behavior:auto;user-select:none}
 .route{
-  position:relative;display:flex;flex:0 0 min(620px,82vw);min-height:330px;padding:26px;
+  position:absolute;inset:0;margin:auto;width:min(700px,88vw);height:350px;padding:24px;
   text-decoration:none;color:var(--ink);text-align:left;border:1px solid rgba(98,78,57,.18);
-  border-radius:20px;box-shadow:0 14px 36px rgba(40,28,18,.08);
-  transition:border-color .18s ease,box-shadow .18s ease,transform .2s ease,opacity .2s ease;
-  cursor:pointer;scroll-snap-align:center;flex-direction:column;justify-content:space-between;
-  transform:scale(.965);opacity:.72;overflow:hidden
+  border-radius:20px;box-shadow:0 18px 48px rgba(40,28,18,.11);
+  display:flex;flex-direction:column;justify-content:space-between;
+  overflow:hidden;transform-origin:50% 88%;
+  transition:transform .28s cubic-bezier(.22,.8,.3,1),opacity .25s ease,filter .25s ease;
+  cursor:grab
 }
-.route.active{transform:scale(1);opacity:1;box-shadow:0 24px 58px rgba(40,28,18,.13)}
-.route:hover{transform:translateY(-2px) scale(1);opacity:1}
-.route .route-kicker{font-size:8px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;opacity:.66}
-.route h2{font-family:"Cormorant Garamond",serif;font-weight:400;font-size:46px;line-height:.94;margin:13px 0 10px;text-transform:uppercase}
-.route p{font-size:12px;line-height:1.7;margin:0;max-width:500px;opacity:.76}
+.route.dragging{transition:none!important;cursor:grabbing}
+.route[data-pos="0"]{z-index:5;transform:translateY(0) scale(1);opacity:1;filter:none}
+.route[data-pos="1"]{z-index:4;transform:translateY(16px) scale(.965);opacity:.88;filter:saturate(.92)}
+.route[data-pos="2"]{z-index:3;transform:translateY(30px) scale(.93);opacity:.68;filter:saturate(.82)}
+.route[data-pos="3"]{z-index:2;transform:translateY(42px) scale(.90);opacity:.42;filter:saturate(.72)}
+.route[data-pos="hidden"]{z-index:1;transform:translateY(52px) scale(.88);opacity:0;pointer-events:none}
+.route.swipe-left{transform:translate(-125%,18px) rotate(-11deg)!important;opacity:0}
+.route.swipe-right{transform:translate(125%,18px) rotate(11deg)!important;opacity:0}
+.route .route-kicker{font-size:7px;letter-spacing:.17em;text-transform:uppercase;font-weight:700;opacity:.62}
+.route h2{
+  font-family:"Cormorant Garamond",serif;font-weight:400;
+  font-size:clamp(30px,4.3vw,43px);line-height:.96;margin:10px 0 8px;text-transform:uppercase
+}
+.route p{font-size:clamp(10px,1.15vw,12px);line-height:1.62;margin:0;max-width:510px;opacity:.76}
 .route .arrow{
-  position:absolute;right:22px;bottom:22px;width:40px;height:40px;border-radius:50%;
-  display:grid;place-items:center;background:#fff;border:1px solid rgba(23,19,15,.12);font-size:17px
+  position:absolute;right:20px;bottom:20px;width:38px;height:38px;border-radius:50%;
+  display:grid;place-items:center;background:#fff;border:1px solid rgba(23,19,15,.12);font-size:16px
 }
-.route-logo{display:flex;align-items:center;gap:13px;margin-bottom:26px}
-.route-logo img{width:62px;height:62px;border-radius:15px;object-fit:contain;background:#fff;padding:8px;border:1px solid rgba(23,19,15,.08)}
-.route-logo strong{font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.route-logo{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.route-logo img{width:54px;height:54px;border-radius:14px;object-fit:contain;background:#fff;padding:7px;border:1px solid rgba(23,19,15,.08)}
+.route-logo strong{font-size:10px;letter-spacing:.075em;text-transform:uppercase}
 .route.journey{background:#f8f2ef;border-color:rgba(41,55,105,.18)}
 .route.journey .route-logo strong{color:#253466}
 .route.merchant{background:linear-gradient(145deg,#f2fbff,#eef9f4);border-color:rgba(8,115,167,.2)}
@@ -77,11 +86,12 @@ button,input{font:inherit}
 .route.xuper .route-logo strong{color:#d9402d}
 .route.tfc{background:linear-gradient(145deg,#fffaf2,#f3e5cf);border-color:rgba(185,137,63,.42)}
 .route.tfc .route-logo strong{color:#9b7137}
-.carousel-controls{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:2px}
+.carousel-controls{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:4px}
 .carousel-arrow{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:16px}
 .carousel-dots{display:flex;gap:7px}.carousel-dot{width:7px;height:7px;border:0;padding:0;border-radius:50%;background:#cfc4b7;cursor:pointer}
 .carousel-dot.active{width:22px;border-radius:999px;background:#9f7434}
-.swipe-hint{text-align:center;margin-top:10px;font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:#9c8e7e}
+.swipe-hint{text-align:center;margin-top:10px;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:#9c8e7e}
+.deck-status{text-align:center;margin-top:4px;font-size:9px;color:#9b8d7d}
 .helper{margin:17px 2px 0;font-size:10px;line-height:1.6;color:#9b8d7d}
 .internal{display:none;margin-top:28px;border-top:1px solid rgba(23,19,15,.08);padding-top:30px}
 .internal.show{display:block;animation:fadeUp .28s ease both}
@@ -120,8 +130,16 @@ button,input{font:inherit}
 .progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#b9873e,#d6ad69);transition:.25s ease}
 .local-note{margin-top:13px;font-size:9px;line-height:1.6;color:#9b8d7d}
 @media(max-width:760px){
-  .route-grid{margin:0 -20px;padding-left:6vw;padding-right:6vw}
-  .route{flex-basis:88vw;min-height:350px;padding:22px}
+  .deck-wrap{max-width:100%}
+  .route-grid{height:360px}
+  .route{width:min(88vw,520px);height:320px;padding:20px}
+  .route h2{font-size:clamp(28px,9vw,36px)}
+  .route p{font-size:10.5px;line-height:1.58}
+  .route-logo{margin-bottom:16px}
+  .route-logo img{width:48px;height:48px;border-radius:12px}
+  .route[data-pos="1"]{transform:translateY(13px) scale(.965)}
+  .route[data-pos="2"]{transform:translateY(25px) scale(.93)}
+  .route[data-pos="3"]{transform:translateY(34px) scale(.90)}
   .shell{width:100%;margin:0;min-height:100vh;border-radius:0}
   .top,.content{padding-left:20px;padding-right:20px}
   .route-grid,.task-grid{grid-template-columns:1fr}
@@ -149,8 +167,8 @@ button,input{font:inherit}
       <p>Select the funding partner you would like to continue with. Direct lender applications open securely in a new tab. Toronto Finance Company keeps the application and document steps together in one guided experience.</p>
     </section>
 
-    <section class="route-grid" id="lenderCarousel" aria-label="Funding application routes">
-      <a class="route journey active" href="https://app.journeycapital.ca/elending?ls=rajkunwarsingh&emlredir=true" target="_blank" rel="noopener noreferrer">
+    <div class="deck-wrap"><section class="route-grid" id="lenderCarousel" aria-label="Funding application routes">
+      <a class="route journey" href="https://app.journeycapital.ca/elending?ls=rajkunwarsingh&emlredir=true" target="_blank" rel="noopener noreferrer">
         <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=journeycapital.ca&sz=128" alt=""><strong>Journey Capital</strong></div>
         <div class="route-kicker">Direct Application</div>
         <h2>Journey Capital</h2>
@@ -187,7 +205,9 @@ button,input{font:inherit}
       <div class="carousel-dots" id="carouselDots"></div>
       <button class="carousel-arrow" id="carouselNext" type="button" aria-label="Next lender">→</button>
     </div>
-    <div class="swipe-hint">Swipe or drag to explore funding partners</div>
+    <div class="swipe-hint">Swipe left or right to explore funding partners</div>
+    <div class="deck-status" id="deckStatus">1 of 4</div>
+    </div>
 
     <p class="helper">Sample only. The existing Toronto Finance Company Client Portal, Admin Portal, Google Drive and lender-email workflow are not connected to this page.</p>
 
@@ -238,6 +258,93 @@ button,input{font:inherit}
 </div>
 
 <script>
+const openTfc=document.getElementById('openTfc');
+const tfcFlow=document.getElementById('tfcFlow');
+const closeTfc=document.getElementById('closeTfc');
+const taskSign=document.getElementById('taskSign');
+const taskUpload=document.getElementById('taskUpload');
+const signPanel=document.getElementById('signPanel');
+const uploadPanel=document.getElementById('uploadPanel');
+const statements=document.getElementById('statements');
+const fileCount=document.getElementById('fileCount');
+const fileList=document.getElementById('fileList');
+const progressBar=document.getElementById('progressBar');
+const lenderCarousel=document.getElementById('lenderCarousel');
+const lenderCards=[...lenderCarousel.querySelectorAll('.route')];
+const carouselDots=document.getElementById('carouselDots');
+const carouselPrev=document.getElementById('carouselPrev');
+const carouselNext=document.getElementById('carouselNext');
+const deckStatus=document.getElementById('deckStatus');
+let currentCard=0;
+let dragCard=null,dragStartX=0,dragStartY=0,dragX=0,dragY=0;
+
+lenderCards.forEach((_,i)=>{
+  const b=document.createElement('button');
+  b.className='carousel-dot'+(i===0?' active':'');
+  b.type='button';
+  b.setAttribute('aria-label','Go to funding option '+(i+1));
+  b.onclick=()=>setCard(i);
+  carouselDots.appendChild(b);
+});
+
+function renderDeck(){
+  lenderCards.forEach((card,index)=>{
+    const distance=(index-currentCard+lenderCards.length)%lenderCards.length;
+    card.dataset.pos=distance<=3?String(distance):'hidden';
+    card.style.pointerEvents=distance===0?'auto':'none';
+    card.classList.remove('swipe-left','swipe-right','dragging');
+    card.style.transform='';
+  });
+  [...carouselDots.children].forEach((dot,i)=>dot.classList.toggle('active',i===currentCard));
+  deckStatus.textContent=(currentCard+1)+' of '+lenderCards.length;
+}
+function setCard(index){
+  currentCard=(index+lenderCards.length)%lenderCards.length;
+  renderDeck();
+}
+function nextCard(direction='left'){
+  const card=lenderCards[currentCard];
+  card.classList.add(direction==='right'?'swipe-right':'swipe-left');
+  setTimeout(()=>{
+    currentCard=(currentCard+1)%lenderCards.length;
+    renderDeck();
+  },220);
+}
+function prevCard(){
+  currentCard=(currentCard-1+lenderCards.length)%lenderCards.length;
+  renderDeck();
+}
+carouselNext.onclick=()=>nextCard('left');
+carouselPrev.onclick=()=>prevCard();
+
+lenderCarousel.addEventListener('pointerdown',e=>{
+  const top=lenderCards[currentCard];
+  if(!top.contains(e.target) || e.target.closest('a,button')) return;
+  dragCard=top;dragStartX=e.clientX;dragStartY=e.clientY;dragX=0;dragY=0;
+  top.classList.add('dragging');
+  try{top.setPointerCapture(e.pointerId)}catch(_){}
+});
+lenderCarousel.addEventListener('pointermove',e=>{
+  if(!dragCard)return;
+  dragX=e.clientX-dragStartX;dragY=e.clientY-dragStartY;
+  const rotation=Math.max(-10,Math.min(10,dragX/22));
+  dragCard.style.transform='translate('+dragX+'px,'+(dragY*.18)+'px) rotate('+rotation+'deg)';
+});
+function finishDrag(e){
+  if(!dragCard)return;
+  const card=dragCard;
+  dragCard=null;
+  try{card.releasePointerCapture(e.pointerId)}catch(_){}
+  card.classList.remove('dragging');
+  card.style.transform='';
+  if(Math.abs(dragX)>90) nextCard(dragX>0?'right':'left');
+  else renderDeck();
+}
+lenderCarousel.addEventListener('pointerup',finishDrag);
+lenderCarousel.addEventListener('pointercancel',finishDrag);
+
+renderDeck();
+
 const openTfc=document.getElementById('openTfc');
 const tfcFlow=document.getElementById('tfcFlow');
 const closeTfc=document.getElementById('closeTfc');
