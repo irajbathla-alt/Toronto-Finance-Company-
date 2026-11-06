@@ -113,8 +113,8 @@ button,input{font:inherit}
 .panel.show{display:block}
 .panel h3{font-family:"Cormorant Garamond",serif;font-size:29px;font-weight:400;text-transform:uppercase;margin:0 0 8px}
 .panel>p{font-size:11px;line-height:1.65;color:var(--muted);margin:0 0 16px}
-.adobe{height:830px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
-.adobe iframe{display:block;width:100%;height:100%;border:0}
+.adobe{height:920px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.adobe iframe{display:block;width:100%;height:100%;min-width:0!important;border:0}
 .upload-zone{
   border:1px dashed rgba(145,111,69,.55);border-radius:12px;padding:30px;text-align:center;
   background:linear-gradient(180deg,#fcf9f4,#f8f1e8)
@@ -268,8 +268,20 @@ button,input{font:inherit}
 
   .internal-head{align-items:flex-start;flex-direction:column}
   .task-grid{grid-template-columns:1fr}
-  .adobe{height:690px;overflow:auto}
-  .adobe iframe{min-width:560px}
+  .panel{padding:14px!important}
+  .adobe{
+    width:100%;
+    height:980px;
+    overflow:hidden;
+    border-radius:10px
+  }
+  .adobe iframe{
+    display:block;
+    width:100%!important;
+    min-width:0!important;
+    height:100%!important;
+    border:0
+  }
 }
 </style>
 </head>
@@ -291,6 +303,14 @@ button,input{font:inherit}
     </section>
 
     <div class="deck-wrap"><section class="route-grid" id="lenderCarousel" aria-label="Funding application routes">
+      <button class="route tfc" id="openTfc" type="button">
+        <div class="route-logo"><div style="width:62px;height:62px;border-radius:15px;background:#17130f;color:#d0a15b;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:23px">TFC</div><strong>Toronto Finance Company</strong></div>
+        <div class="route-kicker">Toronto Finance Company</div>
+        <h2>Apply With Us</h2>
+        <p>Review and sign the Toronto Finance Company application, then prepare your recent business bank statements.</p>
+        <div class="arrow">→</div>
+      </button>
+
       <a class="route journey" href="https://app.journeycapital.ca/elending?ls=rajkunwarsingh&emlredir=true" target="_blank" rel="noopener noreferrer">
         <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=journeycapital.ca&sz=128" alt=""><strong>Journey Capital</strong></div>
         <div class="route-kicker">Direct Application</div>
@@ -314,14 +334,6 @@ button,input{font:inherit}
         <p>Continue directly to Xuper Funding's customer application.</p>
         <div class="arrow">↗</div>
       </a>
-
-      <button class="route tfc" id="openTfc" type="button">
-        <div class="route-logo"><div style="width:62px;height:62px;border-radius:15px;background:#17130f;color:#d0a15b;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:23px">TFC</div><strong>Toronto Finance Company</strong></div>
-        <div class="route-kicker">Toronto Finance Company</div>
-        <h2>Apply With Us</h2>
-        <p>Review and sign the Toronto Finance Company application, then prepare your recent business bank statements.</p>
-        <div class="arrow">→</div>
-      </button>
     </section>
     <div class="carousel-controls">
       <button class="carousel-arrow" id="carouselPrev" type="button" aria-label="Previous lender">←</button>
