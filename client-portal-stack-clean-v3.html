@@ -91,6 +91,46 @@ button,input{font:inherit}
 .carousel-dot.active{width:22px;border-radius:999px;background:#9f7434}
 .swipe-hint{text-align:center;margin-top:10px;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:#9c8e7e}
 .deck-status{text-align:center;margin-top:4px;font-size:9px;color:#9b8d7d}
+
+.card-pills{
+  display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px
+}
+.card-pill{
+  border:1px solid rgba(23,19,15,.16);
+  background:rgba(255,255,255,.72);
+  color:#2a221b;
+  border-radius:999px;
+  padding:7px 11px;
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:.16s ease
+}
+.card-pill:hover{transform:translateY(-1px);border-color:rgba(185,137,63,.55)}
+.card-pill.primary{background:#17130f;color:#fff;border-color:#17130f}
+.route.journey .card-pill.primary{background:#253466;border-color:#253466}
+.route.merchant .card-pill.primary{background:#0873a7;border-color:#0873a7}
+.route.xuper .card-pill.primary{background:#d9402d;border-color:#d9402d}
+.card-more{
+  display:none;
+  margin:0 0 10px;
+  padding:10px 11px;
+  border-radius:10px;
+  background:rgba(255,255,255,.58);
+  border:1px solid rgba(23,19,15,.07);
+  font-size:8.5px;
+  line-height:1.45;
+  color:#6f6459
+}
+.card-more.show{display:block}
+@media(max-width:760px){
+  .card-pills{gap:6px;margin:7px 0 10px}
+  .card-pill{padding:6px 9px;font-size:6.4px}
+  .card-more{font-size:7.8px;line-height:1.4}
+}
+
 .helper{margin:17px 2px 0;font-size:10px;line-height:1.6;color:#9b8d7d}
 .internal{display:none;margin-top:28px;border-top:1px solid rgba(23,19,15,.08);padding-top:30px}
 .internal.show{display:block;animation:fadeUp .28s ease both}
@@ -309,7 +349,12 @@ button,input{font:inherit}
 
     <div class="deck-wrap"><section class="route-grid" id="lenderCarousel" aria-label="Funding application routes">
       <button class="route tfc" id="openTfc" type="button">
-        <div class="route-logo"><div style="width:62px;height:62px;border-radius:15px;background:#17130f;color:#d0a15b;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:23px">TFC</div><strong>Toronto Finance Company</strong></div>
+        <div class="route-logo"><div style="width:62px;height:62px;border-radius:15px;background:#17130f;color:#d0a15b;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:23px">TFC</div><strong>Toronto Finance Company</strong>
+          <div class="card-pills">
+            <button class="card-pill primary" type="button" data-action="apply">Apply Now</button>
+            <button class="card-pill" type="button" data-action="more">Know More</button>
+          </div>
+          <div class="card-more">Apply directly with Toronto Finance Company, complete Review &amp; Sign, and provide your business bank statements in one guided flow.</div></div>
         <div class="route-kicker">Toronto Finance Company</div>
         <h2>Apply With Us</h2>
         <p>Review and sign the Toronto Finance Company application, then prepare your recent business bank statements.</p>
@@ -317,7 +362,12 @@ button,input{font:inherit}
       </button>
 
       <article class="route journey" data-url="https://app.journeycapital.ca/elending?ls=rajkunwarsingh&emlredir=true">
-        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=journeycapital.ca&sz=128" alt=""><strong>Journey Capital</strong></div>
+        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=journeycapital.ca&sz=128" alt=""><strong>Journey Capital</strong>
+          <div class="card-pills">
+            <button class="card-pill primary" type="button" data-action="apply">Apply Now</button>
+            <button class="card-pill" type="button" data-action="more">Know More</button>
+          </div>
+          <div class="card-more">A direct Canadian business-financing route with an online application experience.</div></div>
         <div class="route-kicker">Direct Application</div>
         <h2>Journey Capital</h2>
         <p>Continue directly to Journey Capital's customer application.</p>
@@ -325,7 +375,12 @@ button,input{font:inherit}
       </article>
 
       <article class="route merchant" data-url="https://new.merchantgrowth.com/welcome?userId=005JR00000ArwOHYAZ">
-        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=merchantgrowth.com&sz=128" alt=""><strong>Merchant Growth</strong></div>
+        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=merchantgrowth.com&sz=128" alt=""><strong>Merchant Growth</strong>
+          <div class="card-pills">
+            <button class="card-pill primary" type="button" data-action="apply">Apply Now</button>
+            <button class="card-pill" type="button" data-action="more">Know More</button>
+          </div>
+          <div class="card-more">A Canadian small-business financing provider with direct online application options.</div></div>
         <div class="route-kicker">Direct Application</div>
         <h2>Merchant Growth</h2>
         <p>Continue directly to Merchant Growth's customer application.</p>
@@ -333,7 +388,12 @@ button,input{font:inherit}
       </article>
 
       <article class="route xuper" data-url="https://app.xpfunding.com/xf-en/f/get-funded-today-vancouver-finance-company-inc">
-        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=xpfunding.com&sz=128" alt=""><strong>Xuper Funding</strong></div>
+        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=xpfunding.com&sz=128" alt=""><strong>Xuper Funding</strong>
+          <div class="card-pills">
+            <button class="card-pill primary" type="button" data-action="apply">Apply Now</button>
+            <button class="card-pill" type="button" data-action="more">Know More</button>
+          </div>
+          <div class="card-more">A direct business-funding route focused on working-capital solutions.</div></div>
         <div class="route-kicker">Direct Application</div>
         <h2>Xuper Funding</h2>
         <p>Continue directly to Xuper Funding's customer application.</p>
@@ -517,6 +577,31 @@ lenderCards.forEach(card=>{
     const url=card.dataset.url;
     if(url) window.open(url,'_blank','noopener,noreferrer');
   },true);
+});
+
+document.querySelectorAll('.card-pill').forEach(btn=>{
+  btn.addEventListener('click',e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    const card=btn.closest('.route');
+    const action=btn.dataset.action;
+    if(action==='more'){
+      const more=card.querySelector('.card-more');
+      const show=!more.classList.contains('show');
+      document.querySelectorAll('.card-more.show').forEach(x=>x.classList.remove('show'));
+      more.classList.toggle('show',show);
+      btn.textContent=show?'Close':'Know More';
+      return;
+    }
+    if(action==='apply'){
+      if(card.classList.contains('tfc')){
+        openTfc.click();
+        return;
+      }
+      const url=card.dataset.url;
+      if(url) window.open(url,'_blank','noopener,noreferrer');
+    }
+  });
 });
 
 function showTask(which){
