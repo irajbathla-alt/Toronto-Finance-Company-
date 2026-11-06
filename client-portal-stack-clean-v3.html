@@ -488,10 +488,12 @@ function renderDeck(){
   deckStatus.textContent=(currentCard+1)+' of '+lenderCards.length;
 }
 function setCard(index){
+  closeTfcFlow();
   currentCard=(index+lenderCards.length)%lenderCards.length;
   renderDeck();
 }
 function nextCard(direction='left'){
+  closeTfcFlow();
   const card=lenderCards[currentCard];
   card.classList.add(direction==='right'?'swipe-right':'swipe-left');
   setTimeout(()=>{
@@ -500,6 +502,7 @@ function nextCard(direction='left'){
   },85);
 }
 function prevCard(){
+  closeTfcFlow();
   currentCard=(currentCard-1+lenderCards.length)%lenderCards.length;
   renderDeck();
 }
@@ -576,6 +579,9 @@ function showTask(which){
   requestAnimationFrame(()=>document.querySelector('.panel.show')?.scrollIntoView({behavior:'smooth',block:'start'}));
 }
 
+function closeTfcFlow(){
+  tfcFlow.classList.remove('show');
+}
 function openTfcFlow(){
   tfcFlow.classList.add('show');
   showTask('sign');
@@ -597,7 +603,7 @@ tfcMorePill.addEventListener('click',e=>{
   tfcMoreCopy.classList.toggle('show',show);
   tfcMorePill.textContent=show?'Close':'Know More';
 });
-closeTfc.addEventListener('click',()=>tfcFlow.classList.remove('show'));
+closeTfc.addEventListener('click',closeTfcFlow);
 taskSign.addEventListener('click',()=>showTask('sign'));
 taskUpload.addEventListener('click',()=>showTask('upload'));
 
