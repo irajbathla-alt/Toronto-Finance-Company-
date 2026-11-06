@@ -316,29 +316,29 @@ button,input{font:inherit}
         <div class="arrow">→</div>
       </button>
 
-      <a class="route journey" draggable="false" href="https://app.journeycapital.ca/elending?ls=rajkunwarsingh&emlredir=true" target="_blank" rel="noopener noreferrer">
+      <article class="route journey" data-url="https://app.journeycapital.ca/elending?ls=rajkunwarsingh&emlredir=true">
         <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=journeycapital.ca&sz=128" alt=""><strong>Journey Capital</strong></div>
         <div class="route-kicker">Direct Application</div>
         <h2>Journey Capital</h2>
         <p>Continue directly to Journey Capital's customer application.</p>
         <div class="arrow">↗</div>
-      </a>
+      </article>
 
-      <a class="route merchant" draggable="false" href="https://new.merchantgrowth.com/welcome?userId=005JR00000ArwOHYAZ" target="_blank" rel="noopener noreferrer">
+      <article class="route merchant" data-url="https://new.merchantgrowth.com/welcome?userId=005JR00000ArwOHYAZ">
         <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=merchantgrowth.com&sz=128" alt=""><strong>Merchant Growth</strong></div>
         <div class="route-kicker">Direct Application</div>
         <h2>Merchant Growth</h2>
         <p>Continue directly to Merchant Growth's customer application.</p>
         <div class="arrow">↗</div>
-      </a>
+      </article>
 
-      <a class="route xuper" draggable="false" href="https://app.xpfunding.com/xf-en/f/get-funded-today-vancouver-finance-company-inc" target="_blank" rel="noopener noreferrer">
+      <article class="route xuper" data-url="https://app.xpfunding.com/xf-en/f/get-funded-today-vancouver-finance-company-inc">
         <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=xpfunding.com&sz=128" alt=""><strong>Xuper Funding</strong></div>
         <div class="route-kicker">Direct Application</div>
         <h2>Xuper Funding</h2>
         <p>Continue directly to Xuper Funding's customer application.</p>
         <div class="arrow">↗</div>
-      </a>
+      </article>
     </section>
     <div class="carousel-controls">
       <button class="carousel-arrow" id="carouselPrev" type="button" aria-label="Previous lender">←</button>
@@ -505,15 +505,17 @@ lenderCarousel.addEventListener('pointercancel',finishDrag);
 
 renderDeck();
 
-lenderCards.forEach(card=>card.addEventListener('dragstart',e=>e.preventDefault()));
-
 lenderCards.forEach(card=>{
   card.addEventListener('click',e=>{
     if(suppressCardClick){
       e.preventDefault();
       e.stopPropagation();
       suppressCardClick=false;
+      return;
     }
+    if(card.classList.contains('tfc')) return;
+    const url=card.dataset.url;
+    if(url) window.open(url,'_blank','noopener,noreferrer');
   },true);
 });
 
