@@ -91,6 +91,89 @@ button,input{font:inherit}
 .carousel-dot.active{width:22px;border-radius:999px;background:#9f7434}
 .swipe-hint{text-align:center;margin-top:10px;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:#9c8e7e}
 .deck-status{text-align:center;margin-top:4px;font-size:9px;color:#9b8d7d}
+
+.card-features{
+  list-style:none;padding:0;margin:16px 0 0;
+  display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;
+  max-width:360px
+}
+.card-features li{
+  position:relative;padding-left:15px;
+  font-size:9.5px;line-height:1.35;color:rgba(23,19,15,.72)
+}
+.card-features li:before{
+  content:"";position:absolute;left:0;top:.45em;width:6px;height:6px;
+  border-radius:50%;background:currentColor;opacity:.35
+}
+.route.journey .card-features li{color:#253466}
+.route.merchant .card-features li{color:#0873a7}
+.route.xuper .card-features li{color:#c63e2e}
+.route.tfc .card-features li{color:#8e6732}
+
+.swipe-onboarding{
+  position:fixed;inset:0;z-index:120;
+  display:grid;place-items:center;
+  background:rgba(16,13,10,.56);
+  backdrop-filter:blur(5px);
+  opacity:0;visibility:hidden;
+  transition:opacity .25s ease,visibility .25s ease;
+  padding:20px
+}
+.swipe-onboarding.show{opacity:1;visibility:visible}
+.onboarding-card{
+  width:min(330px,88vw);
+  border-radius:22px;
+  background:rgba(255,250,243,.98);
+  border:1px solid rgba(198,150,78,.28);
+  box-shadow:0 26px 80px rgba(0,0,0,.32);
+  padding:28px 24px 22px;
+  text-align:center
+}
+.onboarding-kicker{
+  font-size:7px;letter-spacing:.18em;text-transform:uppercase;
+  color:#9b763f;font-weight:700
+}
+.onboarding-card h3{
+  font-family:"Cormorant Garamond",serif;
+  font-size:30px;line-height:1;margin:8px 0 8px;
+  font-weight:400;text-transform:none
+}
+.onboarding-card p{
+  font-size:10px;line-height:1.55;color:#786f65;margin:0
+}
+.swipe-demo{
+  position:relative;height:82px;margin:18px 0 10px
+}
+.demo-card{
+  position:absolute;left:50%;top:10px;
+  width:128px;height:64px;border-radius:14px;
+  background:linear-gradient(145deg,#fffaf2,#f0e2cc);
+  border:1px solid rgba(185,137,63,.3);
+  transform:translateX(-50%);
+  box-shadow:0 10px 24px rgba(23,19,15,.10)
+}
+.demo-hand{
+  position:absolute;left:50%;top:32px;
+  font-size:28px;transform:translateX(-50%);
+  animation:swipeTeach 1.6s ease-in-out infinite
+}
+@keyframes swipeTeach{
+  0%,100%{transform:translateX(-50%) translateX(-28px) rotate(-8deg)}
+  50%{transform:translateX(-50%) translateX(28px) rotate(8deg)}
+}
+.tap-hint{
+  margin-top:8px;font-size:7px;letter-spacing:.14em;
+  text-transform:uppercase;color:#9a8b79
+}
+.onboarding-skip{
+  margin-top:16px;border:0;border-radius:999px;background:#17130f;color:#fff;
+  padding:10px 16px;font-size:8px;letter-spacing:.11em;text-transform:uppercase;cursor:pointer
+}
+@media(max-width:760px){
+  .card-features{gap:7px 8px;margin-top:12px;max-width:100%}
+  .card-features li{font-size:8.5px;padding-left:13px}
+}
+
 .helper{margin:17px 2px 0;font-size:10px;line-height:1.6;color:#9b8d7d}
 .internal{display:none;margin-top:28px;border-top:1px solid rgba(23,19,15,.08);padding-top:30px}
 .internal.show{display:block;animation:fadeUp .28s ease both}
@@ -308,6 +391,12 @@ button,input{font:inherit}
         <div class="route-kicker">Toronto Finance Company</div>
         <h2>Apply With Us</h2>
         <p>Review and sign the Toronto Finance Company application, then prepare your recent business bank statements.</p>
+        <ul class="card-features">
+          <li>Managed by TFC</li>
+          <li>Review &amp; sign</li>
+          <li>Upload statements</li>
+          <li>Advisor-guided process</li>
+        </ul>
         <div class="arrow">→</div>
       </button>
 
@@ -316,6 +405,12 @@ button,input{font:inherit}
         <div class="route-kicker">Direct Application</div>
         <h2>Journey Capital</h2>
         <p>Continue directly to Journey Capital's customer application.</p>
+        <ul class="card-features">
+          <li>Direct partner route</li>
+          <li>Online application</li>
+          <li>Secure external link</li>
+          <li>Continue in a new tab</li>
+        </ul>
         <div class="arrow">↗</div>
       </a>
 
@@ -324,6 +419,12 @@ button,input{font:inherit}
         <div class="route-kicker">Direct Application</div>
         <h2>Merchant Growth</h2>
         <p>Continue directly to Merchant Growth's customer application.</p>
+        <ul class="card-features">
+          <li>Direct partner route</li>
+          <li>Online application</li>
+          <li>Secure external link</li>
+          <li>Continue in a new tab</li>
+        </ul>
         <div class="arrow">↗</div>
       </a>
 
@@ -332,6 +433,12 @@ button,input{font:inherit}
         <div class="route-kicker">Direct Application</div>
         <h2>Xuper Funding</h2>
         <p>Continue directly to Xuper Funding's customer application.</p>
+        <ul class="card-features">
+          <li>Direct partner route</li>
+          <li>Online application</li>
+          <li>Secure external link</li>
+          <li>Continue in a new tab</li>
+        </ul>
         <div class="arrow">↗</div>
       </a>
     </section>
@@ -486,6 +593,36 @@ lenderCarousel.addEventListener('pointercancel',finishDrag);
 
 renderDeck();
 
+const swipeOnboarding=document.getElementById('swipeOnboarding');
+const onboardingSkip=document.getElementById('onboardingSkip');
+const ONBOARDING_KEY='tfc-lender-swipe-tutorial-seen';
+function hideOnboarding(){
+  swipeOnboarding.classList.remove('show');
+  swipeOnboarding.setAttribute('aria-hidden','true');
+  try{localStorage.setItem(ONBOARDING_KEY,'yes')}catch(_){}
+}
+function showOnboarding(){
+  swipeOnboarding.classList.add('show');
+  swipeOnboarding.setAttribute('aria-hidden','false');
+}
+try{
+  if(localStorage.getItem(ONBOARDING_KEY)!=='yes'){
+    setTimeout(showOnboarding,450);
+  }
+}catch(_){
+  setTimeout(showOnboarding,450);
+}
+onboardingSkip.addEventListener('click',hideOnboarding);
+swipeOnboarding.addEventListener('click',e=>{
+  if(e.target===swipeOnboarding) hideOnboarding();
+});
+lenderCarousel.addEventListener('pointerdown',()=>{
+  if(swipeOnboarding.classList.contains('show')) hideOnboarding();
+},{passive:true});
+lenderCards.forEach(card=>card.addEventListener('click',()=>{
+  if(swipeOnboarding.classList.contains('show')) hideOnboarding();
+},{capture:true}));
+
 lenderCards.forEach(card=>{
   card.addEventListener('click',e=>{
     if(suppressCardClick){
@@ -540,5 +677,20 @@ statements.addEventListener('change',()=>{
   });
 });
 </script>
+
+<div class="swipe-onboarding" id="swipeOnboarding" aria-hidden="true">
+  <div class="onboarding-card">
+    <div class="onboarding-kicker">Quick Tip</div>
+    <h3>Explore your funding options.</h3>
+    <p>Swipe left or right to view each funding partner.</p>
+    <div class="swipe-demo" aria-hidden="true">
+      <div class="demo-card"></div>
+      <div class="demo-hand">☝️</div>
+    </div>
+    <div class="tap-hint">Then tap the active card to continue</div>
+    <button class="onboarding-skip" id="onboardingSkip" type="button">Got It</button>
+  </div>
+</div>
+
 </body>
 </html>
