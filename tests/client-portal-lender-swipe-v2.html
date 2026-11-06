@@ -276,7 +276,7 @@ const carouselPrev=document.getElementById('carouselPrev');
 const carouselNext=document.getElementById('carouselNext');
 const deckStatus=document.getElementById('deckStatus');
 let currentCard=0;
-let dragCard=null,dragStartX=0,dragStartY=0,dragX=0,dragY=0;
+let dragCard=null,dragStartX=0,dragStartY=0,dragX=0,dragY=0,suppressCardClick=false;
 
 lenderCards.forEach((_,i)=>{
   const b=document.createElement('button');
@@ -319,14 +319,15 @@ carouselPrev.onclick=()=>prevCard();
 
 lenderCarousel.addEventListener('pointerdown',e=>{
   const top=lenderCards[currentCard];
-  if(!top.contains(e.target) || e.target.closest('a,button')) return;
-  dragCard=top;dragStartX=e.clientX;dragStartY=e.clientY;dragX=0;dragY=0;
+  if(!top.contains(e.target) || e.target.closest('button')) return;
+  dragCard=top;dragStartX=e.clientX;dragStartY=e.clientY;dragX=0;dragY=0;suppressCardClick=false;
   top.classList.add('dragging');
   try{top.setPointerCapture(e.pointerId)}catch(_){}
 });
 lenderCarousel.addEventListener('pointermove',e=>{
   if(!dragCard)return;
   dragX=e.clientX-dragStartX;dragY=e.clientY-dragStartY;
+  if(Math.abs(dragX)>8) suppressCardClick=true;
   const rotation=Math.max(-10,Math.min(10,dragX/22));
   dragCard.style.transform='translate('+dragX+'px,'+(dragY*.18)+'px) rotate('+rotation+'deg)';
 });
@@ -345,31 +346,15 @@ lenderCarousel.addEventListener('pointercancel',finishDrag);
 
 renderDeck();
 
-const openTfc=document.getElementById('openTfc');
-const tfcFlow=document.getElementById('tfcFlow');
-const closeTfc=document.getElementById('closeTfc');
-const taskSign=document.getElementById('taskSign');
-const taskUpload=document.getElementById('taskUpload');
-const signPanel=document.getElementById('signPanel');
-const uploadPanel=document.getElementById('uploadPanel');
-const statements=document.getElementById('statements');
-const fileCount=document.getElementById('fileCount');
-const fileList=document.getElementById('fileList');
-const progressBar=document.getElementById('progressBar');
-const lenderCarousel=document.getElementById('lenderCarousel');
-const lenderCards=[...lenderCarousel.querySelectorAll('.route')];
-const carouselDots=document.getElementById('carouselDots');
-const carouselPrev=document.getElementById('carouselPrev');
-const carouselNext=document.getElementById('carouselNext');
-let currentCard=0,dragging=false,startX=0,startScroll=0;
-lenderCards.forEach((_,i)=>{const b=document.createElement('button');b.className='carousel-dot'+(i===0?' active':'');b.type='button';b.setAttribute('aria-label','Go to funding option '+(i+1));b.onclick=()=>goToCard(i);carouselDots.appendChild(b)});
-function goToCard(i){currentCard=Math.max(0,Math.min(lenderCards.length-1,i));lenderCards.forEach((card,n)=>card.classList.toggle('active',n===currentCard));[...carouselDots.children].forEach((dot,n)=>dot.classList.toggle('active',n===currentCard));lenderCards[currentCard].scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'})}
-function updateNearest(){const center=lenderCarousel.scrollLeft+lenderCarousel.clientWidth/2;let best=0,dist=Infinity;lenderCards.forEach((card,i)=>{const d=Math.abs(card.offsetLeft+card.offsetWidth/2-center);if(d<dist){dist=d;best=i}});currentCard=best;lenderCards.forEach((card,n)=>card.classList.toggle('active',n===best));[...carouselDots.children].forEach((dot,n)=>dot.classList.toggle('active',n===best))}
-carouselPrev.onclick=()=>goToCard(currentCard-1);carouselNext.onclick=()=>goToCard(currentCard+1);
-lenderCarousel.addEventListener('scroll',()=>{clearTimeout(lenderCarousel._t);lenderCarousel._t=setTimeout(updateNearest,80)},{passive:true});
-lenderCarousel.addEventListener('pointerdown',e=>{if(e.target.closest('a,button'))return;dragging=true;startX=e.clientX;startScroll=lenderCarousel.scrollLeft;lenderCarousel.classList.add('dragging')});
-lenderCarousel.addEventListener('pointermove',e=>{if(dragging)lenderCarousel.scrollLeft=startScroll-(e.clientX-startX)});
-['pointerup','pointercancel','pointerleave'].forEach(type=>lenderCarousel.addEventListener(type,()=>{if(!dragging)return;dragging=false;lenderCarousel.classList.remove('dragging');updateNearest()}));
+lenderCards.forEach(card=>{
+  card.addEventListener('click',e=>{
+    if(suppressCardClick){
+      e.preventDefault();
+      e.stopPropagation();
+      suppressCardClick=false;
+    }
+  },true);
+});
 
 function showTask(which){
   const sign=which==='sign';
