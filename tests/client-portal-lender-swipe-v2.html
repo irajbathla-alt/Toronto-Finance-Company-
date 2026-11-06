@@ -92,6 +92,14 @@ button,input{font:inherit}
 .swipe-hint{text-align:center;margin-top:10px;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:#9c8e7e}
 .deck-status{text-align:center;margin-top:4px;font-size:9px;color:#9b8d7d}
 
+.about-label{
+  margin-top:15px;
+  font-size:6.8px;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:#9b763f
+}
 .card-features{
   list-style:none;padding:0;margin:16px 0 0;
   display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;
@@ -170,7 +178,8 @@ button,input{font:inherit}
   padding:10px 16px;font-size:8px;letter-spacing:.11em;text-transform:uppercase;cursor:pointer
 }
 @media(max-width:760px){
-  .card-features{gap:7px 8px;margin-top:12px;max-width:100%}
+  .about-label{margin-top:12px;font-size:6px}
+  .card-features{gap:7px 8px;margin-top:8px;max-width:100%}
   .card-features li{font-size:8.5px;padding-left:13px}
 }
 
@@ -391,11 +400,12 @@ button,input{font:inherit}
         <div class="route-kicker">Toronto Finance Company</div>
         <h2>Apply With Us</h2>
         <p>Review and sign the Toronto Finance Company application, then prepare your recent business bank statements.</p>
+        <div class="about-label">About Toronto Finance Company</div>
         <ul class="card-features">
-          <li>Managed by TFC</li>
-          <li>Review &amp; sign</li>
-          <li>Upload statements</li>
-          <li>Advisor-guided process</li>
+          <li>Term Loans, Business Lines of Credit, Flex Funds &amp; MCA</li>
+          <li>Access to 5+ Canadian financing partners</li>
+          <li>Advisor-guided application process</li>
+          <li>Potential initial response within 24 hours</li>
         </ul>
         <div class="arrow">→</div>
       </button>
@@ -405,11 +415,12 @@ button,input{font:inherit}
         <div class="route-kicker">Direct Application</div>
         <h2>Journey Capital</h2>
         <p>Continue directly to Journey Capital's customer application.</p>
+        <div class="about-label">About Journey Capital</div>
         <ul class="card-features">
-          <li>Direct partner route</li>
-          <li>Online application</li>
-          <li>Secure external link</li>
-          <li>Continue in a new tab</li>
+          <li>Direct Canadian business lender</li>
+          <li>Term Loan, Line of Credit &amp; Flex Funds</li>
+          <li>Online application in about 10 minutes</li>
+          <li>Funding can be available in as little as 24 hours</li>
         </ul>
         <div class="arrow">↗</div>
       </a>
@@ -419,11 +430,12 @@ button,input{font:inherit}
         <div class="route-kicker">Direct Application</div>
         <h2>Merchant Growth</h2>
         <p>Continue directly to Merchant Growth's customer application.</p>
+        <div class="about-label">About Merchant Growth</div>
         <ul class="card-features">
-          <li>Direct partner route</li>
-          <li>Online application</li>
-          <li>Secure external link</li>
-          <li>Continue in a new tab</li>
+          <li>Canadian small-business financing provider</li>
+          <li>Term financing up to $1 million</li>
+          <li>Business line of credit up to $125,000</li>
+          <li>Applications reviewed as quickly as the same day</li>
         </ul>
         <div class="arrow">↗</div>
       </a>
@@ -433,11 +445,12 @@ button,input{font:inherit}
         <div class="route-kicker">Direct Application</div>
         <h2>Xuper Funding</h2>
         <p>Continue directly to Xuper Funding's customer application.</p>
+        <div class="about-label">About Xuper Funding</div>
         <ul class="card-features">
-          <li>Direct partner route</li>
-          <li>Online application</li>
-          <li>Secure external link</li>
-          <li>Continue in a new tab</li>
+          <li>Business funding from $10,000 to $750,000</li>
+          <li>Working-capital focused financing</li>
+          <li>Quick online application process</li>
+          <li>Funding advertised in less than 24 hours</li>
         </ul>
         <div class="arrow">↗</div>
       </a>
@@ -497,6 +510,20 @@ button,input{font:inherit}
       </section>
     </section>
   </main>
+</div>
+
+<div class="swipe-onboarding" id="swipeOnboarding" aria-hidden="true">
+  <div class="onboarding-card">
+    <div class="onboarding-kicker">Quick Tip</div>
+    <h3>Explore your funding options.</h3>
+    <p>Swipe left or right to view each funding partner.</p>
+    <div class="swipe-demo" aria-hidden="true">
+      <div class="demo-card"></div>
+      <div class="demo-hand">☝️</div>
+    </div>
+    <div class="tap-hint">Then tap the active card to continue</div>
+    <button class="onboarding-skip" id="onboardingSkip" type="button">Got It</button>
+  </div>
 </div>
 
 <script>
@@ -678,19 +705,7 @@ statements.addEventListener('change',()=>{
 });
 </script>
 
-<div class="swipe-onboarding" id="swipeOnboarding" aria-hidden="true">
-  <div class="onboarding-card">
-    <div class="onboarding-kicker">Quick Tip</div>
-    <h3>Explore your funding options.</h3>
-    <p>Swipe left or right to view each funding partner.</p>
-    <div class="swipe-demo" aria-hidden="true">
-      <div class="demo-card"></div>
-      <div class="demo-hand">☝️</div>
-    </div>
-    <div class="tap-hint">Then tap the active card to continue</div>
-    <button class="onboarding-skip" id="onboardingSkip" type="button">Got It</button>
-  </div>
-</div>
+
 
 </body>
 </html>
