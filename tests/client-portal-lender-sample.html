@@ -43,28 +43,45 @@ button,input{font:inherit}
 .hero{max-width:760px;margin-bottom:30px}
 .hero h1{font-family:"Cormorant Garamond",serif;font-size:clamp(42px,6vw,64px);line-height:.92;font-weight:400;margin:0 0 14px;letter-spacing:-.025em}
 .hero p{font-size:13px;line-height:1.75;color:var(--muted);margin:0;max-width:700px}
-.route-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.route-grid{
+  display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;
+  scrollbar-width:none;padding:8px max(5vw,18px) 20px;margin:0 -34px;cursor:grab
+}
+.route-grid::-webkit-scrollbar{display:none}
+.route-grid.dragging{cursor:grabbing;scroll-behavior:auto;user-select:none}
 .route{
-  position:relative;display:block;width:100%;min-height:168px;padding:21px 58px 21px 21px;
+  position:relative;display:flex;flex:0 0 min(620px,82vw);min-height:330px;padding:26px;
   text-decoration:none;color:var(--ink);text-align:left;border:1px solid rgba(98,78,57,.18);
-  background:linear-gradient(180deg,rgba(255,253,249,.90),rgba(248,242,233,.78));
-  border-radius:14px;box-shadow:0 1px 0 rgba(255,255,255,.8) inset;
-  transition:border-color .18s ease,background .18s ease,box-shadow .18s ease,transform .14s ease;
-  cursor:pointer;
+  border-radius:20px;box-shadow:0 14px 36px rgba(40,28,18,.08);
+  transition:border-color .18s ease,box-shadow .18s ease,transform .2s ease,opacity .2s ease;
+  cursor:pointer;scroll-snap-align:center;flex-direction:column;justify-content:space-between;
+  transform:scale(.965);opacity:.72;overflow:hidden
 }
-.route:hover{border-color:rgba(185,137,63,.62);background:#fffaf3;box-shadow:0 10px 28px rgba(83,58,27,.07),0 1px 0 #fff inset;transform:translateY(-2px)}
-.route .route-kicker{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:#9a7745;font-weight:600}
-.route h2{font-family:"Cormorant Garamond",serif;font-weight:400;font-size:31px;line-height:1;margin:9px 0 8px;text-transform:uppercase}
-.route p{font-size:11px;line-height:1.65;color:var(--muted);margin:0;max-width:430px}
+.route.active{transform:scale(1);opacity:1;box-shadow:0 24px 58px rgba(40,28,18,.13)}
+.route:hover{transform:translateY(-2px) scale(1);opacity:1}
+.route .route-kicker{font-size:8px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;opacity:.66}
+.route h2{font-family:"Cormorant Garamond",serif;font-weight:400;font-size:46px;line-height:.94;margin:13px 0 10px;text-transform:uppercase}
+.route p{font-size:12px;line-height:1.7;margin:0;max-width:500px;opacity:.76}
 .route .arrow{
-  position:absolute;right:20px;top:50%;transform:translateY(-50%);
-  width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
-  background:#fff;border:1px solid rgba(185,137,63,.28);color:#9d743d;font-size:16px;
-  transition:.18s ease;
+  position:absolute;right:22px;bottom:22px;width:40px;height:40px;border-radius:50%;
+  display:grid;place-items:center;background:#fff;border:1px solid rgba(23,19,15,.12);font-size:17px
 }
-.route:hover .arrow{background:#a87c3f;color:#fff;border-color:#a87c3f;transform:translateY(-50%) translateX(2px)}
-.route.tfc{border-color:rgba(185,137,63,.48);background:linear-gradient(180deg,#fffaf2,#f7ead8)}
-.route.tfc:before{content:"";position:absolute;left:21px;right:21px;top:0;height:1px;background:linear-gradient(90deg,transparent,#c69a58,transparent)}
+.route-logo{display:flex;align-items:center;gap:13px;margin-bottom:26px}
+.route-logo img{width:62px;height:62px;border-radius:15px;object-fit:contain;background:#fff;padding:8px;border:1px solid rgba(23,19,15,.08)}
+.route-logo strong{font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.route.journey{background:#f8f2ef;border-color:rgba(41,55,105,.18)}
+.route.journey .route-logo strong{color:#253466}
+.route.merchant{background:linear-gradient(145deg,#f2fbff,#eef9f4);border-color:rgba(8,115,167,.2)}
+.route.merchant .route-logo strong{color:#0873a7}
+.route.xuper{background:linear-gradient(145deg,#fff8f3,#fff0e8);border-color:rgba(227,67,47,.2)}
+.route.xuper .route-logo strong{color:#d9402d}
+.route.tfc{background:linear-gradient(145deg,#fffaf2,#f3e5cf);border-color:rgba(185,137,63,.42)}
+.route.tfc .route-logo strong{color:#9b7137}
+.carousel-controls{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:2px}
+.carousel-arrow{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:16px}
+.carousel-dots{display:flex;gap:7px}.carousel-dot{width:7px;height:7px;border:0;padding:0;border-radius:50%;background:#cfc4b7;cursor:pointer}
+.carousel-dot.active{width:22px;border-radius:999px;background:#9f7434}
+.swipe-hint{text-align:center;margin-top:10px;font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:#9c8e7e}
 .helper{margin:17px 2px 0;font-size:10px;line-height:1.6;color:#9b8d7d}
 .internal{display:none;margin-top:28px;border-top:1px solid rgba(23,19,15,.08);padding-top:30px}
 .internal.show{display:block;animation:fadeUp .28s ease both}
@@ -103,6 +120,8 @@ button,input{font:inherit}
 .progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#b9873e,#d6ad69);transition:.25s ease}
 .local-note{margin-top:13px;font-size:9px;line-height:1.6;color:#9b8d7d}
 @media(max-width:760px){
+  .route-grid{margin:0 -20px;padding-left:6vw;padding-right:6vw}
+  .route{flex-basis:88vw;min-height:350px;padding:22px}
   .shell{width:100%;margin:0;min-height:100vh;border-radius:0}
   .top,.content{padding-left:20px;padding-right:20px}
   .route-grid,.task-grid{grid-template-columns:1fr}
@@ -130,22 +149,25 @@ button,input{font:inherit}
       <p>Select the funding partner you would like to continue with. Direct lender applications open securely in a new tab. Toronto Finance Company keeps the application and document steps together in one guided experience.</p>
     </section>
 
-    <section class="route-grid" aria-label="Funding application routes">
-      <a class="route" href="https://app.journeycapital.ca/elending?ls=rajkunwarsingh&emlredir=true" target="_blank" rel="noopener noreferrer">
+    <section class="route-grid" id="lenderCarousel" aria-label="Funding application routes">
+      <a class="route journey active" href="https://app.journeycapital.ca/elending?ls=rajkunwarsingh&emlredir=true" target="_blank" rel="noopener noreferrer">
+        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=journeycapital.ca&sz=128" alt=""><strong>Journey Capital</strong></div>
         <div class="route-kicker">Direct Application</div>
         <h2>Journey Capital</h2>
         <p>Continue directly to Journey Capital's customer application.</p>
         <div class="arrow">↗</div>
       </a>
 
-      <a class="route" href="https://new.merchantgrowth.com/welcome?userId=005JR00000ArwOHYAZ" target="_blank" rel="noopener noreferrer">
+      <a class="route merchant" href="https://new.merchantgrowth.com/welcome?userId=005JR00000ArwOHYAZ" target="_blank" rel="noopener noreferrer">
+        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=merchantgrowth.com&sz=128" alt=""><strong>Merchant Growth</strong></div>
         <div class="route-kicker">Direct Application</div>
         <h2>Merchant Growth</h2>
         <p>Continue directly to Merchant Growth's customer application.</p>
         <div class="arrow">↗</div>
       </a>
 
-      <a class="route" href="https://app.xpfunding.com/xf-en/f/get-funded-today-vancouver-finance-company-inc" target="_blank" rel="noopener noreferrer">
+      <a class="route xuper" href="https://app.xpfunding.com/xf-en/f/get-funded-today-vancouver-finance-company-inc" target="_blank" rel="noopener noreferrer">
+        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=xpfunding.com&sz=128" alt=""><strong>Xuper Funding</strong></div>
         <div class="route-kicker">Direct Application</div>
         <h2>Xuper Funding</h2>
         <p>Continue directly to Xuper Funding's customer application.</p>
@@ -153,12 +175,19 @@ button,input{font:inherit}
       </a>
 
       <button class="route tfc" id="openTfc" type="button">
+        <div class="route-logo"><div style="width:62px;height:62px;border-radius:15px;background:#17130f;color:#d0a15b;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:23px">TFC</div><strong>Toronto Finance Company</strong></div>
         <div class="route-kicker">Toronto Finance Company</div>
         <h2>Apply With Us</h2>
         <p>Review and sign the Toronto Finance Company application, then prepare your recent business bank statements.</p>
         <div class="arrow">→</div>
       </button>
     </section>
+    <div class="carousel-controls">
+      <button class="carousel-arrow" id="carouselPrev" type="button" aria-label="Previous lender">←</button>
+      <div class="carousel-dots" id="carouselDots"></div>
+      <button class="carousel-arrow" id="carouselNext" type="button" aria-label="Next lender">→</button>
+    </div>
+    <div class="swipe-hint">Swipe or drag to explore funding partners</div>
 
     <p class="helper">Sample only. The existing Toronto Finance Company Client Portal, Admin Portal, Google Drive and lender-email workflow are not connected to this page.</p>
 
@@ -220,6 +249,20 @@ const statements=document.getElementById('statements');
 const fileCount=document.getElementById('fileCount');
 const fileList=document.getElementById('fileList');
 const progressBar=document.getElementById('progressBar');
+const lenderCarousel=document.getElementById('lenderCarousel');
+const lenderCards=[...lenderCarousel.querySelectorAll('.route')];
+const carouselDots=document.getElementById('carouselDots');
+const carouselPrev=document.getElementById('carouselPrev');
+const carouselNext=document.getElementById('carouselNext');
+let currentCard=0,dragging=false,startX=0,startScroll=0;
+lenderCards.forEach((_,i)=>{const b=document.createElement('button');b.className='carousel-dot'+(i===0?' active':'');b.type='button';b.setAttribute('aria-label','Go to funding option '+(i+1));b.onclick=()=>goToCard(i);carouselDots.appendChild(b)});
+function goToCard(i){currentCard=Math.max(0,Math.min(lenderCards.length-1,i));lenderCards.forEach((card,n)=>card.classList.toggle('active',n===currentCard));[...carouselDots.children].forEach((dot,n)=>dot.classList.toggle('active',n===currentCard));lenderCards[currentCard].scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'})}
+function updateNearest(){const center=lenderCarousel.scrollLeft+lenderCarousel.clientWidth/2;let best=0,dist=Infinity;lenderCards.forEach((card,i)=>{const d=Math.abs(card.offsetLeft+card.offsetWidth/2-center);if(d<dist){dist=d;best=i}});currentCard=best;lenderCards.forEach((card,n)=>card.classList.toggle('active',n===best));[...carouselDots.children].forEach((dot,n)=>dot.classList.toggle('active',n===best))}
+carouselPrev.onclick=()=>goToCard(currentCard-1);carouselNext.onclick=()=>goToCard(currentCard+1);
+lenderCarousel.addEventListener('scroll',()=>{clearTimeout(lenderCarousel._t);lenderCarousel._t=setTimeout(updateNearest,80)},{passive:true});
+lenderCarousel.addEventListener('pointerdown',e=>{if(e.target.closest('a,button'))return;dragging=true;startX=e.clientX;startScroll=lenderCarousel.scrollLeft;lenderCarousel.classList.add('dragging')});
+lenderCarousel.addEventListener('pointermove',e=>{if(dragging)lenderCarousel.scrollLeft=startScroll-(e.clientX-startX)});
+['pointerup','pointercancel','pointerleave'].forEach(type=>lenderCarousel.addEventListener(type,()=>{if(!dragging)return;dragging=false;lenderCarousel.classList.remove('dragging');updateNearest()}));
 
 function showTask(which){
   const sign=which==='sign';
