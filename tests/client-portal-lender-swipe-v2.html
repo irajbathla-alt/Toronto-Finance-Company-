@@ -130,23 +130,132 @@ button,input{font:inherit}
 .progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#b9873e,#d6ad69);transition:.25s ease}
 .local-note{margin-top:13px;font-size:9px;line-height:1.6;color:#9b8d7d}
 @media(max-width:760px){
-  .deck-wrap{max-width:100%}
-  .route-grid{height:280px}
-  .route{width:min(92vw,560px);height:240px;padding:17px 18px}
-  .route h2{font-size:clamp(22px,7vw,29px)}
-  .route p{font-size:9.8px;line-height:1.48;max-width:88%}
-  .route-logo{margin-bottom:10px}
-  .route-logo img{width:40px;height:40px;border-radius:10px}
-  .route[data-pos="1"]{transform:translateY(10px) scale(.97)}
-  .route[data-pos="2"]{transform:translateY(18px) scale(.94)}
-  .route[data-pos="3"]{transform:translateY(26px) scale(.91)}
-  .shell{width:100%;margin:0;min-height:100vh;border-radius:0}
-  .top,.content{padding-left:20px;padding-right:20px}
-  .route-grid,.task-grid{grid-template-columns:1fr}
-  .route{min-height:150px}
+  body{background:#15120f}
+  .shell{
+    width:100%;margin:0;min-height:100vh;border-radius:0;
+    border-left:0;border-right:0
+  }
+  .top{
+    padding:16px 18px 14px;
+    align-items:flex-start;
+    min-height:auto
+  }
+  .brand{
+    font-size:21px!important;
+    line-height:.88!important;
+    max-width:190px
+  }
+  .tag{
+    margin-top:7px!important;
+    font-size:6.5px!important;
+    letter-spacing:.18em!important
+  }
+  .sample{
+    font-size:6.5px;
+    letter-spacing:.10em;
+    padding:7px 9px;
+    white-space:nowrap
+  }
+  .content{padding:22px 16px 30px}
+  .hero{
+    margin-bottom:18px;
+    max-width:none
+  }
+  .eyebrow{
+    font-size:6.8px;
+    letter-spacing:.18em;
+    margin-bottom:8px
+  }
+  .hero h1{
+    font-size:clamp(29px,9.2vw,38px)!important;
+    line-height:.94!important;
+    margin:0 0 9px!important;
+    max-width:330px
+  }
+  .hero p{
+    font-size:10px!important;
+    line-height:1.5!important;
+    max-width:95%
+  }
+
+  .deck-wrap{
+    max-width:100%;
+    margin-top:2px
+  }
+  .route-grid{
+    height:235px;
+    margin:0;
+  }
+  .route{
+    width:min(91vw,460px);
+    height:205px;
+    min-height:0!important;
+    padding:15px 16px;
+    border-radius:17px
+  }
+  .route h2{
+    font-size:clamp(20px,6.5vw,26px)!important;
+    line-height:.98;
+    margin:5px 0 5px
+  }
+  .route p{
+    font-size:9px!important;
+    line-height:1.42!important;
+    max-width:82%
+  }
+  .route .route-kicker{
+    font-size:5.8px;
+    letter-spacing:.14em
+  }
+  .route-logo{
+    gap:8px;
+    margin-bottom:8px
+  }
+  .route-logo img{
+    width:34px;
+    height:34px;
+    border-radius:9px;
+    padding:5px
+  }
+  .route-logo strong{
+    font-size:7.6px;
+    letter-spacing:.055em
+  }
+  .route .arrow{
+    right:14px;
+    bottom:14px;
+    width:31px;
+    height:31px;
+    font-size:14px
+  }
+  .route[data-pos="1"]{transform:translateY(8px) scale(.97)}
+  .route[data-pos="2"]{transform:translateY(15px) scale(.945)}
+  .route[data-pos="3"]{transform:translateY(21px) scale(.92)}
+  .route[data-pos="hidden"]{transform:translateY(28px) scale(.90)}
+
+  .carousel-controls{margin-top:0;gap:10px}
+  .carousel-arrow{width:32px;height:32px;font-size:14px}
+  .carousel-dot{width:6px;height:6px}
+  .carousel-dot.active{width:18px}
+  .swipe-hint{
+    margin-top:7px;
+    font-size:5.8px;
+    letter-spacing:.10em
+  }
+  .deck-status{
+    margin-top:3px;
+    font-size:7px
+  }
+  .helper{
+    margin-top:13px!important;
+    font-size:7.5px!important;
+    line-height:1.45!important
+  }
+
   .internal-head{align-items:flex-start;flex-direction:column}
-  .adobe{height:760px;overflow:auto}
-  .adobe iframe{min-width:620px}
+  .task-grid{grid-template-columns:1fr}
+  .adobe{height:690px;overflow:auto}
+  .adobe iframe{min-width:560px}
 }
 </style>
 </head>
