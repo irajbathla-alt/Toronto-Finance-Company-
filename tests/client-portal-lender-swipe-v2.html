@@ -450,7 +450,7 @@ button,input{font:inherit}
     </section>
 
     <div class="deck-wrap"><section class="route-grid" id="lenderCarousel" aria-label="Funding application routes">
-      <button class="route tfc" id="openTfc" type="button">
+      <article class="route tfc" id="openTfc">
         <div class="route-logo">
           <div style="width:62px;height:62px;border-radius:15px;background:#17130f;color:#d0a15b;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:23px">TFC</div>
           <div><strong>Toronto Finance Company</strong><div class="lender-subtitle">Business financing solutions</div></div>
@@ -469,7 +469,7 @@ button,input{font:inherit}
           <button class="card-details" type="button">View details →</button>
           <div class="card-extra">Advisor-guided process with review &amp; sign, bank-statement upload, and financing options from Toronto Finance Company partners.</div>
         </div>
-      </button>
+      </article>
 
       <article class="route journey" data-url="https://app.journeycapital.ca/elending?ls=rajkunwarsingh&emlredir=true">
         <div class="route-logo">
@@ -532,7 +532,7 @@ button,input{font:inherit}
           <button class="card-details" type="button">View details →</button>
           <div class="card-extra">Xuper Funding describes its core product as revenue-based / royalty-based business funding and says applications may be considered with a range of credit profiles.</div>
         </div>
-      </a>
+      </article>
     </section>
     <div class="carousel-controls">
       <button class="carousel-arrow" id="carouselPrev" type="button" aria-label="Previous lender">←</button>
@@ -775,7 +775,8 @@ function showTask(which){
   requestAnimationFrame(()=>document.querySelector('.panel.show')?.scrollIntoView({behavior:'smooth',block:'start'}));
 }
 
-openTfc.addEventListener('click',()=>{
+openTfc.addEventListener('click',e=>{
+  if(e.target.closest('.card-details')) return;
   tfcFlow.classList.add('show');
   showTask('sign');
   requestAnimationFrame(()=>tfcFlow.scrollIntoView({behavior:'smooth',block:'start'}));
