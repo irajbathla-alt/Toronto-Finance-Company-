@@ -1758,7 +1758,54 @@ const sampleAdminState={
 
 function formatSampleMoney(value){
   const n=Number(value);
-  return Number.isFinite(n)&&n>0?'CA
+  return Number.isFinite(n)&&n>0?'CA$'+n.toLocaleString('en-CA'):'—';
+}
+function renderSampleAdminState(data){
+  const status=String(data.status||'');
+  const hasOffer=Boolean(data.approvedAmount||data.quote||data.term||data.paymentAmount||data.totalRepayment);
+  const approved=['Conditional Approval','Approved'].includes(status)&&hasOffer;
+
+  approvalSideSample.classList.toggle('visible',approved);
+  document.getElementById('approvalWorkspace').classList.toggle('visible',approved);
+
+  if(!approved){
+    closeApprovalFocus();
+    requestedDocsList.classList.remove('visible');
+    return;
+  }
+
+  approvalStatusText.textContent=status;
+  approvalProductText.textContent=data.quote||'Financing Available';
+  approvalAmountText.textContent=formatSampleMoney(data.approvedAmount);
+  approvalTermText.textContent=data.term||'—';
+  approvalPaymentText.textContent=formatSampleMoney(data.paymentAmount);
+  approvalFrequencyText.textContent=data.paymentFrequency||'—';
+  approvalTotalText.textContent=formatSampleMoney(data.totalRepayment);
+
+  const docs=Array.isArray(data.requestedDocuments)?data.requestedDocuments.filter(Boolean):[];
+  const showDocs=Boolean(data.additionalDocsEnabled&&docs.length);
+  requestedDocsList.classList.toggle('visible',showDocs);
+
+  if(showDocs){
+    approvalDocsSummary.textContent=docs.length+' document'+(docs.length===1?'':'s')+' requested by your advisor.';
+    requestedCount.textContent=docs.length+' Requested';
+    if(docs[0]){
+      requestedDoc1Title.textContent=docs[0].title||'Requested Document';
+      requestedDoc1Desc.textContent=docs[0].description||'Upload the requested document.';
+    }
+    if(docs[1]){
+      requestedDoc2Title.textContent=docs[1].title||'Requested Document';
+      requestedDoc2Desc.textContent=docs[1].description||'Upload the requested document.';
+    }
+  }else{
+    approvalDocsSummary.textContent='No additional documents requested.';
+  }
+}
+
+renderSampleAdminState(sampleAdminState);
+
+/*
+ * Chat transport boundary:
  * - V4 sample uses local browser storage only.
  * - Final production hookup will keep this UI unchanged and replace these
  *   transport methods with calls to NEW actions added inside the EXISTING
