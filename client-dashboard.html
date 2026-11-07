@@ -849,19 +849,103 @@ button,input{font:inherit}
 .panel>p{font-size:11px;line-height:1.65;color:var(--muted);margin:0 0 16px}
 .adobe{height:920px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
 .adobe iframe{display:block;width:100%;height:100%;min-width:0!important;border:0}
-.upload-zone{
-  border:1px dashed rgba(145,111,69,.55);border-radius:12px;padding:30px;text-align:center;
-  background:linear-gradient(180deg,#fcf9f4,#f8f1e8)
+#uploadPanel{
+  text-align:center;
 }
-.upload-zone strong{display:block;font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:400;text-transform:uppercase;margin-bottom:6px}
-.upload-zone p{font-size:11px;color:var(--muted);line-height:1.6;margin:0}
-.upload-zone input{margin-top:16px;max-width:100%}
-.file-list{margin-top:16px;text-align:left}
+#uploadPanel>h3{
+  text-align:center;
+  margin-left:auto;
+  margin-right:auto;
+}
+#uploadPanel>p{
+  max-width:720px;
+  margin-left:auto;
+  margin-right:auto;
+  text-align:center;
+}
+.upload-zone{
+  width:min(850px,100%);
+  margin:0 auto;
+  border:1px dashed rgba(145,111,69,.42);
+  border-radius:12px;
+  padding:32px 28px 28px;
+  text-align:center;
+  background:#fbf8f3;
+}
+.upload-zone strong{
+  display:block;
+  font-family:"Cormorant Garamond",serif;
+  font-size:26px;
+  font-weight:400;
+  text-transform:uppercase;
+  margin:0 auto 7px;
+  text-align:center;
+}
+.upload-zone p{
+  max-width:620px;
+  margin:0 auto;
+  font-size:11px;
+  color:var(--muted);
+  line-height:1.6;
+  text-align:center;
+}
+.upload-zone input[type="file"]{
+  display:block;
+  width:min(430px,100%);
+  margin:18px auto 0;
+  padding:7px;
+  border:1px solid rgba(23,19,15,.10);
+  border-radius:9px;
+  background:#fff;
+  color:#4b4138;
+  font-size:11px;
+}
+.upload-zone input[type="file"]::file-selector-button{
+  margin-right:10px;
+  border:0;
+  border-radius:7px;
+  padding:9px 13px;
+  background:#17130f;
+  color:#fff;
+  font:inherit;
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:.04em;
+  cursor:pointer;
+}
+#statementUploadBtn{
+  margin-left:auto;
+  margin-right:auto;
+}
+#statementUploadMsg{
+  max-width:620px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.file-list{
+  width:min(720px,100%);
+  margin:16px auto 0;
+  text-align:left;
+}
 .file-item{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid rgba(23,19,15,.07);font-size:11px}
 .file-item:last-child{border-bottom:0}
-.progress{height:7px;border-radius:999px;background:#e9e2d8;margin-top:16px;overflow:hidden}
-.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#b9873e,#d6ad69);transition:.25s ease}
-.local-note{margin-top:13px;font-size:9px;line-height:1.6;color:#9b8d7d}
+.progress{
+  width:min(720px,94%);
+  height:7px;
+  border-radius:999px;
+  background:#e9e2d8;
+  margin:18px auto 0;
+  overflow:hidden;
+}
+.progress i{display:block;height:100%;width:0;background:#6f89a8;transition:.25s ease}
+.local-note{
+  max-width:760px;
+  margin:13px auto 0;
+  text-align:center;
+  font-size:9px;
+  line-height:1.6;
+  color:#9b8d7d;
+}
 @media(min-width:761px){
   .route{cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;will-change:transform}
   .route.dragging{cursor:grabbing}
@@ -2250,7 +2334,7 @@ button,input{font:inherit}
         <p id="flowUploadCopy">Choose recent monthly business bank statements in PDF format. Uploaded statements are saved to your secure client file.</p>
         <div class="upload-zone">
           <strong id="fileCount">No statements selected</strong>
-          <p>Select multiple PDF statements at once. In the live portal these would continue to Google Drive.</p>
+          <p>Select multiple recent PDF bank statements at once.</p>
           <input id="statements" type="file" accept="application/pdf,.pdf" multiple>
           <button class="crm-primary-action" id="statementUploadBtn" type="button">Upload Selected Statements</button>
           <div class="crm-action-msg" id="statementUploadMsg"></div>
