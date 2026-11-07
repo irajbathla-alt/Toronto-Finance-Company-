@@ -1447,6 +1447,85 @@ button,input{font:inherit}
   .candidate-logout{font-size:5.8px;padding:7px 8px}
 }
 
+
+/* Current live-portal requested-document pattern */
+.current-requested-layout{
+  padding:24px;
+  background:#fff;
+  border:1px solid rgba(23,19,15,.08);
+  border-radius:14px;
+}
+.current-requested-layout .requested-kicker{
+  margin-bottom:7px;
+  color:#c6964e;
+  font-size:8px;
+  font-weight:600;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.current-requested-layout h3{
+  margin:0 0 14px;
+  font-family:"Cormorant Garamond",serif;
+  font-size:28px;
+  line-height:1;
+  font-weight:400;
+  text-transform:uppercase;
+}
+.requested-request-box{
+  margin:0 0 14px;
+  padding:14px 16px;
+  border-left:3px solid #c6964e;
+  background:#fbf7f0;
+  color:#4f473f;
+  font-size:11px;
+  line-height:1.6;
+  white-space:pre-wrap;
+}
+.requested-upload-row{
+  display:grid;
+  grid-template-columns:180px minmax(0,1fr);
+  gap:10px;
+}
+.requested-upload-row select,
+.requested-upload-row input{
+  width:100%;
+  min-width:0;
+  padding:11px;
+  border:1px solid rgba(23,19,15,.13);
+  border-radius:9px;
+  background:#fff;
+  color:#17130f;
+  font-size:10px;
+}
+.requested-upload-main{
+  width:100%;
+  margin-top:12px;
+  border:0;
+  border-radius:999px;
+  padding:12px 14px;
+  background:#17130f;
+  color:#fff;
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.requested-upload-main:disabled{opacity:.55;cursor:not-allowed}
+.requested-upload-msg{
+  min-height:16px;
+  margin-top:9px;
+  color:#786f65;
+  font-size:9px;
+  line-height:1.45;
+}
+@media(max-width:760px){
+  .current-requested-layout{padding:18px 14px}
+  .current-requested-layout h3{font-size:24px}
+  .requested-upload-row{grid-template-columns:1fr}
+  .requested-request-box{font-size:9px}
+}
+
 </style>
 </head>
 <body>
@@ -1590,13 +1669,20 @@ button,input{font:inherit}
         </div>
       </div>
 
-      <div class="requested-docs-list" id="requestedDocsList">
-        <div class="requested-docs-top">
-          <h3>Requested Documents</h3>
-          <div class="requested-count" id="requestedCount">2 Requested</div>
+      <div class="requested-docs-list current-requested-layout" id="requestedDocsList">
+        <div class="requested-kicker">Additional Documents Requested</div>
+        <h3>Upload Requested Documents.</h3>
+        <div class="requested-request-box" id="requestedText"></div>
+        <div class="requested-upload-row">
+          <select id="requestedCategory" aria-label="Requested document category">
+            <option value="identification">Identification</option>
+            <option value="financial">Financial Statements</option>
+            <option value="other">Other Documents</option>
+          </select>
+          <input id="requestedFiles" type="file" multiple>
         </div>
-
-        <div id="requestedDocItems"></div>
+        <button class="requested-upload-main" id="requestedUpload" type="button">Upload Selected Documents</button>
+        <div class="requested-upload-msg" id="requestedMsg"></div>
       </div>
     </section>
 
@@ -1726,6 +1812,11 @@ const chatInput=document.getElementById('chatInput');
 const chatSend=document.getElementById('chatSend');
 const chatHistory=document.getElementById('chatHistory');
 const requestedDocsList=document.getElementById('requestedDocsList');
+const requestedText=document.getElementById('requestedText');
+const requestedCategory=document.getElementById('requestedCategory');
+const requestedFiles=document.getElementById('requestedFiles');
+const requestedUpload=document.getElementById('requestedUpload');
+const requestedMsg=document.getElementById('requestedMsg');
 const approvalStatusText=document.getElementById('approvalStatusText');
 const approvalProductText=document.getElementById('approvalProductText');
 const approvalAmountText=document.getElementById('approvalAmountText');
@@ -1734,8 +1825,6 @@ const approvalPaymentText=document.getElementById('approvalPaymentText');
 const approvalFrequencyText=document.getElementById('approvalFrequencyText');
 const approvalTotalText=document.getElementById('approvalTotalText');
 const approvalDocsSummary=document.getElementById('approvalDocsSummary');
-const requestedCount=document.getElementById('requestedCount');
-const requestedDocItems=document.getElementById('requestedDocItems');
 const portalModeBadge=document.getElementById('portalModeBadge');
 const portalShell=document.getElementById('portalShell');
 const candidateLogin=document.getElementById('candidateLogin');
@@ -2358,61 +2447,8 @@ function formatSampleMoney(value){
   const n=Number(String(value||'').replace(/[^0-9.-]/g,''));
   return Number.isFinite(n)&&n?'CA$'+n.toLocaleString('en-CA',{maximumFractionDigits:2}):(value||'—');
 }
-function normalizeRequestedDocs(data){
-  if(Array.isArray(data.requestedDocuments)) return data.requestedDocuments.filter(Boolean);
-  const raw=String(data.documentsRequested||'').trim();
-  if(!raw) return [];
-  try{
-    const parsed=JSON.parse(raw);
-    if(Array.isArray(parsed)){
-      return parsed.map(item=>typeof item==='string'?{title:item,description:'Upload the requested document.'}:item).filter(Boolean);
-    }
-  }catch(_){}
-  return raw.split(/\n|,/).map(x=>x.trim()).filter(Boolean).map(title=>({
-    title,
-    description:'Upload the requested document requested by your advisor.'
-  }));
-}
-function renderRequestedDocItems(docs){
-  requestedDocItems.replaceChildren();
-  const items=docs.length?docs:[{
-    title:'Additional Supporting Document',
-    description:'Please upload the additional document requested by your advisor.'
-  }];
 
-  items.forEach((doc,index)=>{
-    const row=document.createElement('div');
-    row.className='requested-doc-item';
-    row.dataset.requestTitle=String(doc.title||'Requested Document');
 
-    const icon=document.createElement('div');
-    icon.className='requested-doc-icon';
-    icon.textContent=String(index+1);
-
-    const copy=document.createElement('div');
-    copy.className='requested-doc-copy';
-
-    const title=document.createElement('strong');
-    title.textContent=doc.title||('Requested Document '+(index+1));
-
-    const desc=document.createElement('span');
-    desc.textContent=doc.description||'Upload the requested document.';
-
-    const button=document.createElement('button');
-    button.className='requested-doc-upload';
-    button.type='button';
-    button.textContent='Upload';
-
-    const input=document.createElement('input');
-    input.className='requested-file-input';
-    input.type='file';
-    input.hidden=true;
-
-    copy.append(title,desc);
-    row.append(icon,copy,button,input);
-    requestedDocItems.appendChild(row);
-  });
-}
 function renderPortalState(data){
   const status=String(data.status||'');
   const hasOffer=Boolean(data.approvedAmount||data.quote||data.term||data.paymentAmount||data.totalRepayment);
@@ -2435,22 +2471,21 @@ function renderPortalState(data){
   approvalFrequencyText.textContent=data.paymentFrequency||'—';
   approvalTotalText.textContent=formatSampleMoney(data.totalRepayment);
 
-  const docs=normalizeRequestedDocs(data);
   // Match current admin.js exactly: the Admin toggle controls visibility.
   const showDocs=crmIsTrue(data.additionalDocsEnabled);
   requestedDocsList.classList.toggle('visible',showDocs);
 
   if(showDocs){
-    const count=Math.max(1,docs.length);
-    approvalDocsSummary.textContent=docs.length
-      ? docs.length+' document'+(docs.length===1?'':'s')+' requested by your advisor.'
+    const rawRequest=String(data.documentsRequested||'').trim();
+    approvalDocsSummary.textContent=rawRequest
+      ? 'Additional documents requested by your advisor.'
       : 'Additional document requested by your advisor.';
-    requestedCount.textContent=count+' Requested';
-    renderRequestedDocItems(docs);
+    requestedText.textContent=rawRequest||'Please upload the additional documents requested by your advisor.';
   }else{
     approvalDocsSummary.textContent='No additional documents requested.';
-    requestedCount.textContent='0 Requested';
-    requestedDocItems.replaceChildren();
+    requestedText.textContent='';
+    requestedFiles.value='';
+    requestedMsg.textContent='';
   }
 
   if(liveClientReady()){
@@ -2566,43 +2601,35 @@ chatInput.addEventListener('keydown',e=>{
     sendPortalChat();
   }
 });
-requestedDocsList.addEventListener('click',e=>{
-  const button=e.target.closest('.requested-doc-upload');
-  if(!button) return;
-  const item=button.closest('.requested-doc-item');
-  item?.querySelector('.requested-file-input')?.click();
-});
-requestedDocsList.addEventListener('change',async e=>{
-  const input=e.target.closest('.requested-file-input');
-  if(!input) return;
-  const item=input.closest('.requested-doc-item');
-  const button=item?.querySelector('.requested-doc-upload');
-  const file=input.files?.[0];
-  if(!item||!button||!file) return;
+requestedUpload.addEventListener('click',async()=>{
+  if(!liveClientReady()) return;
 
-  if(!liveClientReady()){
-    button.textContent='Selected ✓';
-    button.classList.add('selected');
+  const files=[...requestedFiles.files];
+  const category=requestedCategory.value;
+
+  if(!files.length){
+    requestedMsg.textContent='Select one or more requested documents first.';
+    return;
+  }
+  if(files.some(file=>file.size>20*1024*1024)){
+    requestedMsg.textContent='Each document must be smaller than 20 MB.';
     return;
   }
 
-  button.disabled=true;
-  button.textContent='Uploading...';
+  requestedUpload.disabled=true;
+  requestedMsg.textContent='Uploading '+files.length+' document'+(files.length===1?'':'s')+'...';
+
   try{
-    const requestedTitle=String(item.dataset.requestTitle||item.querySelector('.requested-doc-copy strong')?.textContent||'').toLowerCase();
-    let uploadType='document';
-    if(/bank|statement/.test(requestedTitle)) uploadType='statement';
-    else if(/identification|\bid\b|driver|passport/.test(requestedTitle)) uploadType='identification';
-    else if(/financial|income statement|balance sheet|tax return|t2\b/.test(requestedTitle)) uploadType='financial';
-    await uploadCurrentClientFile(file,uploadType);
-    button.textContent='Uploaded ✓';
-    button.classList.add('selected');
+    for(const file of files){
+      await uploadCurrentClientFile(file,category);
+    }
+    requestedFiles.value='';
+    requestedMsg.textContent='Documents sent. Your advisor will see them in your file.';
     setTimeout(()=>refreshCurrentClient(false).catch(()=>{}),1800);
   }catch(error){
-    button.textContent='Try Again';
-    alert(error.message||'Upload failed.');
+    requestedMsg.textContent=error.message||'Upload failed.';
   }finally{
-    button.disabled=false;
+    requestedUpload.disabled=false;
   }
 });
 
