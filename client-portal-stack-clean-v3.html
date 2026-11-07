@@ -115,6 +115,16 @@ button,input{font:inherit}
 }
 .card-action.apply{background:#6F89A8;color:#fff}
 .card-action.more{background:#B08A57;color:#fff}
+.route-requirement{
+  width:100%;
+  margin:1px auto 8px!important;
+  text-align:center;
+  font-size:7px!important;
+  line-height:1.35!important;
+  color:#8a7967!important;
+  opacity:1!important;
+  letter-spacing:.02em;
+}
 
 .criteria-modal{
   position:fixed;
@@ -531,7 +541,8 @@ button,input{font:inherit}
           <button class="card-action apply" type="button" data-action="apply">Apply Now</button>
           <button class="card-action more" type="button" data-action="more">Know More</button>
         </div>
-        <p>Continue directly to Journey Capital's customer application.</p>
+        <p class="route-requirement">Uses the TFC secure application + recent business bank statements.</p>
+        <p>Toronto Finance Company will prepare and submit your completed package to Journey Capital.</p>
         <div class="arrow">↗</div>
       </article>
 
@@ -573,9 +584,9 @@ button,input{font:inherit}
     <section class="internal" id="tfcFlow">
       <div class="internal-head">
         <div>
-          <div class="eyebrow">Toronto Finance Company Route</div>
-          <h2>Complete your application.</h2>
-          <p>Two simple steps: review and sign, then provide your recent business bank statements.</p>
+          <div class="eyebrow" id="flowEyebrow">Toronto Finance Company Route</div>
+          <h2 id="flowTitle">Complete your application.</h2>
+          <p id="flowIntro">Two simple steps: review and sign, then provide your recent business bank statements.</p>
         </div>
         <button class="close" id="closeTfc" type="button">Close</button>
       </div>
@@ -591,7 +602,7 @@ button,input{font:inherit}
 
       <section class="panel show" id="signPanel">
         <h3>Review & Sign</h3>
-        <p>Complete the Toronto Finance Company application and provide your secure Adobe electronic signature.</p>
+        <p id="flowSignCopy">Complete the Toronto Finance Company application and provide your secure Adobe electronic signature.</p>
         <div class="adobe">
           <iframe
             src="https://na4.documents.adobe.com/public/esignWidget?wid=CBFCIBAA3AAABLblqZhBgCTXn5u_TlQ7fvxZVQRsrOtRGUybq5Exlw8eHr4geWAx9Ptarkd-XwhkIlxmWwlk*&hosted=false"
@@ -602,7 +613,7 @@ button,input{font:inherit}
 
       <section class="panel" id="uploadPanel">
         <h3>Bank Statements</h3>
-        <p>Choose recent monthly business bank statements in PDF format. This sample demonstrates the client experience only.</p>
+        <p id="flowUploadCopy">Choose recent monthly business bank statements in PDF format. This sample demonstrates the client experience only.</p>
         <div class="upload-zone">
           <strong id="fileCount">No statements selected</strong>
           <p>Select multiple PDF statements at once. In the live portal these would continue to Google Drive.</p>
@@ -650,6 +661,11 @@ const statements=document.getElementById('statements');
 const fileCount=document.getElementById('fileCount');
 const fileList=document.getElementById('fileList');
 const progressBar=document.getElementById('progressBar');
+const flowEyebrow=document.getElementById('flowEyebrow');
+const flowTitle=document.getElementById('flowTitle');
+const flowIntro=document.getElementById('flowIntro');
+const flowSignCopy=document.getElementById('flowSignCopy');
+const flowUploadCopy=document.getElementById('flowUploadCopy');
 const lenderCarousel=document.getElementById('lenderCarousel');
 const lenderCards=[...lenderCarousel.querySelectorAll('.route')];
 const carouselDots=document.getElementById('carouselDots');
@@ -814,7 +830,8 @@ const lenderCriteria={
       '600+ personal credit score',
       '$120,000+ annual business revenue',
       'Canadian incorporated business',
-      'Canadian business bank account'
+      'Canadian business bank account',
+      'Signed TFC application + recent business bank statements required for submission'
     ],
     products:[
       {name:'Business Term Loan',desc:'Best for a defined project or larger one-time need. Predictable repayment over 6–24 months.'},
@@ -946,7 +963,11 @@ lenderCards.forEach(card=>{
         return;
       }
       if(card.classList.contains('tfc')){
-        openTfcFlow();
+        openApplicationFlow('tfc');
+        return;
+      }
+      if(card.classList.contains('journey')){
+        openApplicationFlow('journey');
         return;
       }
       const url=card.dataset.url;
@@ -967,10 +988,25 @@ function showTask(which){
 function closeTfcFlow(){
   tfcFlow.classList.remove('show');
 }
-function openTfcFlow(){
+function openApplicationFlow(route='tfc'){
+  const isJourney=route==='journey';
+  flowEyebrow.textContent=isJourney?'Journey Capital Submission':'Toronto Finance Company Route';
+  flowTitle.textContent=isJourney?'Complete your Journey Capital package.':'Complete your application.';
+  flowIntro.textContent=isJourney
+    ?'Journey Capital requires the same signed application and recent business bank statements. Complete both steps here and Toronto Finance Company will prepare your submission.'
+    :'Two simple steps: review and sign, then provide your recent business bank statements.';
+  flowSignCopy.textContent=isJourney
+    ?'Review and sign the Toronto Finance Company application used to prepare your Journey Capital submission.'
+    :'Complete the Toronto Finance Company application and provide your secure Adobe electronic signature.';
+  flowUploadCopy.textContent=isJourney
+    ?'Provide your recent monthly business bank statements so Toronto Finance Company can package them with your signed application for Journey Capital.'
+    :'Choose recent monthly business bank statements in PDF format. This sample demonstrates the client experience only.';
   tfcFlow.classList.add('show');
   showTask('sign');
   requestAnimationFrame(()=>tfcFlow.scrollIntoView({behavior:'smooth',block:'start'}));
+}
+function openTfcFlow(){
+  openApplicationFlow('tfc');
 }
 closeTfc.addEventListener('click',closeTfcFlow);
 taskSign.addEventListener('click',()=>showTask('sign'));
