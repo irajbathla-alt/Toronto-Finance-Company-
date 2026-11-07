@@ -212,6 +212,24 @@ button,input{font:inherit}
   text-transform:uppercase;
   color:#9b763f;
 }
+.criteria-network{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+.criteria-network span{
+  display:inline-flex;
+  align-items:center;
+  padding:8px 10px;
+  border-radius:999px;
+  background:rgba(176,138,87,.10);
+  border:1px solid rgba(176,138,87,.20);
+  color:#5f4931;
+  font-size:7.5px;
+  line-height:1;
+  font-weight:600;
+}
+
 .criteria-products{
   display:grid;
   gap:8px;
@@ -608,8 +626,12 @@ button,input{font:inherit}
     <div class="criteria-highlights" id="criteriaHighlights"></div>
     <div class="criteria-section-title" id="criteriaEligibilityTitle">Minimum Eligibility</div>
     <ul class="criteria-list" id="criteriaList"></ul>
+    <div id="criteriaNetworkWrap">
+      <div class="criteria-section-title" id="criteriaNetworkTitle">Lender Network</div>
+      <div class="criteria-network" id="criteriaNetwork"></div>
+    </div>
     <div id="criteriaProductsWrap">
-      <div class="criteria-section-title">Which product may fit?</div>
+      <div class="criteria-section-title" id="criteriaProductsTitle">Which product may fit?</div>
       <div class="criteria-products" id="criteriaProducts"></div>
     </div>
     <p class="criteria-note" id="criteriaNote"></p>
@@ -641,7 +663,11 @@ const criteriaIntro=document.getElementById('criteriaIntro');
 const criteriaHighlights=document.getElementById('criteriaHighlights');
 const criteriaEligibilityTitle=document.getElementById('criteriaEligibilityTitle');
 const criteriaList=document.getElementById('criteriaList');
+const criteriaNetworkWrap=document.getElementById('criteriaNetworkWrap');
+const criteriaNetworkTitle=document.getElementById('criteriaNetworkTitle');
+const criteriaNetwork=document.getElementById('criteriaNetwork');
 const criteriaProductsWrap=document.getElementById('criteriaProductsWrap');
+const criteriaProductsTitle=document.getElementById('criteriaProductsTitle');
 const criteriaProducts=document.getElementById('criteriaProducts');
 const criteriaNote=document.getElementById('criteriaNote');
 let currentCard=0;
@@ -744,14 +770,34 @@ renderDeck();
 const lenderCriteria={
   tfc:{
     title:'Toronto Finance Company',
-    intro:'Toronto Finance Company works with multiple financing partners, so final eligibility depends on the product and lender selected.',
-    items:[
-      'Typical starting profile: 6+ months in business.',
-      'Typical minimum business revenue: about $10,000+ per month.',
-      'Regular business-bank deposits and recent bank statements are generally required.',
-      'Approval, amount, pricing and repayment terms remain subject to the selected lender’s underwriting.'
+    intro:'A manual application-submission route that lets one client package be reviewed across multiple Canadian business-financing partners.',
+    highlights:[
+      {value:'5+',label:'Lender partners'},
+      {value:'590',label:'Credit may be considered from'},
+      {value:'Manual',label:'Application submission'}
     ],
-    note:'Toronto Finance Company is a financing advisor and works across multiple lender programs.'
+    eligibility:[
+      'Signed business financing application required',
+      '6–12 months of recent business bank statements',
+      'Most industries can be considered',
+      'Credit scores as low as 590 may be considered, depending on the lender and program'
+    ],
+    lenders:[
+      'KM Capital',
+      'Sheaves Capital',
+      'Canacap Funding',
+      'iCapital',
+      'DUCA Financial Credit Union'
+    ],
+    networkTitle:'Participating lender network',
+    productTitle:'Financing solutions',
+    products:[
+      {name:'Term Loans',desc:'Structured business financing for a defined funding need, expansion, working capital or growth initiative.'},
+      {name:'Lines of Credit',desc:'Revolving business credit for ongoing working-capital and cash-flow needs.'},
+      {name:'Flex Funds',desc:'Flexible business funding designed for businesses that may prefer repayment tied more closely to cash flow.'},
+      {name:'Equipment Financing',desc:'Financing for eligible business equipment purchases or equipment-related capital needs.'}
+    ],
+    note:'Toronto Finance Company manually packages and submits applications to suitable lender partners. Final lender selection, approval, amount, pricing, documentation and terms are subject to each lender’s underwriting and due diligence.'
   },
   journey:{
     title:'Journey Capital',
@@ -840,6 +886,15 @@ function openCriteria(card){
   });
   criteriaEligibilityTitle.textContent=data.eligibility?'Minimum Eligibility':'Key Criteria';
 
+  criteriaNetwork.replaceChildren();
+  (data.lenders||[]).forEach(name=>{
+    const chip=document.createElement('span');
+    chip.textContent=name;
+    criteriaNetwork.appendChild(chip);
+  });
+  criteriaNetworkTitle.textContent=data.networkTitle||'Lender Network';
+  criteriaNetworkWrap.style.display=(data.lenders&&data.lenders.length)?'block':'none';
+
   criteriaProducts.replaceChildren();
   (data.products||[]).forEach(item=>{
     const box=document.createElement('div');
@@ -851,6 +906,7 @@ function openCriteria(card){
     box.append(strong,span);
     criteriaProducts.appendChild(box);
   });
+  criteriaProductsTitle.textContent=data.productTitle||'Which product may fit?';
   criteriaProductsWrap.style.display=(data.products&&data.products.length)?'block':'none';
 
   criteriaNote.textContent=data.note;
