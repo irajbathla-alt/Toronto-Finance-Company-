@@ -1204,6 +1204,188 @@ button,input{font:inherit}
     border:0
   }
 }
+
+/* Final mobile composition: compact side-by-side preview, full details on focus */
+@media(max-width:760px){
+  .content{padding:20px 12px 30px}
+
+  .funding-row{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:8px;
+    align-items:start;
+    overflow:hidden;
+  }
+
+  .funding-row .route-grid{
+    height:318px;
+  }
+
+  .funding-row .route{
+    height:300px;
+    padding:14px 12px;
+    border-radius:17px;
+  }
+
+  .funding-row .route-logo{
+    gap:7px;
+    margin-bottom:9px;
+  }
+  .funding-row .route-logo>div,
+  .funding-row .route-logo img{
+    width:31px!important;
+    height:31px!important;
+    min-width:31px!important;
+    flex:0 0 31px;
+  }
+  .funding-row .route-logo strong{
+    font-size:6.3px;
+    line-height:1.15;
+    letter-spacing:.02em;
+  }
+  .funding-row .route .route-kicker{
+    font-size:5px;
+    letter-spacing:.1em;
+  }
+  .funding-row .route h2{
+    font-size:20px!important;
+    line-height:1!important;
+    margin:7px 0 5px;
+  }
+  .funding-row .route p{
+    font-size:7.5px!important;
+    line-height:1.35!important;
+    max-width:100%;
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .funding-row .card-actions{
+    gap:6px;
+    margin:8px 0;
+  }
+  .funding-row .card-action{
+    width:94%;
+    padding:8px 6px;
+    font-size:6.4px;
+  }
+  .funding-row .route .arrow{display:none}
+
+  .approval-side{
+    height:300px;
+    margin:0;
+    padding:14px 12px;
+    border-radius:17px;
+  }
+  .approval-side .approval-kicker{
+    font-size:5.4px;
+    letter-spacing:.12em;
+  }
+  .approval-side-status{
+    margin-top:6px;
+    padding:5px 7px;
+    font-size:5.1px;
+    letter-spacing:.06em;
+  }
+  .approval-side h3{
+    font-size:19px;
+    line-height:1;
+    margin:10px 0 3px;
+  }
+  .approval-side-amount{
+    font-size:31px;
+    line-height:1;
+    margin:4px 0 10px;
+  }
+
+  /* Do not crush the full approval grid into half a phone screen. */
+  .approval-side:not(.focused) .approval-side-grid{
+    display:none;
+  }
+  .approval-side:not(.focused) .approval-doc-state{
+    margin-top:4px;
+    padding:8px;
+    font-size:6.3px;
+    line-height:1.35;
+  }
+  .approval-side:not(.focused) .approval-doc-state strong{
+    font-size:4.8px;
+  }
+  .approval-side:not(.focused) .approval-doc-state #approvalDocsSummary{
+    white-space:normal;
+    overflow:visible;
+    text-overflow:clip;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+  }
+  .approval-side:not(.focused) .approval-card-actions{
+    gap:6px;
+    padding-top:8px;
+    margin-top:auto;
+  }
+  .approval-side:not(.focused) .approval-card-actions button{
+    width:96%;
+    padding:8px 6px;
+    font-size:6.3px;
+  }
+
+  .approval-side.focused{
+    width:min(90vw,390px);
+    height:min(84vh,520px);
+    padding:20px 18px;
+  }
+  .approval-side.focused .approval-side-grid{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  }
+  .approval-side.focused h3{font-size:31px}
+  .approval-side.focused .approval-side-amount{
+    font-size:40px;
+    margin-bottom:14px;
+  }
+  .approval-side.focused .approval-side-grid div{
+    min-height:48px;
+    padding:10px 9px;
+  }
+  .approval-side.focused .approval-side-grid small{
+    font-size:5.5px;
+  }
+  .approval-side.focused .approval-side-grid strong{
+    font-size:8.5px;
+    line-height:1.25;
+  }
+  .approval-side.focused .approval-doc-state{
+    margin-top:10px;
+    padding:10px;
+    font-size:8px;
+  }
+  .approval-side.focused .approval-card-actions{
+    gap:7px;
+    padding-top:10px;
+  }
+  .approval-side.focused .approval-card-actions button{
+    width:min(210px,82%);
+    padding:10px 14px;
+    font-size:7px;
+  }
+
+  .funding-row .swipe-hint{font-size:5.8px}
+  .funding-row .deck-status{font-size:6.8px}
+}
+
+@media(max-width:390px){
+  .funding-row{gap:6px}
+  .funding-row .route,
+  .approval-side{
+    height:292px;
+  }
+  .funding-row .route-grid{height:310px}
+  .funding-row .route h2{font-size:18px!important}
+  .approval-side h3{font-size:17px}
+  .approval-side-amount{font-size:28px}
+}
+
 </style>
 </head>
 <body>
