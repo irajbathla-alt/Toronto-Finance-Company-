@@ -24,7 +24,7 @@
     ])
   });
   const PORTAL_TARGETS = Object.freeze({
-    current: 'client-dashboard.html',
+    current: 'client-dashboard-v4.html',
     v4: 'client-dashboard-v4.html'
   });
 
