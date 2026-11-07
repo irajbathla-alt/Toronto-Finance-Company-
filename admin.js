@@ -146,16 +146,37 @@
   }
 
   async function load(showToast = false) {
+    const selectedId = selected?.applicationId || '';
+    const drawerWasOpen = $('#drawer')?.classList.contains('show');
     $('#refresh').disabled = true;
     try {
       const result = await readApi('adminList', { adminToken:adminToken() });
       if (!result?.ok) throw new Error(result?.error || 'Could not load applications.');
       applications = result.data || [];
       render();
+
+      if (selectedId && drawerWasOpen) {
+        const freshSelected = applications.find(app => String(app.applicationId) === String(selectedId));
+        if (freshSelected) openFile(selectedId);
+        else closeDrawer();
+      }
+
       $('#lastSync').textContent = `Last refreshed ${new Date().toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit' })}`;
       if (showToast) toast('Applications refreshed');
+      return true;
     } catch (error) {
-      toast(error.message);
+      const message = error?.message || 'Could not load applications.';
+      if (/admin session expired/i.test(message)) {
+        sessionStorage.removeItem('tfc-admin-token');
+        $('#admin').classList.add('hidden');
+        $('#login').classList.remove('hidden');
+        $('#logoutBtn').classList.add('hidden');
+        $('#loginMsg').className = 'notice error';
+        $('#loginMsg').textContent = 'Your admin session expired. Please log in again.';
+      } else {
+        toast(message);
+      }
+      return false;
     } finally {
       $('#refresh').disabled = false;
     }
@@ -482,4 +503,15 @@
     sessionStorage.removeItem('tfc-admin-token');
     location.reload();
   };
+
+  async function resumeAdminSession() {
+    if (!adminToken()) return;
+    $('#login').classList.add('hidden');
+    $('#admin').classList.remove('hidden');
+    $('#logoutBtn').classList.remove('hidden');
+    $('#loginMsg').textContent = '';
+    await load(false);
+  }
+
+  resumeAdminSession();
 })();
