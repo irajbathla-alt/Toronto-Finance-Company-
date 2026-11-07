@@ -1596,25 +1596,7 @@ button,input{font:inherit}
           <div class="requested-count" id="requestedCount">2 Requested</div>
         </div>
 
-        <div class="requested-doc-item">
-          <div class="requested-doc-icon">1</div>
-          <div class="requested-doc-copy">
-            <strong id="requestedDoc1Title">Updated Business Bank Statement</strong>
-            <span id="requestedDoc1Desc">Please provide the most recent statement requested by your advisor.</span>
-          </div>
-          <button class="requested-doc-upload" type="button">Upload</button>
-          <input class="requested-file-input" type="file" hidden>
-        </div>
-
-        <div class="requested-doc-item">
-          <div class="requested-doc-icon">2</div>
-          <div class="requested-doc-copy">
-            <strong id="requestedDoc2Title">Additional Supporting Document</strong>
-            <span id="requestedDoc2Desc">Upload the supporting document listed in your advisor’s request.</span>
-          </div>
-          <button class="requested-doc-upload" type="button">Upload</button>
-          <input class="requested-file-input" type="file" hidden>
-        </div>
+        <div id="requestedDocItems"></div>
       </div>
     </section>
 
@@ -1753,10 +1735,7 @@ const approvalFrequencyText=document.getElementById('approvalFrequencyText');
 const approvalTotalText=document.getElementById('approvalTotalText');
 const approvalDocsSummary=document.getElementById('approvalDocsSummary');
 const requestedCount=document.getElementById('requestedCount');
-const requestedDoc1Title=document.getElementById('requestedDoc1Title');
-const requestedDoc1Desc=document.getElementById('requestedDoc1Desc');
-const requestedDoc2Title=document.getElementById('requestedDoc2Title');
-const requestedDoc2Desc=document.getElementById('requestedDoc2Desc');
+const requestedDocItems=document.getElementById('requestedDocItems');
 const portalModeBadge=document.getElementById('portalModeBadge');
 const portalShell=document.getElementById('portalShell');
 const candidateLogin=document.getElementById('candidateLogin');
@@ -2394,6 +2373,46 @@ function normalizeRequestedDocs(data){
     description:'Upload the requested document requested by your advisor.'
   }));
 }
+function renderRequestedDocItems(docs){
+  requestedDocItems.replaceChildren();
+  const items=docs.length?docs:[{
+    title:'Additional Supporting Document',
+    description:'Please upload the additional document requested by your advisor.'
+  }];
+
+  items.forEach((doc,index)=>{
+    const row=document.createElement('div');
+    row.className='requested-doc-item';
+    row.dataset.requestTitle=String(doc.title||'Requested Document');
+
+    const icon=document.createElement('div');
+    icon.className='requested-doc-icon';
+    icon.textContent=String(index+1);
+
+    const copy=document.createElement('div');
+    copy.className='requested-doc-copy';
+
+    const title=document.createElement('strong');
+    title.textContent=doc.title||('Requested Document '+(index+1));
+
+    const desc=document.createElement('span');
+    desc.textContent=doc.description||'Upload the requested document.';
+
+    const button=document.createElement('button');
+    button.className='requested-doc-upload';
+    button.type='button';
+    button.textContent='Upload';
+
+    const input=document.createElement('input');
+    input.className='requested-file-input';
+    input.type='file';
+    input.hidden=true;
+
+    copy.append(title,desc);
+    row.append(icon,copy,button,input);
+    requestedDocItems.appendChild(row);
+  });
+}
 function renderPortalState(data){
   const status=String(data.status||'');
   const hasOffer=Boolean(data.approvedAmount||data.quote||data.term||data.paymentAmount||data.totalRepayment);
@@ -2417,29 +2436,21 @@ function renderPortalState(data){
   approvalTotalText.textContent=formatSampleMoney(data.totalRepayment);
 
   const docs=normalizeRequestedDocs(data);
-  const showDocs=Boolean(crmIsTrue(data.additionalDocsEnabled)&&docs.length);
+  // Match current admin.js exactly: the Admin toggle controls visibility.
+  const showDocs=crmIsTrue(data.additionalDocsEnabled);
   requestedDocsList.classList.toggle('visible',showDocs);
 
   if(showDocs){
-    approvalDocsSummary.textContent=docs.length+' document'+(docs.length===1?'':'s')+' requested by your advisor.';
-    requestedCount.textContent=docs.length+' Requested';
-    const slots=[
-      [requestedDoc1Title,requestedDoc1Desc,docs[0]],
-      [requestedDoc2Title,requestedDoc2Desc,docs[1]]
-    ];
-    slots.forEach(([titleEl,descEl,doc],index)=>{
-      const item=titleEl.closest('.requested-doc-item');
-      if(doc){
-        item.style.display='';
-        titleEl.textContent=doc.title||('Requested Document '+(index+1));
-        descEl.textContent=doc.description||'Upload the requested document.';
-      }else{
-        item.style.display='none';
-      }
-    });
+    const count=Math.max(1,docs.length);
+    approvalDocsSummary.textContent=docs.length
+      ? docs.length+' document'+(docs.length===1?'':'s')+' requested by your advisor.'
+      : 'Additional document requested by your advisor.';
+    requestedCount.textContent=count+' Requested';
+    renderRequestedDocItems(docs);
   }else{
     approvalDocsSummary.textContent='No additional documents requested.';
-    requestedDocsList.querySelectorAll('.requested-doc-item').forEach(item=>item.style.display='');
+    requestedCount.textContent='0 Requested';
+    requestedDocItems.replaceChildren();
   }
 
   if(liveClientReady()){
@@ -2555,39 +2566,44 @@ chatInput.addEventListener('keydown',e=>{
     sendPortalChat();
   }
 });
-document.querySelectorAll('.requested-doc-item').forEach(item=>{
-  const button=item.querySelector('.requested-doc-upload');
-  const input=item.querySelector('.requested-file-input');
-  button.addEventListener('click',()=>input.click());
-  input.addEventListener('change',async()=>{
-    const file=input.files?.[0];
-    if(!file) return;
+requestedDocsList.addEventListener('click',e=>{
+  const button=e.target.closest('.requested-doc-upload');
+  if(!button) return;
+  const item=button.closest('.requested-doc-item');
+  item?.querySelector('.requested-file-input')?.click();
+});
+requestedDocsList.addEventListener('change',async e=>{
+  const input=e.target.closest('.requested-file-input');
+  if(!input) return;
+  const item=input.closest('.requested-doc-item');
+  const button=item?.querySelector('.requested-doc-upload');
+  const file=input.files?.[0];
+  if(!item||!button||!file) return;
 
-    if(!liveClientReady()){
-      button.textContent='Selected ✓';
-      button.classList.add('selected');
-      return;
-    }
+  if(!liveClientReady()){
+    button.textContent='Selected ✓';
+    button.classList.add('selected');
+    return;
+  }
 
-    button.disabled=true;
-    button.textContent='Uploading...';
-    try{
-      const requestedTitle=String(item.querySelector('.requested-doc-copy strong')?.textContent||'').toLowerCase();
-      let uploadType='document';
-      if(/bank|statement/.test(requestedTitle)) uploadType='statement';
-      else if(/identification|\bid\b|driver|passport/.test(requestedTitle)) uploadType='identification';
-      else if(/financial|income statement|balance sheet|tax return|t2\b/.test(requestedTitle)) uploadType='financial';
-      await uploadCurrentClientFile(file,uploadType);
-      button.textContent='Uploaded ✓';
-      button.classList.add('selected');
-      setTimeout(()=>refreshCurrentClient(false).catch(()=>{}),1800);
-    }catch(error){
-      button.textContent='Try Again';
-      alert(error.message||'Upload failed.');
-    }finally{
-      button.disabled=false;
-    }
-  });
+  button.disabled=true;
+  button.textContent='Uploading...';
+  try{
+    const requestedTitle=String(item.dataset.requestTitle||item.querySelector('.requested-doc-copy strong')?.textContent||'').toLowerCase();
+    let uploadType='document';
+    if(/bank|statement/.test(requestedTitle)) uploadType='statement';
+    else if(/identification|\bid\b|driver|passport/.test(requestedTitle)) uploadType='identification';
+    else if(/financial|income statement|balance sheet|tax return|t2\b/.test(requestedTitle)) uploadType='financial';
+    await uploadCurrentClientFile(file,uploadType);
+    button.textContent='Uploaded ✓';
+    button.classList.add('selected');
+    setTimeout(()=>refreshCurrentClient(false).catch(()=>{}),1800);
+  }catch(error){
+    button.textContent='Try Again';
+    alert(error.message||'Upload failed.');
+  }finally{
+    button.disabled=false;
+  }
 });
 
 document.addEventListener('keydown',e=>{
