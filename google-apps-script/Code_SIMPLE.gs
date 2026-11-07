@@ -284,24 +284,31 @@ function appendChatMessage(applicationId, sender, message) {
   const text = String(message || '').trim().slice(0,4000);
   if (!text) return findApplication(applicationId);
 
-  const record = findApplication(applicationId);
-  const history = parseChatHistory(record.chatHistory);
-  history.push({
-    id:Utilities.getUuid(),
-    sender:String(sender || '').toUpperCase() === 'CLIENT' ? 'CLIENT' : 'ADVISOR',
-    message:text,
-    at:new Date().toISOString()
-  });
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
 
-  while (history.length > 60) history.shift();
-  let serialized = JSON.stringify(history);
-  while (serialized.length > 45000 && history.length > 1) {
-    history.shift();
-    serialized = JSON.stringify(history);
+  try {
+    const record = findApplication(applicationId);
+    const history = parseChatHistory(record.chatHistory);
+    history.push({
+      id:Utilities.getUuid(),
+      sender:String(sender || '').toUpperCase() === 'CLIENT' ? 'CLIENT' : 'ADVISOR',
+      message:text,
+      at:new Date().toISOString()
+    });
+
+    while (history.length > 60) history.shift();
+    let serialized = JSON.stringify(history);
+    while (serialized.length > 45000 && history.length > 1) {
+      history.shift();
+      serialized = JSON.stringify(history);
+    }
+
+    updateRecord(applicationId,{ chatHistory:serialized });
+    return findApplication(applicationId);
+  } finally {
+    lock.releaseLock();
   }
-
-  updateRecord(applicationId,{ chatHistory:serialized });
-  return findApplication(applicationId);
 }
 
 function hash(value) {
