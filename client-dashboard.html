@@ -2554,6 +2554,7 @@ const CRM_REQUEST_TIMEOUT=Math.max(Number(crmCfg.requestTimeout||30000),30000);
 let crmClient=null;
 let crmRefreshTimer=null;
 let crmRefreshInFlight=null;
+let crmRefreshApplicationId='';
 let crmHealthReady=false;
 let portalConversationSignature='';
 let pendingMoreInfo=false;
@@ -2614,12 +2615,29 @@ function saveCurrentClient(data){
 }
 async function refreshCurrentClient(showError=false){
   if(!liveClientReady()) return null;
-  if(crmRefreshInFlight) return crmRefreshInFlight;
 
-  crmRefreshInFlight=(async()=>{
+  const requestApplicationId=String(crmClient.applicationId||'');
+  const requestEmail=String(crmClient.email||'');
+
+  if(crmRefreshInFlight && crmRefreshApplicationId===requestApplicationId){
+    return crmRefreshInFlight;
+  }
+
+  let requestPromise;
+  requestPromise=(async()=>{
     try{
-      const result=await crmApi(CURRENT_CRM_ACTIONS.getClient,{applicationId:crmClient.applicationId,email:crmClient.email});
+      const result=await crmApi(CURRENT_CRM_ACTIONS.getClient,{
+        applicationId:requestApplicationId,
+        email:requestEmail
+      });
       if(!result?.ok) throw new Error(result?.error||'Could not refresh this application.');
+
+      // Ignore a stale response if the user logged out or switched accounts
+      // while this request was still in flight.
+      if(!liveClientReady() || String(crmClient.applicationId||'')!==requestApplicationId){
+        return null;
+      }
+
       crmClient={...crmClient,...result.data};
       saveCurrentClient(crmClient);
       renderPortalState(crmClient);
@@ -2628,16 +2646,21 @@ async function refreshCurrentClient(showError=false){
       if(showError) portalModeHelper.textContent='Your portal is up to date.';
       return crmClient;
     }catch(error){
-      if(showError){
+      if(showError && liveClientReady() && String(crmClient.applicationId||'')===requestApplicationId){
         portalModeHelper.textContent='We could not refresh the latest update. Your current portal information is still available.';
       }
       throw error;
     }finally{
-      crmRefreshInFlight=null;
+      if(crmRefreshInFlight===requestPromise){
+        crmRefreshInFlight=null;
+        crmRefreshApplicationId='';
+      }
     }
   })();
 
-  return crmRefreshInFlight;
+  crmRefreshInFlight=requestPromise;
+  crmRefreshApplicationId=requestApplicationId;
+  return requestPromise;
 }
 async function uploadCurrentClientFile(file,type='document'){
   if(!liveClientReady()) throw new Error('Please sign in to your client portal before uploading.');
@@ -3540,8 +3563,11 @@ async function candidateLoginSubmit(){
     writeCurrentClientSession(result.data);
     candidatePassword.value='';
     showCandidatePortal(result.data);
-    await refreshCurrentClient(false);
     candidateLoginMsg.textContent='';
+
+    // Authentication succeeded. A temporary refresh issue should not throw
+    // the client back to the login screen.
+    refreshCurrentClient(false).catch(()=>{});
   }catch(error){
     clearCurrentClientSession();
     showCandidateLogin(error.message||'Login failed.');
