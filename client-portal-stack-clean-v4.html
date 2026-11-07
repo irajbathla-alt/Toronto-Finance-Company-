@@ -394,13 +394,34 @@ button,input{font:inherit}
   overflow:hidden;
   display:flex;
   flex-direction:column;
-  cursor:pointer;
+  cursor:default;
   transition:transform .34s cubic-bezier(.22,.75,.24,1),box-shadow .28s ease,border-color .28s ease;
   z-index:6;
 }
 .approval-side.visible{display:flex}
 .approval-workspace.visible{display:block}
 .requested-docs-list.visible{display:block}
+.approval-card-open-zone{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  border:0;
+  padding:0;
+  margin:0;
+  background:transparent;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+.approval-card-open-zone:focus-visible{
+  outline:2px solid rgba(222,196,138,.65);
+  outline-offset:-3px;
+  border-radius:inherit;
+}
+.approval-card-actions,
+.approval-focus-close{
+  position:relative;
+  z-index:3;
+}
 .approval-side:hover{
   box-shadow:0 24px 58px rgba(40,28,18,.18);
   border-color:rgba(198,150,78,.52);
@@ -536,6 +557,9 @@ button,input{font:inherit}
 .approval-focus-backdrop.show{
   opacity:1;
   visibility:visible;
+}
+.approval-side.focused .approval-card-open-zone{
+  pointer-events:none;
 }
 .approval-side.focused{
   position:fixed;
@@ -1226,7 +1250,8 @@ button,input{font:inherit}
     <div class="deck-status" id="deckStatus">1 of 4</div>
     </div>
 
-    <aside class="approval-side" id="approvalSideSample" role="button" tabindex="0" aria-label="Open approval details">
+    <aside class="approval-side" id="approvalSideSample">
+      <button class="approval-card-open-zone" id="approvalOpenZone" type="button" aria-label="Open approval details"></button>
       <button class="approval-focus-close" id="approvalFocusClose" type="button" aria-label="Close approval details">×</button>
       <div class="approval-kicker">Approval Snapshot</div>
       <div class="approval-side-status" id="approvalStatusText">Conditional Approval</div>
@@ -1410,6 +1435,7 @@ const criteriaProducts=document.getElementById('criteriaProducts');
 const criteriaNote=document.getElementById('criteriaNote');
 const approvalSideSample=document.getElementById('approvalSideSample');
 const approvalFocusBackdrop=document.getElementById('approvalFocusBackdrop');
+const approvalOpenZone=document.getElementById('approvalOpenZone');
 const approvalFocusClose=document.getElementById('approvalFocusClose');
 const approvalProceed=document.getElementById('approvalProceed');
 const approvalMore=document.getElementById('approvalMore');
@@ -1719,22 +1745,17 @@ function closeApprovalFocus(){
   approvalFocusBackdrop.classList.remove('show');
   approvalSideSample.getBoundingClientRect();
 }
-approvalSideSample.addEventListener('click',e=>{
-  if(e.target.closest('button')) return;
+approvalOpenZone.addEventListener('click',e=>{
+  e.preventDefault();
+  e.stopPropagation();
   openApprovalFocus();
-});
-approvalSideSample.addEventListener('keydown',e=>{
-  if((e.key==='Enter'||e.key===' ')&&!e.target.closest('button')){
-    e.preventDefault();
-    openApprovalFocus();
-  }
 });
 approvalFocusBackdrop.addEventListener('click',closeApprovalFocus);
 
 [approvalFocusClose,approvalProceed,approvalMore].forEach(button=>{
-  button.addEventListener('pointerdown',e=>e.stopPropagation());
-  button.addEventListener('mousedown',e=>e.stopPropagation());
-  button.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});
+  ['pointerdown','pointerup','mousedown','mouseup','touchstart','touchend','click'].forEach(type=>{
+    button.addEventListener(type,e=>e.stopPropagation(),{passive:type.startsWith('touch')});
+  });
 });
 
 approvalFocusClose.addEventListener('click',e=>{
