@@ -2125,94 +2125,6 @@ button,input{font:inherit}
   }
 }
 
-/* Final mobile swipe contract: full-width deck, natural drag, clean snap. */
-@media(max-width:760px){
-  .funding-row,
-  .funding-row.no-approval,
-  .funding-row.has-approval{
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr)!important;
-    width:100%!important;
-    max-width:100%!important;
-    gap:14px!important;
-    overflow:visible!important;
-    align-items:start!important;
-  }
-
-  .funding-row .deck-wrap,
-  .funding-row.no-approval .deck-wrap,
-  .funding-row.has-approval .deck-wrap{
-    width:min(100%,390px)!important;
-    max-width:390px!important;
-    min-width:0!important;
-    margin:0 auto!important;
-    overflow:visible!important;
-    touch-action:pan-y!important;
-  }
-
-  .funding-row .route-grid,
-  .funding-row.no-approval .route-grid,
-  .funding-row.has-approval .route-grid{
-    width:100%!important;
-    max-width:390px!important;
-    height:328px!important;
-    margin:0 auto!important;
-    overflow:visible!important;
-    touch-action:pan-y!important;
-    overscroll-behavior-x:contain;
-  }
-
-  .funding-row .route,
-  .funding-row.no-approval .route,
-  .funding-row.has-approval .route{
-    top:8px!important;
-    left:10px!important;
-    right:10px!important;
-    bottom:auto!important;
-    width:calc(100% - 20px)!important;
-    max-width:none!important;
-    height:302px!important;
-    margin:0!important;
-    padding:14px 13px!important;
-    touch-action:pan-y!important;
-    transform-origin:50% 86%!important;
-    transition:
-      transform .20s cubic-bezier(.22,.75,.24,1),
-      opacity .18s ease,
-      filter .18s ease,
-      box-shadow .18s ease!important;
-    will-change:transform;
-  }
-
-  .funding-row .route[data-pos="0"]{transform:translateY(0) scale(1)!important}
-  .funding-row .route[data-pos="1"]{transform:translateY(9px) scale(.974)!important}
-  .funding-row .route[data-pos="2"]{transform:translateY(16px) scale(.952)!important}
-  .funding-row .route[data-pos="3"]{transform:translateY(22px) scale(.932)!important}
-  .funding-row .route[data-pos="hidden"]{transform:translateY(29px) scale(.914)!important}
-
-  .funding-row .route.dragging{
-    transition:none!important;
-  }
-  .funding-row .route.swipe-left{
-    transform:translate3d(-115%,6px,0) rotate(-4deg)!important;
-    opacity:.96!important;
-  }
-  .funding-row .route.swipe-right{
-    transform:translate3d(115%,6px,0) rotate(4deg)!important;
-    opacity:.96!important;
-  }
-
-  .funding-row.has-approval .approval-side.visible:not(.focused){
-    width:min(100%,370px)!important;
-    max-width:370px!important;
-    height:300px!important;
-    margin:2px auto 0!important;
-  }
-
-  .carousel-controls{margin-top:2px!important}
-  .swipe-hint{margin-top:7px!important}
-}
-
 </style>
 </head>
 <body>
@@ -2775,12 +2687,11 @@ function moveCard(step,direction){
   deckAnimating=true;
   const card=lenderCards[currentCard];
   card.classList.add(direction==='right'?'swipe-right':'swipe-left');
-  const swipeDuration=window.matchMedia('(max-width:760px)').matches?205:145;
   setTimeout(()=>{
     currentCard=(currentCard+step+lenderCards.length)%lenderCards.length;
     renderDeck();
     deckAnimating=false;
-  },swipeDuration);
+  },145);
 }
 function nextCard(direction='left'){
   moveCard(1,direction);
@@ -2882,8 +2793,8 @@ function finishDrag(e){
   }
 
   const desktop=e.pointerType==='mouse';
-  const distanceThreshold=desktop?52:Math.max(42,Math.min(58,card.getBoundingClientRect().width*.16));
-  const velocityThreshold=desktop?.45:.34;
+  const distanceThreshold=desktop?52:70;
+  const velocityThreshold=desktop?.45:.55;
   const shouldSwipe=Math.abs(dragX)>distanceThreshold || Math.abs(dragVelocityX)>velocityThreshold;
 
   if(shouldSwipe){
