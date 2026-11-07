@@ -1890,7 +1890,7 @@ button,input{font:inherit}
       <div class="tag">Business Financing Solutions</div>
     </div>
     <div class="candidate-top-actions">
-      <div class="sample" id="portalModeBadge">V4 Candidate</div>
+      <div class="sample" id="portalModeBadge">Release Candidate</div>
       <button class="candidate-logout" id="candidateLogout" type="button">Log Out</button>
     </div>
   </header>
@@ -2059,7 +2059,7 @@ button,input{font:inherit}
 
       <section class="panel" id="uploadPanel">
         <h3>Bank Statements</h3>
-        <p id="flowUploadCopy">Choose recent monthly business bank statements in PDF format. This sample demonstrates the client experience only.</p>
+        <p id="flowUploadCopy">Choose recent monthly business bank statements in PDF format. Uploaded statements are saved to your secure client file.</p>
         <div class="upload-zone">
           <strong id="fileCount">No statements selected</strong>
           <p>Select multiple PDF statements at once. In the live portal these would continue to Google Drive.</p>
@@ -2069,7 +2069,7 @@ button,input{font:inherit}
           <div class="progress"><i id="progressBar"></i></div>
           <div class="file-list" id="fileList"></div>
         </div>
-        <div class="local-note" id="statementModeNote">Preview mode: selected files remain in your browser unless this page detects your authenticated current client session.</div>
+        <div class="local-note" id="statementModeNote">Uploaded statements are sent through the current secure CRM workflow to your existing client Google Drive folder.</div>
       </section>
     </section>
   </main>
@@ -2198,8 +2198,8 @@ const crmCfg=window.TFC_CONFIG||{};
  * - uploadDocument (POST only)
  *
  * Retained two-way chat is NOT part of Code_SIMPLE.gs yet. When added later,
- * add clientChatList/clientChatSend to this same backend and plug them into
- * chatTransport below. Do not create a second Apps Script deployment.
+ * add clientChatList/clientChatSend to this same backend and wire the existing
+ * conversation UI to those actions. Do not create a second Apps Script deployment.
  */
 const CURRENT_CRM_ACTIONS=Object.freeze({
   health:'health',
@@ -2776,7 +2776,7 @@ approvalMore.addEventListener('click',e=>{
   requestAnimationFrame(()=>advisorChat.scrollIntoView({behavior:'smooth',block:'nearest'}));
 });
 
-function formatSampleMoney(value){
+function formatPortalMoney(value){
   const n=Number(String(value||'').replace(/[^0-9.-]/g,''));
   return Number.isFinite(n)&&n?'CA$'+n.toLocaleString('en-CA',{maximumFractionDigits:2}):(value||'—');
 }
@@ -2800,11 +2800,11 @@ function renderPortalState(data){
 
   approvalStatusText.textContent=status;
   approvalProductText.textContent=data.quote||'Financing Available';
-  approvalAmountText.textContent=formatSampleMoney(data.approvedAmount);
+  approvalAmountText.textContent=formatPortalMoney(data.approvedAmount);
   approvalTermText.textContent=data.term||'—';
-  approvalPaymentText.textContent=formatSampleMoney(data.paymentAmount);
+  approvalPaymentText.textContent=formatPortalMoney(data.paymentAmount);
   approvalFrequencyText.textContent=data.paymentFrequency||'—';
-  approvalTotalText.textContent=formatSampleMoney(data.totalRepayment);
+  approvalTotalText.textContent=formatPortalMoney(data.totalRepayment);
 
   // Match current admin.js exactly: the Admin toggle controls visibility.
   const showDocs=crmIsTrue(data.additionalDocsEnabled);
@@ -3112,7 +3112,7 @@ function showCandidatePortal(data){
   saveCurrentClient(data);
   candidateLogin.hidden=true;
   portalShell.hidden=false;
-  portalModeBadge.textContent='Current CRM Session';
+  portalModeBadge.textContent='Secure Client Portal';
   portalModeHelper.textContent='Connected to the current Toronto Finance Company Apps Script, Sheets and Drive workflow.';
   statementModeNote.textContent='Uploaded statements are sent through the current secure CRM workflow to this client’s existing Google Drive folder.';
   renderPortalState(data);
