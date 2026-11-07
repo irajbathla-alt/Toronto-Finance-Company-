@@ -1051,18 +1051,40 @@ button,input{font:inherit}
     flex:0 0 auto;
   }
   .approval-side-amount{
-    font-size:31px;
+    font-size:29px;
     line-height:1;
-    margin:4px 0 10px;
+    margin:3px 0 7px;
     flex:0 0 auto;
   }
-  .approval-side:not(.focused) .approval-side-grid{display:none}
+  .approval-side:not(.focused) .approval-side-grid{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:1px;
+    flex:0 0 auto;
+    border-radius:8px;
+  }
+  .approval-side:not(.focused) .approval-side-grid div{
+    min-height:27px;
+    padding:4px 5px;
+  }
+  .approval-side:not(.focused) .approval-side-grid small{
+    font-size:3.7px;
+    line-height:1.05;
+    margin-bottom:2px;
+    letter-spacing:.06em;
+  }
+  .approval-side:not(.focused) .approval-side-grid strong{
+    font-size:5.8px;
+    line-height:1.1;
+    overflow-wrap:normal;
+    word-break:normal;
+  }
   .approval-side:not(.focused) .approval-doc-state{
     flex:0 0 auto;
     margin-top:4px;
-    padding:8px;
-    font-size:6.3px;
-    line-height:1.35;
+    padding:5px 6px;
+    font-size:5.5px;
+    line-height:1.2;
   }
   .approval-side:not(.focused) .approval-doc-state strong{
     font-size:4.8px;
@@ -1078,14 +1100,14 @@ button,input{font:inherit}
   }
   .approval-side:not(.focused) .approval-card-actions{
     flex:0 0 auto;
-    gap:6px;
-    padding-top:8px;
+    gap:4px;
+    padding-top:5px;
     margin-top:auto;
   }
   .approval-side:not(.focused) .approval-card-actions button{
     width:96%;
-    padding:8px 6px;
-    font-size:6.3px;
+    padding:7px 6px;
+    font-size:5.9px;
   }
   .approval-action-status{display:none}
   .approval-side-note{display:none}
@@ -1301,16 +1323,7 @@ button,input{font:inherit}
 }
 
 
-@media(min-width:761px){
-  .approval-side.focused{
-    left:var(--approval-focus-left,50%);
-    top:var(--approval-focus-top,24px);
-    transform:translate(-50%,0) scale(1.015);
-  }
-  .approval-side.focused:hover{
-    transform:translate(-50%,0) scale(1.015);
-  }
-}
+
 
 </style>
 </head>
@@ -2063,24 +2076,12 @@ document.addEventListener('keydown',e=>{
 
 function openApprovalFocus(){
   closeCriteria();
-
-  if(window.matchMedia('(min-width:761px)').matches){
-    const rect=approvalSideSample.getBoundingClientRect();
-    const scale=1.015;
-    const focusedHeight=rect.height*scale;
-    const safeTop=Math.max(18,Math.min(rect.top,window.innerHeight-focusedHeight-18));
-    approvalSideSample.style.setProperty('--approval-focus-top',safeTop+'px');
-    approvalSideSample.style.setProperty('--approval-focus-left',(rect.left+rect.width/2)+'px');
-  }
-
   approvalSideSample.classList.add('focused');
   approvalFocusBackdrop.classList.add('show');
 }
 function closeApprovalFocus(){
   approvalSideSample.classList.remove('focused');
   approvalFocusBackdrop.classList.remove('show');
-  approvalSideSample.style.removeProperty('--approval-focus-top');
-  approvalSideSample.style.removeProperty('--approval-focus-left');
   approvalSideSample.getBoundingClientRect();
 }
 approvalOpenZone.addEventListener('click',e=>{
