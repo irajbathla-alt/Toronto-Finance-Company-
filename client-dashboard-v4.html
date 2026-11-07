@@ -2187,8 +2187,10 @@ const crmCfg=window.TFC_CONFIG||{};
  * and crm-config.js deployment. Keep action names here so future production
  * implementation can swap the UI without rewriting the Apps Script workflow.
  *
- * Existing supported actions:
+ * Existing supported actions used by the shared workflow:
  * - health
+ * - createAccount (both intake experiences)
+ * - sendSignupNotification
  * - clientLogin
  * - getClient
  * - clientConfirmSignature
@@ -2201,6 +2203,8 @@ const crmCfg=window.TFC_CONFIG||{};
  */
 const CURRENT_CRM_ACTIONS=Object.freeze({
   health:'health',
+  createAccount:'createAccount',
+  sendSignupNotification:'sendSignupNotification',
   clientLogin:'clientLogin',
   getClient:'getClient',
   confirmSignature:'clientConfirmSignature',
@@ -2225,10 +2229,25 @@ const CURRENT_CRM_FIELDS=Object.freeze({
   clientDecisionNote:'clientDecisionNote'
 });
 
+/*
+ * Shared intake contract:
+ * - current intake sends name/email/phone/password
+ * - future fuller intake may also send the optional application fields already
+ *   accepted by Code_SIMPLE.gs createAccount()
+ * Both return the same safe-client record and use the same application/session.
+ */
+const CURRENT_CRM_INTAKES=Object.freeze({
+  current:Object.freeze(['name','email','phone','password']),
+  extended:Object.freeze([
+    'name','email','phone','password',
+    'business','address','city','province','postal',
+    'industry','revenue','requested','years','purpose'
+  ])
+});
+
 const CRM_SESSION_KEY='tfc-client-auth';
 const CRM_LEGACY_KEY='tfc-current-application';
 const CRM_REQUEST_TIMEOUT=Math.max(Number(crmCfg.requestTimeout||30000),30000);
-const SAMPLE_CHAT_KEY='tfc-v4-chat-thread-v1';
 let crmClient=null;
 let crmRefreshTimer=null;
 let crmHealthReady=false;
@@ -2723,10 +2742,6 @@ approvalProceed.addEventListener('click',async e=>{
   e.preventDefault();
   e.stopPropagation();
   if(!approvalSideSample.classList.contains('visible')) return;
-  if(!liveClientReady()){
-    approvalActionStatus.textContent='Preview: Proceed selected.';
-    return;
-  }
   approvalProceed.disabled=true;
   approvalMore.disabled=true;
   approvalActionStatus.textContent='Sending your response...';
@@ -2755,32 +2770,11 @@ approvalMore.addEventListener('click',e=>{
   e.stopPropagation();
   if(!approvalSideSample.classList.contains('visible')) return;
   pendingMoreInfo=true;
-  approvalActionStatus.textContent=liveClientReady()
-    ? 'Tell your advisor what you need below.'
-    : 'Preview: opening advisor message area.';
+  approvalActionStatus.textContent='Tell your advisor what you need below.';
   closeApprovalFocus();
   chatInput.placeholder='Tell your advisor what information you need...';
   requestAnimationFrame(()=>advisorChat.scrollIntoView({behavior:'smooth',block:'nearest'}));
 });
-
-/*
- * Preview fallback only.
- * In an authenticated current client session, renderPortalState() is populated
- * by CURRENT_CRM_ACTIONS.getClient using the exact fields in CURRENT_CRM_FIELDS.
- */
-const sampleAdminState={
-  status:new URLSearchParams(location.search).get('approval')==='0'?'Under Review':'Conditional Approval',
-  approvedAmount:'75000',
-  quote:'Business Term Loan',
-  term:'12 Months',
-  paymentFrequency:'Weekly',
-  paymentAmount:'1825',
-  totalRepayment:'94900',
-  additionalDocsEnabled:true,
-  documentsRequested:'Updated Business Bank Statement, Additional Supporting Document',
-  messageTitle:'Your Approval Is Ready',
-  messageBody:'Your approval is available above. If you have a question about the terms, send us a message here.'
-};
 
 function formatSampleMoney(value){
   const n=Number(String(value||'').replace(/[^0-9.-]/g,''));
@@ -2844,34 +2838,6 @@ function renderPortalState(data){
  * and the latest client response in clientDecision/clientDecisionNote.
  * Retained two-way chat will plug into this UI later using actions added to this SAME backend.
  */
-const chatTransport={
-  mode:'sample-local',
-  list(){
-    try{
-      const parsed=JSON.parse(localStorage.getItem(SAMPLE_CHAT_KEY)||'[]');
-      return Array.isArray(parsed)?parsed:[];
-    }catch(_){return []}
-  },
-  save(items){localStorage.setItem(SAMPLE_CHAT_KEY,JSON.stringify(items.slice(-100)))},
-  make(senderType,message,senderName){
-    return{
-      messageId:'SAMPLE-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),
-      timestamp:new Date().toISOString(),
-      applicationId:'TFC-V4-SAMPLE',
-      senderType,
-      senderName,
-      message
-    };
-  },
-  sendClient(message){
-    const items=this.list();
-    const item=this.make('CLIENT',message,'Sample Client');
-    items.push(item);
-    this.save(items);
-    return item;
-  }
-};
-
 function addChatBubble(senderType,message){
   if(!message) return;
   const bubble=document.createElement('div');
@@ -2881,60 +2847,42 @@ function addChatBubble(senderType,message){
 }
 function renderPortalConversation(){
   chatHistory.replaceChildren();
-  if(liveClientReady()){
-    const advisorMessage=crmClient.messageBody||crmClient.messageTitle||'Your Toronto Finance Company advisor will post updates here.';
-    addChatBubble('ADVISOR',advisorMessage);
-    if(crmClient.clientDecisionNote){
-      addChatBubble('CLIENT',crmClient.clientDecisionNote);
-    }
-    return;
-  }
+  if(!liveClientReady()) return;
 
-  let items=chatTransport.list();
-  if(!items.length){
-    items=[chatTransport.make(
-      'ADVISOR',
-      sampleAdminState.messageBody,
-      'Toronto Finance Company'
-    )];
-    chatTransport.save(items);
+  const advisorMessage=crmClient.messageBody||crmClient.messageTitle||'Your Toronto Finance Company advisor will post updates here.';
+  addChatBubble('ADVISOR',advisorMessage);
+  if(crmClient.clientDecisionNote){
+    addChatBubble('CLIENT',crmClient.clientDecisionNote);
   }
-  items.forEach(item=>addChatBubble(item.senderType,item.message));
 }
 async function sendPortalChat(){
   const message=chatInput.value.trim();
-  if(!message) return;
+  if(!message||!liveClientReady()) return;
   chatSend.disabled=true;
 
   try{
-    if(liveClientReady()){
-      const result=await crmApi(CURRENT_CRM_ACTIONS.clientDecision,{
-        applicationId:crmClient.applicationId,
-        email:crmClient.email,
-        decision:'Request More Information',
-        note:message
-      });
-      if(!result?.ok) throw new Error(result?.error||'Your message could not be sent.');
-      crmClient={...crmClient,...(result.data||{})};
-      saveCurrentClient(crmClient);
-      pendingMoreInfo=false;
-      chatInput.value='';
-      chatInput.placeholder='Ask your advisor about this approval...';
-      renderPortalState(crmClient);
-      renderPortalConversation();
-    }else{
-      chatTransport.sendClient(message);
-      chatInput.value='';
-      renderPortalConversation();
-    }
+    const result=await crmApi(CURRENT_CRM_ACTIONS.clientDecision,{
+      applicationId:crmClient.applicationId,
+      email:crmClient.email,
+      decision:'Request More Information',
+      note:message
+    });
+    if(!result?.ok) throw new Error(result?.error||'Your message could not be sent.');
+
+    crmClient={...crmClient,...(result.data||{})};
+    saveCurrentClient(crmClient);
+    pendingMoreInfo=false;
+    chatInput.value='';
+    chatInput.placeholder='Ask your advisor about this approval...';
+    renderPortalState(crmClient);
+    renderPortalConversation();
     chatHistory.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
   }catch(error){
-    addChatBubble('ADVISOR',error.message||'Your message could not be sent.');
+    approvalActionStatus.textContent=error.message||'Your message could not be sent.';
   }finally{
     chatSend.disabled=false;
   }
 }
-renderPortalConversation();
 chatSend.addEventListener('click',sendPortalChat);
 chatInput.addEventListener('keydown',e=>{
   if(e.key==='Enter'){
@@ -3013,7 +2961,7 @@ function openApplicationFlow(){
   flowTitle.textContent='Complete your application.';
   flowIntro.textContent='Two simple steps: review and sign, then provide your recent business bank statements.';
   flowSignCopy.textContent='Complete the Toronto Finance Company application and provide your secure Adobe electronic signature.';
-  flowUploadCopy.textContent='Choose recent monthly business bank statements in PDF format. This sample demonstrates the client experience only.';
+  flowUploadCopy.textContent='Choose recent monthly business bank statements in PDF format. Uploaded statements are saved to your secure client file.';
   tfcFlow.classList.add('show');
   showTask('sign');
   requestAnimationFrame(()=>tfcFlow.scrollIntoView({behavior:'smooth',block:'start'}));
@@ -3026,13 +2974,7 @@ taskSign.addEventListener('click',()=>showTask('sign'));
 taskUpload.addEventListener('click',()=>showTask('upload'));
 
 function refreshTfcFlowState(){
-  if(!liveClientReady()){
-    confirmSignatureBtn.disabled=false;
-    confirmSignatureBtn.textContent='I Have Finished Signing';
-    signatureActionMsg.textContent='';
-    taskUpload.disabled=false;
-    return;
-  }
+  if(!liveClientReady()) return;
   const signed=crmIsTrue(crmClient.signatureConfirmed)||Number(crmClient.statements||0)>0;
   confirmSignatureBtn.disabled=signed;
   confirmSignatureBtn.textContent=signed?'Signing Confirmed ✓':'I Have Finished Signing';
@@ -3043,10 +2985,7 @@ function refreshTfcFlowState(){
   statementModeNote.textContent='Connected to your current Toronto Finance Company CRM. Statement uploads go to the existing Google Drive client folder.';
 }
 confirmSignatureBtn.addEventListener('click',async()=>{
-  if(!liveClientReady()){
-    signatureActionMsg.textContent='Preview mode: no authenticated current client session was detected.';
-    return;
-  }
+  if(!liveClientReady()) return;
   confirmSignatureBtn.disabled=true;
   signatureActionMsg.className='crm-action-msg';
   signatureActionMsg.textContent='Saving signature confirmation...';
@@ -3174,8 +3113,8 @@ function showCandidatePortal(data){
   candidateLogin.hidden=true;
   portalShell.hidden=false;
   portalModeBadge.textContent='Current CRM Session';
-  portalModeHelper.textContent='Connected to the existing Toronto Finance Company Apps Script / Sheets / Drive workflow. V4 implementation candidate.';
-  statementModeNote.textContent='Connected to the current CRM. Uploaded statements are sent through the existing uploadDocument action to the client Google Drive folder.';
+  portalModeHelper.textContent='Connected to the current Toronto Finance Company Apps Script, Sheets and Drive workflow.';
+  statementModeNote.textContent='Uploaded statements are sent through the current secure CRM workflow to this client’s existing Google Drive folder.';
   renderPortalState(data);
   renderPortalConversation();
   refreshTfcFlowState();
