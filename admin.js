@@ -11,17 +11,6 @@
   let applications = [];
   let selected = null;
 
-  const PRESETS = {
-    'Statements Required': ['Bank Statements Required', 'Please upload your six most recent monthly business bank statements so we can continue reviewing your application.'],
-    'Ready for Review': ['Documents Received', 'Thank you. Your required documents have been received and your application is ready for review.'],
-    'Under Review': ['Application Under Review', 'Your application is currently under review. No action is required unless your advisor contacts you for additional information.'],
-    'Additional Documents Required': ['Additional Documents Required', 'We require additional information to continue reviewing your application. Please review the requested documents in your client portal and upload them securely.'],
-    'Conditional Approval': ['Conditional Financing Available', 'Financing terms are available for your review in the client portal. Please review the details and choose Proceed or Request More Information. Any financing shown is indicative only and is not a commitment to lend. Final financing remains subject to lender review, underwriting, documentation, conditions and final agreements.'],
-    'Approved': ['Financing Available', 'Financing terms are available for your review in the client portal. Please review the details and choose Proceed or Request More Information. Any financing shown is indicative only and is not a commitment to lend. Final financing remains subject to lender review, underwriting, documentation, conditions and final agreements.'],
-    'Funded': ['Financing Completed', 'Your financing file has been completed. Thank you for choosing Toronto Finance Company.'],
-    'Declined': ['Application Update', 'We have an update regarding your financing application. Please contact your advisor to discuss the available next steps.']
-  };
-
   function toast(message) {
     const el = $('#toast');
     if (!el) return;
@@ -485,15 +474,6 @@
   $('#filter').onchange = render;
   $('#clearFilters').onclick = () => { $('#search').value = ''; $('#filter').value = ''; render(); };
   $('#copyId').onclick = () => selected?.applicationId && navigator.clipboard?.writeText(selected.applicationId).then(() => toast('Application ID copied'));
-  document.querySelectorAll('[data-status]').forEach(button => button.onclick = () => {
-    if (!selected) return;
-    $('#status').value = button.dataset.status;
-    const preset = PRESETS[button.dataset.status];
-    if (preset && $('#messageBody')) {
-      $('#messageBody').value = preset[1];
-    }
-    toast(`Stage set to ${button.dataset.status}`);
-  });
   $('#close').onclick = closeDrawer;
   $('#backdrop').onclick = closeDrawer;
   $('#websiteLink').onclick = () => location.href = 'index.html';
