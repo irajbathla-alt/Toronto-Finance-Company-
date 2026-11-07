@@ -4,6 +4,53 @@
   const LEGACY_KEY = 'tfc-current-application';
   const DEFAULT_TIMEOUT = Math.max(Number(cfg.requestTimeout || 30000), 30000);
 
+  /*
+   * One CRM, two intake shapes during rollout:
+   * - current: name/email/phone/password
+   * - extended: the current fields plus optional application details already
+   *   accepted by Code_SIMPLE.gs createAccount().
+   *
+   * The default destination remains the production client dashboard.
+   * Add ?portal=v4 to the public intake URL to exercise the V4 release
+   * candidate end-to-end against the SAME Apps Script, Sheets, Drive and
+   * session keys without changing the production route.
+   */
+  const INTAKE_FIELDS = Object.freeze({
+    current: Object.freeze(['name','email','phone','password']),
+    extended: Object.freeze([
+      'name','email','phone','password',
+      'business','address','city','province','postal',
+      'industry','revenue','requested','years','purpose'
+    ])
+  });
+  const PORTAL_TARGETS = Object.freeze({
+    current: 'client-dashboard.html',
+    v4: 'client-dashboard-v4.html'
+  });
+
+  function portalTarget() {
+    const requested = new URLSearchParams(window.location.search).get('portal');
+    return requested === 'v4' ? PORTAL_TARGETS.v4 : PORTAL_TARGETS.current;
+  }
+
+  function collectIntakeApplication() {
+    const application = {};
+    const fields = [...new Set([...INTAKE_FIELDS.current, ...INTAKE_FIELDS.extended])];
+
+    fields.forEach(field => {
+      const element = document.getElementById(field);
+      if (!element) return;
+      const value = field === 'password' ? element.value : String(element.value || '').trim();
+      if (value !== '') application[field] = value;
+    });
+
+    application.name = String(application.name || '').trim();
+    application.email = String(application.email || '').trim().toLowerCase();
+    application.phone = String(application.phone || '').trim();
+    application.password = String(application.password || '');
+    return application;
+  }
+
   function clearClientSession() {
     sessionStorage.removeItem(SESSION_KEY);
     localStorage.removeItem(LEGACY_KEY);
@@ -123,7 +170,7 @@
       button.textContent = 'Log In';
       button.onclick = event => {
         event.preventDefault();
-        window.location.href = 'client-dashboard.html?login=1';
+        window.location.href = portalTarget() + '?login=1';
       };
     });
 
@@ -140,10 +187,8 @@
     }
 
     createButton.onclick = async () => {
-      const name = document.getElementById('name')?.value.trim() || '';
-      const email = document.getElementById('email')?.value.trim().toLowerCase() || '';
-      const phone = document.getElementById('phone')?.value.trim() || '';
-      const password = document.getElementById('password')?.value || '';
+      const application = collectIntakeApplication();
+      const { name, email, phone, password } = application;
       const message = document.getElementById('accountMessage');
 
       if (!name) {
@@ -167,7 +212,6 @@
         return;
       }
 
-      const application = { name, email, phone, password };
       clearClientSession();
       createButton.disabled = true;
       createButton.textContent = 'Creating Account...';
@@ -200,7 +244,7 @@
         queueSignupNotification(result.data);
         createButton.textContent = 'Account Created';
         if (message) message.textContent = 'Success. Opening your client dashboard...';
-        window.location.replace('client-dashboard.html');
+        window.location.replace(portalTarget());
       } catch (error) {
         clearClientSession();
         if (message) message.textContent = error.message || 'Account creation could not be confirmed. Please try again.';
@@ -212,6 +256,20 @@
       }
     };
   }
+
+  /*
+   * Shared adapter for the eventual intake consolidation. A second secure
+   * intake can reuse this exact createAccount/session contract instead of
+   * introducing another CRM deployment.
+   */
+  window.TFC_CRM_INTAKE = Object.freeze({
+    fields: INTAKE_FIELDS,
+    portalTarget,
+    collectApplication: collectIntakeApplication,
+    createAccount,
+    saveClientSession,
+    queueSignupNotification
+  });
 
   enhance();
   new MutationObserver(enhance).observe(document.body, { childList: true, subtree: true });
