@@ -274,8 +274,10 @@
   }
 
   function openFile(id) {
+    const previousApplicationId = selected?.applicationId || '';
     selected = applications.find(app => String(app.applicationId) === String(id));
     if (!selected) return;
+    const switchedApplication = String(previousApplicationId) !== String(selected.applicationId);
     $('#drawer').classList.add('show');
     $('#backdrop').classList.add('show');
     $('#dTitle').textContent = `${selected.applicationId || 'Application'} · ${selected.business || selected.name || 'Client'}`;
@@ -307,10 +309,12 @@
       const field = $('#' + key);
       if (field) field.value = selected[key] || '';
     });
-    if ($('#messageBody')) $('#messageBody').value = '';
-    if ($('#messageSendMsg')) {
-      $('#messageSendMsg').className = 'notice';
-      $('#messageSendMsg').textContent = '';
+    if (switchedApplication) {
+      if ($('#messageBody')) $('#messageBody').value = '';
+      if ($('#messageSendMsg')) {
+        $('#messageSendMsg').className = 'notice';
+        $('#messageSendMsg').textContent = '';
+      }
     }
     const additionalDocsToggle = $('#additionalDocsEnabled');
     if (additionalDocsToggle) additionalDocsToggle.checked = isTrue(selected.additionalDocsEnabled);
