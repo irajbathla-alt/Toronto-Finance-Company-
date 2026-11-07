@@ -187,6 +187,52 @@
     $('#drive').textContent = selected?.driveUrl ? 'Open Drive Folder' : 'Create & Open Drive Folder';
   }
 
+  function parseChatHistoryValue(value) {
+    if (Array.isArray(value)) return value;
+    const raw = String(value || '').trim();
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function renderAdminConversation(record) {
+    const box = $('#adminConversation');
+    if (!box) return;
+    box.replaceChildren();
+
+    const history = parseChatHistoryValue(record?.chatHistory);
+    if (!history.length) {
+      const fallback = [];
+      if (record?.messageBody || record?.messageTitle) fallback.push({ sender:'ADVISOR', message:record.messageBody || record.messageTitle });
+      if (record?.clientDecisionNote) fallback.push({ sender:'CLIENT', message:record.clientDecisionNote, at:record.clientDecisionAt });
+      history.push(...fallback);
+    }
+
+    if (!history.length) {
+      const empty = document.createElement('div');
+      empty.className = 'admin-chat-empty';
+      empty.textContent = 'No conversation yet.';
+      box.appendChild(empty);
+      return;
+    }
+
+    history.forEach(entry => {
+      const row = document.createElement('div');
+      const sender = String(entry.sender || 'ADVISOR').toUpperCase();
+      row.className = 'admin-chat-row' + (sender === 'CLIENT' ? ' client' : '');
+      const meta = document.createElement('small');
+      meta.textContent = sender === 'CLIENT' ? 'Client' : 'Advisor';
+      const message = document.createElement('div');
+      message.textContent = entry.message || '';
+      row.append(meta,message);
+      box.appendChild(row);
+    });
+  }
+
   function renderClientResponse(record) {
     const box = $('#clientResponse');
     if (!box) return;
@@ -258,6 +304,7 @@
       }
     });
     updatePreview();
+    renderAdminConversation(selected);
     renderClientResponse(selected);
     updateDriveButton();
     loadDocuments(selected.applicationId);
