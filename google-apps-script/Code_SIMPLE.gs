@@ -61,6 +61,7 @@ function doGet(e) {
       adminLogin,
       adminList,
       adminUpdate,
+      adminChatSend,
       adminEnsureDrive,
       adminGetAudit,
       adminListLenders,
@@ -93,6 +94,7 @@ function doPost(e) {
       adminLogin,
       adminList,
       adminUpdate,
+      adminChatSend,
       adminEnsureDrive,
       adminGetAudit,
       adminListLenders,
@@ -976,6 +978,46 @@ function adminUpdate(p) {
   }
 
   return { ok:true, data:safe(saved), notification };
+}
+
+function adminChatSend(p) {
+  const adminEmail = requireAdminToken(p);
+  const record = findApplication(p.applicationId);
+  const message = String(p.message || '').trim().slice(0,4000);
+  if (!message) throw new Error('Message is required');
+
+  updateRecord(record.applicationId,{ messageBody:message });
+  const saved = appendChatMessage(record.applicationId,'ADVISOR',message);
+
+  appendAuditEvent({
+    applicationId:record.applicationId,
+    actorType:'ADMIN',
+    actorId:adminEmail,
+    action:'ADMIN_CHAT_MESSAGE',
+    field:'chatHistory',
+    summary:'Advisor sent a portal message',
+    metadata:{ length:message.length }
+  });
+
+  const notification = sendClientUpdateEmail(saved);
+  appendAuditEvent({
+    applicationId:record.applicationId,
+    actorType:'ADMIN',
+    actorId:adminEmail,
+    action:notification.sent ? 'CLIENT_NOTIFICATION_SENT' : 'CLIENT_NOTIFICATION_FAILED',
+    summary:notification.sent
+      ? 'Client message notification sent'
+      : 'Client message saved; email notification could not be sent',
+    metadata:notification.sent
+      ? { sender:notification.sender || CONFIG.CLIENT_NOTIFICATION_FROM }
+      : { error:notification.error || 'Unknown notification error' }
+  });
+
+  return {
+    ok:true,
+    data:safe(findApplication(record.applicationId)),
+    notification
+  };
 }
 
 function adminEnsureDrive(p) {
