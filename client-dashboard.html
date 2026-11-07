@@ -2341,7 +2341,7 @@ button,input{font:inherit}
           <div class="progress"><i id="progressBar"></i></div>
           <div class="file-list" id="fileList"></div>
         </div>
-        <div class="local-note" id="statementModeNote">Uploaded statements are sent through the current secure CRM workflow to your existing client Google Drive folder.</div>
+        <div class="local-note" id="statementModeNote" hidden></div>
       </section>
     </section>
   </main>
@@ -3288,7 +3288,15 @@ function refreshTfcFlowState(){
   taskConfirm.classList.toggle('complete',signed);
   taskUpload.disabled=!signed;
   if(!signed && uploadPanel.classList.contains('show')) showTask('sign');
-  statementModeNote.textContent='Connected to your current Toronto Finance Company CRM. Statement uploads go to the existing Google Drive client folder.';
+  statementModeNote.hidden=true;
+  statementModeNote.textContent='';
+  const receivedStatements=Number(crmClient.statements||0);
+  if(receivedStatements>0){
+    statementUploadMsg.textContent='Uploaded ✓';
+    statementUploadMsg.className='crm-action-msg success';
+    fileCount.textContent='Statements uploaded';
+    progressBar.style.width=Math.min(100,(receivedStatements/Number(crmCfg.minimumStatements||6))*100)+'%';
+  }
 }
 confirmSignatureBtn.addEventListener('click',async()=>{
   if(!liveClientReady()) return;
@@ -3373,14 +3381,14 @@ statementUploadBtn.addEventListener('click',async()=>{
       statementUploadMsg.textContent='Uploading '+(i+1)+' of '+pdfs.length+'...';
       await uploadCurrentClientFile(pdfs[i],'statement');
     }
-    statementUploadMsg.textContent='Statements sent. Confirming the updated CRM count...';
+    statementUploadMsg.textContent='Finishing upload...';
     await new Promise(r=>setTimeout(r,1800));
     await refreshCurrentClient(false);
     statements.value='';
     fileList.replaceChildren();
-    fileCount.textContent=Number(crmClient.statements||0)+' statement'+(Number(crmClient.statements||0)===1?'':'s')+' received';
+    fileCount.textContent='Statements uploaded';
     progressBar.style.width=Math.min(100,(Number(crmClient.statements||0)/Number(crmCfg.minimumStatements||6))*100)+'%';
-    statementUploadMsg.textContent='Upload complete. Current CRM statement count: '+Number(crmClient.statements||0)+'.';
+    statementUploadMsg.textContent='Uploaded ✓';
     statementUploadMsg.className='crm-action-msg success';
   }catch(error){
     statementUploadMsg.textContent=error.message||'Upload failed.';
@@ -3423,8 +3431,9 @@ function showCandidatePortal(data){
   candidateLogin.hidden=true;
   portalShell.hidden=false;
   portalModeBadge.textContent='Secure Client Portal';
-  portalModeHelper.textContent='Connected to the current Toronto Finance Company Apps Script, Sheets and Drive workflow.';
-  statementModeNote.textContent='Uploaded statements are sent through the current secure CRM workflow to this client’s existing Google Drive folder.';
+  portalModeHelper.textContent='Your portal is up to date.';
+  statementModeNote.hidden=true;
+  statementModeNote.textContent='';
   renderPortalState(data);
   renderPortalConversation();
   refreshTfcFlowState();
