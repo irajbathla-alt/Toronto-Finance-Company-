@@ -114,7 +114,7 @@ function wire() {
     element.onclick = () => {
       const destination = element.dataset.go;
       if (destination === 'apply') apply();
-      else if (destination === 'dashboard') window.location.href = 'client-dashboard-v4.html?login=1';
+      else if (destination === 'dashboard') window.location.href = 'client-dashboard.html?login=1';
       else landing();
     };
   });
