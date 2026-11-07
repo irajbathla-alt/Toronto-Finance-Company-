@@ -656,26 +656,152 @@ button,input{font:inherit}
   }
 
   .funding-row{
-    grid-template-columns:1fr;
-    gap:10px;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:8px;
+    max-width:100%;
+    align-items:start;
+  }
+  .funding-row .deck-wrap{
+    min-width:0;
+    max-width:none;
+    margin:0;
+  }
+  .funding-row .route-grid{
+    height:292px;
+  }
+  .funding-row .route{
+    width:100%;
+    height:275px;
+    padding:13px 11px;
+    border-radius:15px;
+  }
+  .funding-row .route h2{
+    font-size:18px!important;
+    margin:6px 0 5px;
+  }
+  .funding-row .route p{
+    font-size:7px!important;
+    line-height:1.35!important;
     max-width:100%;
   }
-  .approval-side{
-    width:min(78vw,360px);
-    height:435px;
-    margin:0 auto 8px;
-    padding:20px 18px;
+  .funding-row .route-logo{
+    gap:6px;
+    margin-bottom:8px;
   }
-  .approval-side h3{font-size:31px;margin-top:15px}
-  .approval-side-amount{font-size:40px;margin-bottom:15px}
-  .approval-side-grid div{padding:10px 9px}
-  .approval-doc-state{padding:10px;margin-top:11px}
-  .approval-card-actions{gap:7px;padding-top:10px}
-  .approval-card-actions button{width:min(190px,78%);padding:9px 14px;font-size:7px}
+  .funding-row .route-logo img,
+  .funding-row .route-logo>div{
+    width:28px!important;
+    height:28px!important;
+    border-radius:8px!important;
+    padding:4px!important;
+    font-size:16px!important;
+  }
+  .funding-row .route-logo strong{
+    font-size:6px;
+  }
+  .funding-row .route .route-kicker{
+    font-size:4.5px;
+  }
+  .funding-row .card-actions{
+    gap:5px;
+    margin:6px 0;
+  }
+  .funding-row .card-action{
+    width:88%;
+    padding:7px 8px;
+    font-size:5.5px;
+  }
+  .funding-row .route .arrow{
+    width:25px;
+    height:25px;
+    right:10px;
+    bottom:10px;
+    font-size:11px;
+  }
+  .funding-row .carousel-controls{
+    gap:7px;
+  }
+  .funding-row .carousel-arrow{
+    width:30px;
+    height:30px;
+    font-size:13px;
+  }
+  .funding-row .swipe-hint{
+    font-size:5.5px;
+    letter-spacing:.08em;
+    margin-top:6px;
+  }
+  .funding-row .deck-status{
+    font-size:6.5px;
+  }
+  .approval-side{
+    width:100%;
+    height:275px;
+    margin:0;
+    padding:13px 11px;
+    border-radius:15px;
+  }
+  .approval-side .approval-kicker{font-size:5px}
+  .approval-side-status{
+    margin-top:6px;
+    padding:5px 7px;
+    font-size:5px;
+  }
+  .approval-side h3{
+    font-size:19px;
+    margin-top:8px;
+  }
+  .approval-side-amount{
+    font-size:28px;
+    margin:4px 0 9px;
+  }
+  .approval-side-grid div{
+    padding:7px 6px;
+  }
+  .approval-side-grid small{
+    font-size:4.5px;
+    margin-bottom:2px;
+  }
+  .approval-side-grid strong{
+    font-size:6px;
+  }
+  .approval-doc-state{
+    padding:7px;
+    margin-top:7px;
+    font-size:6px;
+    line-height:1.3;
+  }
+  .approval-doc-state strong{
+    font-size:4.5px;
+    margin-bottom:2px;
+  }
+  .approval-card-actions{
+    gap:5px;
+    padding-top:7px;
+  }
+  .approval-card-actions button{
+    width:88%;
+    padding:7px 8px;
+    font-size:5.5px;
+  }
+  .approval-action-status{
+    min-height:10px;
+    margin-top:4px;
+    font-size:5.5px;
+  }
+  .approval-side-note{
+    display:none;
+  }
   .approval-side.focused{
     width:min(88vw,390px);
     height:min(86vh,520px);
+    padding:20px 18px;
   }
+  .approval-side.focused h3{font-size:31px}
+  .approval-side.focused .approval-side-amount{font-size:40px}
+  .approval-side.focused .approval-side-grid div{padding:10px 9px}
+  .approval-side.focused .approval-doc-state{padding:10px;font-size:8px}
+  .approval-side.focused .approval-card-actions button{width:min(190px,78%);padding:9px 14px;font-size:7px}
   .deck-wrap{
     max-width:100%;
     margin-top:2px
