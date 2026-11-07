@@ -11,9 +11,9 @@
   }, true);
 
   function applicationId() {
-    if (currentApplicationId) return currentApplicationId;
-    const match = String($('#dTitle')?.textContent || '').match(/TFC-\d+/i);
-    return match ? match[0] : '';
+    const match = String($('#dTitle')?.textContent || '').match(/TFC-[A-Z0-9-]+/i);
+    if (match) return match[0];
+    return currentApplicationId;
   }
 
   function jsonp(action, payload = {}, timeout = 45000) {
@@ -296,8 +296,6 @@
   }
 
   document.addEventListener('click', event => {
-    const open = event.target.closest?.('[data-open]');
-    if (open?.dataset?.open) selectApplication(open.dataset.open);
     if (event.target.closest?.('#close') || event.target.closest?.('#backdrop')) {
       if (refreshTimer) clearInterval(refreshTimer);
       refreshTimer = null;
@@ -563,11 +561,6 @@
     }
     setTimeout(() => loadAudit(false), 180);
   }
-
-  document.addEventListener('click', event => {
-    const open = event.target.closest?.('[data-open]');
-    if (open?.dataset?.open) selectApplication(open.dataset.open);
-  }, true);
 
   const auditToggle = $('#auditToggle');
   if (auditToggle) {
@@ -1255,8 +1248,6 @@
   }
 
   document.addEventListener('click',event => {
-    const open = event.target.closest?.('[data-open]');
-    if (open?.dataset?.open) setTimeout(() => selectApplication(open.dataset.open),120);
     if (!event.target.closest?.('#lenderPicker')) closeLenderPicker();
     if (!event.target.closest?.('#documentPicker')) closeDocumentPicker();
   },true);
