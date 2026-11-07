@@ -779,20 +779,54 @@ button,input{font:inherit}
 .internal{display:none;margin-top:28px;border-top:1px solid rgba(23,19,15,.08);padding-top:30px}
 .internal.show{display:block;animation:fadeUp .28s ease both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.internal-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:16px}
+.internal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px}
+.internal-head>div:first-child{flex:1;text-align:center}
 .internal-head h2{font-family:"Cormorant Garamond",serif;font-weight:400;font-size:38px;text-transform:uppercase;margin:3px 0}
-.internal-head p{font-size:11px;color:var(--muted);margin:0;line-height:1.6}
+.internal-head p{font-size:12px;color:#17130f;margin:5px auto 0;line-height:1.55;font-weight:600;max-width:680px}
 .close{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 14px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
-.task-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-.task{
-  padding:18px;border:1px solid rgba(98,78,57,.16);background:#fff;border-radius:13px;
-  display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer;
+.task-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 auto 18px;max-width:940px}
+.task,.task-confirm{
+  min-height:116px;
+  padding:16px 14px;
+  border:1px solid rgba(98,78,57,.16);
+  background:#fff;
+  border-radius:13px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:5px;
+  text-align:center;
   transition:.16s ease;
 }
+.task{cursor:pointer}
 .task:hover,.task.active{border-color:#b78a49;background:#fffaf3;box-shadow:0 0 0 3px rgba(185,137,63,.06)}
-.task small{display:block;font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#9b763f;margin-bottom:5px}
-.task strong{font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:400;text-transform:uppercase}
-.task span{font-size:18px;color:#9b763f}
+.task-confirm{border-color:rgba(183,138,73,.42);background:#fffaf3}
+.task-confirm.complete{border-color:rgba(47,133,90,.30);background:#f3faf5}
+.task small,.task-confirm small{display:block;font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#9b763f;margin-bottom:4px;font-weight:700}
+.task strong,.task-confirm strong{font-family:"DM Sans",sans-serif;font-size:15px;line-height:1.25;font-weight:700;text-transform:none;color:#17130f}
+.task-confirm .crm-primary-action{
+  width:min(190px,100%);
+  margin:8px auto 0;
+  padding:10px 13px;
+  background:#17130f;
+  font-size:7.5px;
+}
+.task-confirm.complete .crm-primary-action{background:#2f855a;opacity:1}
+.task-confirm #signatureActionMsg{margin-top:4px;min-height:0;font-size:7px}
+.task:disabled{opacity:.48;cursor:not-allowed}
+.sign-next-note{
+  margin:12px auto 0;
+  padding:11px 14px;
+  max-width:560px;
+  border-radius:10px;
+  background:#fbf7f0;
+  color:#17130f;
+  text-align:center;
+  font-size:9px;
+  line-height:1.5;
+  font-weight:600;
+}
 .panel{display:none;background:#fff;border:1px solid rgba(23,19,15,.08);border-radius:14px;padding:20px}
 .panel.show{display:block}
 .panel h3{font-family:"Cormorant Garamond",serif;font-size:29px;font-weight:400;text-transform:uppercase;margin:0 0 8px}
@@ -1200,35 +1234,37 @@ button,input{font:inherit}
   }
   .task-grid{
     display:grid;
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    grid-template-columns:1fr;
     gap:8px;
     align-items:stretch;
   }
-  .task-grid .task{
+  .task-grid .task,
+  .task-grid .task-confirm{
     width:100%;
-    height:72px;
-    min-height:72px;
+    min-height:78px;
     min-width:0;
     margin:0;
-    padding:11px 10px;
-    gap:8px;
+    padding:12px 14px;
+    gap:4px;
     align-items:center;
   }
-  .task-grid .task>div{min-width:0}
-  .task-grid .task small{
+  .task-grid .task small,
+  .task-grid .task-confirm small{
     font-size:6.5px;
     letter-spacing:.11em;
-    margin-bottom:4px;
+    margin-bottom:3px;
   }
-  .task-grid .task strong{
+  .task-grid .task strong,
+  .task-grid .task-confirm strong{
     display:block;
-    font-size:15px;
-    line-height:1.05;
+    font-size:14px;
+    line-height:1.15;
     white-space:normal;
   }
-  .task-grid .task span{
-    font-size:14px;
-    flex:0 0 auto;
+  .task-confirm .crm-primary-action{
+    width:min(220px,100%);
+    margin-top:7px;
+    font-size:7px;
   }
 
   .panel{padding:14px!important}
@@ -2157,17 +2193,27 @@ button,input{font:inherit}
         <div>
           <div class="eyebrow" id="flowEyebrow">Toronto Finance Company Route</div>
           <h2 id="flowTitle">Complete your application.</h2>
-          <p id="flowIntro">Two simple steps: review and sign, then provide your recent business bank statements.</p>
+          <p id="flowIntro">Follow the three steps below to complete your Toronto Finance Company application.</p>
         </div>
         <button class="close" id="closeTfc" type="button">Close</button>
       </div>
 
-      <div class="task-grid">
+      <div class="task-grid" aria-label="Application process">
         <button class="task active" id="taskSign" type="button">
-          <div><small>Step 1</small><strong>Review & Sign</strong></div><span>→</span>
+          <small>Step 1</small>
+          <strong>Review & Sign</strong>
         </button>
+
+        <div class="task-confirm" id="taskConfirm">
+          <small>Step 2</small>
+          <strong>Confirm Submission</strong>
+          <button class="crm-primary-action" id="confirmSignatureBtn" type="button">Confirm Submission</button>
+          <div class="crm-action-msg" id="signatureActionMsg"></div>
+        </div>
+
         <button class="task" id="taskUpload" type="button">
-          <div><small>Step 2</small><strong>Bank Statements</strong></div><span>→</span>
+          <small>Step 3</small>
+          <strong>Upload Bank Statements</strong>
         </button>
       </div>
 
@@ -2180,12 +2226,11 @@ button,input{font:inherit}
             title="Toronto Finance Company Secure Electronic Signature"
             loading="lazy"></iframe>
         </div>
-        <button class="crm-primary-action" id="confirmSignatureBtn" type="button">I Have Finished Signing</button>
-        <div class="crm-action-msg" id="signatureActionMsg"></div>
+        <div class="sign-next-note">After signing above, complete Step 2: Confirm Submission. Step 3 will then unlock for your bank statements.</div>
       </section>
 
       <section class="panel" id="uploadPanel">
-        <h3>Bank Statements</h3>
+        <h3>Upload Bank Statements</h3>
         <p id="flowUploadCopy">Choose recent monthly business bank statements in PDF format. Uploaded statements are saved to your secure client file.</p>
         <div class="upload-zone">
           <strong id="fileCount">No statements selected</strong>
@@ -2232,6 +2277,7 @@ const openTfc=document.getElementById('openTfc');
 const tfcFlow=document.getElementById('tfcFlow');
 const closeTfc=document.getElementById('closeTfc');
 const taskSign=document.getElementById('taskSign');
+const taskConfirm=document.getElementById('taskConfirm');
 const taskUpload=document.getElementById('taskUpload');
 const signPanel=document.getElementById('signPanel');
 const uploadPanel=document.getElementById('uploadPanel');
@@ -3118,7 +3164,7 @@ function closeTfcFlow(){
 function openApplicationFlow(){
   flowEyebrow.textContent='Toronto Finance Company Route';
   flowTitle.textContent='Complete your application.';
-  flowIntro.textContent='Two simple steps: review and sign, then provide your recent business bank statements.';
+  flowIntro.textContent='Follow the three steps below to complete your Toronto Finance Company application.';
   flowSignCopy.textContent='Complete the Toronto Finance Company application and provide your secure Adobe electronic signature.';
   flowUploadCopy.textContent='Choose recent monthly business bank statements in PDF format. Uploaded statements are saved to your secure client file.';
   tfcFlow.classList.add('show');
@@ -3136,9 +3182,10 @@ function refreshTfcFlowState(){
   if(!liveClientReady()) return;
   const signed=crmIsTrue(crmClient.signatureConfirmed)||Number(crmClient.statements||0)>0;
   confirmSignatureBtn.disabled=signed;
-  confirmSignatureBtn.textContent=signed?'Signing Confirmed ✓':'I Have Finished Signing';
-  signatureActionMsg.textContent=signed?'Your signing step is confirmed in the current CRM.':'';
+  confirmSignatureBtn.textContent=signed?'Submission Confirmed ✓':'Confirm Submission';
+  signatureActionMsg.textContent=signed?'Step 2 complete. Bank Statements are unlocked.':'';
   signatureActionMsg.className='crm-action-msg'+(signed?' success':'');
+  taskConfirm.classList.toggle('complete',signed);
   taskUpload.disabled=!signed;
   if(!signed && uploadPanel.classList.contains('show')) showTask('sign');
   statementModeNote.textContent='Connected to your current Toronto Finance Company CRM. Statement uploads go to the existing Google Drive client folder.';
@@ -3146,8 +3193,9 @@ function refreshTfcFlowState(){
 confirmSignatureBtn.addEventListener('click',async()=>{
   if(!liveClientReady()) return;
   confirmSignatureBtn.disabled=true;
+  confirmSignatureBtn.textContent='Confirming...';
   signatureActionMsg.className='crm-action-msg';
-  signatureActionMsg.textContent='Saving signature confirmation...';
+  signatureActionMsg.textContent='Confirming your submission...';
   try{
     const result=await crmApi(CURRENT_CRM_ACTIONS.confirmSignature,{
       applicationId:crmClient.applicationId,
@@ -3157,12 +3205,13 @@ confirmSignatureBtn.addEventListener('click',async()=>{
     crmClient={...crmClient,...(result.data||{}),signatureConfirmed:true};
     localStorage.setItem('tfc-signed-'+crmClient.applicationId,'yes');
     saveCurrentClient(crmClient);
-    signatureActionMsg.textContent='Signature confirmation saved to your current client file.';
+    signatureActionMsg.textContent='Step 2 complete. Bank Statements are now unlocked.';
     signatureActionMsg.className='crm-action-msg success';
     refreshTfcFlowState();
   }catch(error){
     confirmSignatureBtn.disabled=false;
-    signatureActionMsg.textContent=error.message||'Signature confirmation could not be saved.';
+    confirmSignatureBtn.textContent='Confirm Submission';
+    signatureActionMsg.textContent=error.message||'Submission confirmation could not be saved.';
     signatureActionMsg.className='crm-action-msg error';
   }
 });
