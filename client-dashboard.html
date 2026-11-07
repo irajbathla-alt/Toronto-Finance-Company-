@@ -650,10 +650,8 @@ button,input{font:inherit}
   line-height:1.5;
 }
 .chat-bubble.advisor{
-  width:100%;
-  max-width:100%;
-  background:#f4eadc;
-  color:#4b4138;
+  background:#17130f;
+  color:#fff;
   border-bottom-left-radius:4px;
 }
 .chat-bubble.client{
@@ -1511,7 +1509,32 @@ button,input{font:inherit}
   cursor:pointer;
 }
 #candidateLogin[hidden],
-#portalShell[hidden]{display:none!important}
+#portalShell[hidden],
+#portalBoot[hidden]{display:none!important}
+.portal-boot{
+  position:fixed;
+  inset:0;
+  z-index:600;
+  display:grid;
+  place-items:center;
+  background:
+    radial-gradient(circle at 82% 10%,rgba(198,150,78,.10),transparent 26%),
+    linear-gradient(180deg,#f8f1e7 0%,#f4eadc 100%);
+}
+.portal-boot-inner{text-align:center;padding:28px}
+.portal-boot-brand{
+  font-family:"Cormorant Garamond",serif;
+  font-size:28px;
+  font-weight:300;
+  text-transform:uppercase;
+}
+.portal-boot-text{
+  margin-top:9px;
+  color:#786f65;
+  font-size:9px;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
 @media(max-width:760px){
   .candidate-login-top{height:62px;padding:0 18px}
   .candidate-login-brand{font-size:19px}
@@ -1945,7 +1968,13 @@ button,input{font:inherit}
 </style>
 </head>
 <body>
-<section class="candidate-login-screen" id="candidateLogin">
+<div class="portal-boot" id="portalBoot">
+  <div class="portal-boot-inner">
+    <div class="portal-boot-brand">Toronto Finance Company</div>
+    <div class="portal-boot-text">Opening your secure client portal…</div>
+  </div>
+</div>
+<section class="candidate-login-screen" id="candidateLogin" hidden>
   <header class="candidate-login-top">
     <div>
       <div class="candidate-login-brand">Toronto Finance Company</div>
@@ -1988,9 +2017,9 @@ button,input{font:inherit}
 
   <main class="content">
     <section class="hero">
-      <div class="eyebrow">Choose Your Application Route</div>
-      <h1>Continue your application.</h1>
-      <p>Select the funding partner you would like to continue with. Direct lender applications open securely in a new tab. Toronto Finance Company keeps the application and document steps together in one guided experience.</p>
+      <div class="eyebrow">Your Funding Options</div>
+      <h1 id="clientWelcome">Welcome.</h1>
+      <p id="clientWelcomeBody">We’ve got different lenders for you to choose from. Swipe to see the options and select the one you would like to continue with.</p>
     </section>
 
     <div class="funding-row">
@@ -2078,23 +2107,23 @@ button,input{font:inherit}
     </aside>
     </div>
 
-    <p class="helper" id="portalModeHelper">Preview mode. If an authenticated Toronto Finance Company client session is available, this page will use the existing Apps Script, Google Sheets and Google Drive workflow automatically.</p>
+    <p class="helper" id="portalModeHelper">Your portal stays connected to the latest Toronto Finance Company application updates.</p>
 
     <section class="approval-workspace" id="approvalWorkspace">
       <div class="approval-workspace-head">
         <div>
-          <div class="eyebrow">After Approval</div>
+          <div class="eyebrow">Client Workspace</div>
           <h2>Advisor Chat & Requested Documents</h2>
         </div>
-        <p>This area becomes the client’s next-action workspace after an approval is sent.</p>
+        <p>Messages and document requests from your advisor will appear here at any stage of your application.</p>
       </div>
 
       <div class="advisor-chat" id="advisorChat">
         <div class="chat-history" id="chatHistory">
-          <div class="chat-bubble advisor">Your approval is available above. If you have a question about the terms, send us a message here.</div>
+          <div class="chat-bubble advisor">Your Toronto Finance Company advisor will post updates here.</div>
         </div>
         <div class="chat-compose">
-          <input id="chatInput" type="text" placeholder="Ask your advisor about this approval...">
+          <input id="chatInput" type="text" placeholder="Send a message to your advisor...">
           <button id="chatSend" type="button">Send</button>
         </div>
       </div>
@@ -2257,6 +2286,7 @@ const approvalTotalText=document.getElementById('approvalTotalText');
 const approvalDocsSummary=document.getElementById('approvalDocsSummary');
 const portalModeBadge=document.getElementById('portalModeBadge');
 const portalShell=document.getElementById('portalShell');
+const portalBoot=document.getElementById('portalBoot');
 const candidateLogin=document.getElementById('candidateLogin');
 const candidateEmail=document.getElementById('candidateEmail');
 const candidatePassword=document.getElementById('candidatePassword');
@@ -2300,6 +2330,7 @@ const CURRENT_CRM_ACTIONS=Object.freeze({
   getClient:'getClient',
   confirmSignature:'clientConfirmSignature',
   clientDecision:'clientDecision',
+  clientChatSend:'clientChatSend',
   uploadDocument:'uploadDocument'
 });
 const CURRENT_CRM_FIELDS=Object.freeze({
@@ -2317,7 +2348,8 @@ const CURRENT_CRM_FIELDS=Object.freeze({
   documentsRequested:'documentsRequested',
   additionalDocsEnabled:'additionalDocsEnabled',
   clientDecision:'clientDecision',
-  clientDecisionNote:'clientDecisionNote'
+  clientDecisionNote:'clientDecisionNote',
+  chatHistory:'chatHistory'
 });
 
 /*
@@ -2441,7 +2473,7 @@ async function uploadCurrentClientFile(file,type='document'){
 function startCurrentClientRefresh(){
   if(crmRefreshTimer) clearInterval(crmRefreshTimer);
   if(!liveClientReady()) return;
-  crmRefreshTimer=setInterval(()=>refreshCurrentClient(false).catch(()=>{}),45000);
+  crmRefreshTimer=setInterval(()=>refreshCurrentClient(false).catch(()=>{}),12000);
 }
 
 let currentCard=0;
@@ -2877,15 +2909,35 @@ function renderPortalState(data){
   const status=String(data.status||'');
   const hasOffer=Boolean(data.approvedAmount||data.quote||data.term||data.paymentAmount||data.totalRepayment);
   const approved=['Conditional Approval','Approved'].includes(status)&&hasOffer;
+  const clientName=String(data.name||'').trim();
+  const firstName=clientName ? clientName.split(/\s+/)[0] : '';
+  const welcome=document.getElementById('clientWelcome');
+  if(welcome) welcome.textContent=firstName ? 'Welcome '+firstName+',' : 'Welcome,';
 
   fundingRow.classList.toggle('has-approval',approved);
   fundingRow.classList.toggle('no-approval',!approved);
   approvalSideSample.classList.toggle('visible',approved);
-  document.getElementById('approvalWorkspace').classList.toggle('visible',approved);
+
+  const workspace=document.getElementById('approvalWorkspace');
+  workspace.classList.add('visible');
+
+  const showDocs=crmIsTrue(data.additionalDocsEnabled);
+  requestedDocsList.classList.toggle('visible',showDocs);
+  const rawRequest=String(data.documentsRequested||'').trim();
+  if(showDocs){
+    requestedText.textContent=rawRequest||'Please upload the additional documents requested by your advisor.';
+  }else{
+    requestedText.textContent='';
+    requestedFiles.value='';
+    requestedMsg.textContent='';
+  }
 
   if(!approved){
     closeApprovalFocus();
-    requestedDocsList.classList.remove('visible');
+    approvalDocsSummary.textContent=showDocs
+      ? 'Additional documents requested by your advisor.'
+      : 'No additional documents requested.';
+    approvalActionStatus.textContent='';
     return;
   }
 
@@ -2896,23 +2948,9 @@ function renderPortalState(data){
   approvalPaymentText.textContent=formatPortalMoney(data.paymentAmount);
   approvalFrequencyText.textContent=data.paymentFrequency||'—';
   approvalTotalText.textContent=formatPortalMoney(data.totalRepayment);
-
-  // Match current admin.js exactly: the Admin toggle controls visibility.
-  const showDocs=crmIsTrue(data.additionalDocsEnabled);
-  requestedDocsList.classList.toggle('visible',showDocs);
-
-  if(showDocs){
-    const rawRequest=String(data.documentsRequested||'').trim();
-    approvalDocsSummary.textContent=rawRequest
-      ? 'Additional documents requested by your advisor.'
-      : 'Additional document requested by your advisor.';
-    requestedText.textContent=rawRequest||'Please upload the additional documents requested by your advisor.';
-  }else{
-    approvalDocsSummary.textContent='No additional documents requested.';
-    requestedText.textContent='';
-    requestedFiles.value='';
-    requestedMsg.textContent='';
-  }
+  approvalDocsSummary.textContent=showDocs
+    ? (rawRequest ? 'Additional documents requested by your advisor.' : 'Additional document requested by your advisor.')
+    : 'No additional documents requested.';
 
   if(liveClientReady()){
     approvalActionStatus.textContent=data.clientDecision
@@ -2924,11 +2962,20 @@ function renderPortalState(data){
 
 
 /*
- * Current Apps Script compatibility:
- * Code_SIMPLE.gs currently stores the latest advisor update in messageTitle/messageBody
- * and the latest client response in clientDecision/clientDecisionNote.
- * Retained two-way chat will plug into this UI later using actions added to this SAME backend.
+ * Retained two-way portal conversation stored on the same CRM application row.
+ * Older deployed backends gracefully fall back to the previous latest-message fields.
  */
+function parsePortalChatHistory(value){
+  if(Array.isArray(value)) return value;
+  const raw=String(value||'').trim();
+  if(!raw) return [];
+  try{
+    const parsed=JSON.parse(raw);
+    return Array.isArray(parsed)?parsed:[];
+  }catch(_){
+    return [];
+  }
+}
 function addChatBubble(senderType,message){
   if(!message) return;
   const bubble=document.createElement('div');
@@ -2940,11 +2987,15 @@ function renderPortalConversation(){
   chatHistory.replaceChildren();
   if(!liveClientReady()) return;
 
+  const history=parsePortalChatHistory(crmClient.chatHistory);
+  if(history.length){
+    history.forEach(entry=>addChatBubble(String(entry.sender||'ADVISOR').toUpperCase(),entry.message));
+    return;
+  }
+
   const advisorMessage=crmClient.messageBody||crmClient.messageTitle||'Your Toronto Finance Company advisor will post updates here.';
   addChatBubble('ADVISOR',advisorMessage);
-  if(crmClient.clientDecisionNote){
-    addChatBubble('CLIENT',crmClient.clientDecisionNote);
-  }
+  if(crmClient.clientDecisionNote) addChatBubble('CLIENT',crmClient.clientDecisionNote);
 }
 async function sendPortalChat(){
   const message=chatInput.value.trim();
@@ -2952,24 +3003,34 @@ async function sendPortalChat(){
   chatSend.disabled=true;
 
   try{
-    const result=await crmApi(CURRENT_CRM_ACTIONS.clientDecision,{
+    let result=await crmApi(CURRENT_CRM_ACTIONS.clientChatSend,{
       applicationId:crmClient.applicationId,
       email:crmClient.email,
-      decision:'Request More Information',
-      note:message
+      message
     });
-    if(!result?.ok) throw new Error(result?.error||'Your message could not be sent.');
 
+    if(!result?.ok && /unknown action/i.test(String(result?.error||''))){
+      result=await crmApi(CURRENT_CRM_ACTIONS.clientDecision,{
+        applicationId:crmClient.applicationId,
+        email:crmClient.email,
+        decision:'Request More Information',
+        note:message
+      });
+    }
+
+    if(!result?.ok) throw new Error(result?.error||'Your message could not be sent.');
     crmClient={...crmClient,...(result.data||{})};
     saveCurrentClient(crmClient);
     pendingMoreInfo=false;
     chatInput.value='';
-    chatInput.placeholder='Ask your advisor about this approval...';
+    chatInput.placeholder='Send a message to your advisor...';
     renderPortalState(crmClient);
     renderPortalConversation();
     chatHistory.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
   }catch(error){
-    approvalActionStatus.textContent=error.message||'Your message could not be sent.';
+    const workspace=document.getElementById('approvalWorkspace');
+    portalModeHelper.textContent=error.message||'Your message could not be sent.';
+    workspace?.scrollIntoView({behavior:'smooth',block:'nearest'});
   }finally{
     chatSend.disabled=false;
   }
@@ -3188,6 +3249,7 @@ function writeCurrentClientSession(data){
   localStorage.setItem(CRM_LEGACY_KEY,JSON.stringify(data));
 }
 function showCandidateLogin(message=''){
+  portalBoot.hidden=true;
   if(crmRefreshTimer){
     clearInterval(crmRefreshTimer);
     crmRefreshTimer=null;
@@ -3199,6 +3261,7 @@ function showCandidateLogin(message=''){
   candidateLoginMsg.className='candidate-login-message';
 }
 function showCandidatePortal(data){
+  portalBoot.hidden=true;
   crmClient=data;
   saveCurrentClient(data);
   candidateLogin.hidden=true;
@@ -3267,40 +3330,42 @@ async function verifyCurrentCrmHealth(){
 }
 
 async function initCurrentCrmBridge(){
-  try{
-    await verifyCurrentCrmHealth();
-  }catch(error){
-    showCandidateLogin('The Toronto Finance Company CRM could not be reached. Please refresh and try again.');
-    candidateLoginBtn.disabled=true;
-    return;
-  }
-
   const forceFresh=new URLSearchParams(window.location.search).get('login')==='1';
   if(forceFresh){
     clearCurrentClientSession();
     history.replaceState({},'', 'client-dashboard.html');
-    showCandidateLogin('');
-    return;
   }
 
-  const session=readCurrentClientSession();
-  if(!session){
-    showCandidateLogin('');
+  const session=forceFresh ? null : readCurrentClientSession();
+  if(session){
+    crmClient={...session.stored,applicationId:session.auth.applicationId,email:session.auth.email||session.stored.email||''};
+    showCandidatePortal(crmClient);
+
+    try{
+      await verifyCurrentCrmHealth();
+      await refreshCurrentClient(true);
+    }catch(_){
+      // Keep the cached portal visible during a temporary CRM/network issue.
+      portalModeHelper.textContent='Showing your saved portal. Reconnecting to the latest updates…';
+    }
     return;
   }
-
-  crmClient={...session.stored,applicationId:session.auth.applicationId,email:session.auth.email||session.stored.email||''};
-  portalShell.hidden=false;
-  candidateLogin.hidden=true;
 
   try{
-    const latest=await refreshCurrentClient(true);
-    if(latest) showCandidatePortal(latest);
-  }catch(_){
-    clearCurrentClientSession();
-    showCandidateLogin('Your saved session could not be verified. Please log in again.');
+    await verifyCurrentCrmHealth();
+    showCandidateLogin('');
+  }catch(error){
+    showCandidateLogin('The Toronto Finance Company CRM could not be reached. Please refresh and try again.');
+    candidateLoginBtn.disabled=true;
   }
 }
+
+window.addEventListener('focus',()=>{
+  if(liveClientReady()) refreshCurrentClient(false).catch(()=>{});
+});
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&liveClientReady()) refreshCurrentClient(false).catch(()=>{});
+});
 initCurrentCrmBridge();
 </script>
 </body>
