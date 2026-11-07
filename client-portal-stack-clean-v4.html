@@ -1713,36 +1713,59 @@ approvalMore.addEventListener('click',e=>{
     setTimeout(()=>chatInput.focus({preventScroll:true}),450);
   });
 });
-function readSampleChat(){
-  try{
-    const parsed=JSON.parse(localStorage.getItem(SAMPLE_CHAT_KEY)||'[]');
-    return Array.isArray(parsed)?parsed:[];
-  }catch(_){
-    return [];
+/*
+ * Chat transport boundary:
+ * - V4 sample uses local browser storage only.
+ * - Final production hookup will keep this UI unchanged and replace these
+ *   transport methods with calls to NEW actions added inside the EXISTING
+ *   Code_SIMPLE.gs / current CRM deployment.
+ * - No second Apps Script deployment is required.
+ *
+ * Planned current-backend actions:
+ *   clientChatList  -> api('clientChatList',{applicationId,email})
+ *   clientChatSend  -> api('clientChatSend',{applicationId,email,message})
+ */
+const chatTransport={
+  mode:'sample-local',
+  list(){
+    try{
+      const parsed=JSON.parse(localStorage.getItem(SAMPLE_CHAT_KEY)||'[]');
+      return Array.isArray(parsed)?parsed:[];
+    }catch(_){
+      return [];
+    }
+  },
+  save(items){
+    localStorage.setItem(SAMPLE_CHAT_KEY,JSON.stringify(items.slice(-100)));
+  },
+  make(senderType,message,senderName){
+    return{
+      messageId:'SAMPLE-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),
+      timestamp:new Date().toISOString(),
+      applicationId:'TFC-V4-SAMPLE',
+      senderType,
+      senderName,
+      message
+    };
+  },
+  sendClient(message){
+    const items=this.list();
+    const item=this.make('CLIENT',message,'Sample Client');
+    items.push(item);
+    this.save(items);
+    return item;
   }
-}
-function writeSampleChat(items){
-  localStorage.setItem(SAMPLE_CHAT_KEY,JSON.stringify(items.slice(-100)));
-}
-function makeSampleMessage(senderType,message,senderName){
-  return{
-    messageId:'SAMPLE-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),
-    timestamp:new Date().toISOString(),
-    applicationId:'TFC-V4-SAMPLE',
-    senderType,
-    senderName,
-    message
-  };
-}
+};
+
 function renderSampleChat(){
-  let items=readSampleChat();
+  let items=chatTransport.list();
   if(!items.length){
-    items=[makeSampleMessage(
+    items=[chatTransport.make(
       'ADVISOR',
       'Your approval is available above. If you have a question about the terms, send us a message here.',
       'Toronto Finance Company'
     )];
-    writeSampleChat(items);
+    chatTransport.save(items);
   }
   chatHistory.replaceChildren();
   items.forEach(item=>{
@@ -1756,10 +1779,7 @@ function renderSampleChat(){
 function sendSampleChat(){
   const message=chatInput.value.trim();
   if(!message) return;
-  const items=readSampleChat();
-  const item=makeSampleMessage('CLIENT',message,'Sample Client');
-  items.push(item);
-  writeSampleChat(items);
+  chatTransport.sendClient(message);
   renderSampleChat();
   chatInput.value='';
   chatHistory.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
