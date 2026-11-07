@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TFC Chat Persistence Staging Test</title>
+<style>
+:root{--ink:#17130f;--paper:#f4eadc;--soft:#fbf7f0;--line:rgba(23,19,15,.12);--gold:#b88a49}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--paper);color:var(--ink)}
+main{width:min(1100px,94vw);margin:30px auto}.top{display:flex;justify-content:space-between;gap:18px;align-items:flex-end;margin-bottom:18px}
+h1,h2{font-family:Georgia,serif;font-weight:400}.top h1{margin:0;font-size:34px}.top p{margin:5px 0 0;color:#786f65;font-size:13px}
+.badge{font-size:11px;text-transform:uppercase;letter-spacing:.1em;padding:8px 11px;border:1px solid var(--line);border-radius:999px;background:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.pane{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}
+.pane h2{margin:0 0 12px;font-size:26px}.thread{height:420px;overflow:auto;padding:12px;background:var(--soft);border-radius:12px;border:1px solid var(--line)}
+.msg{max-width:82%;padding:10px 12px;border-radius:12px;margin:8px 0;font-size:13px;line-height:1.45}
+.msg.client{margin-left:auto;background:#17130f;color:#fff}.msg.advisor{background:#efe2d0;color:#382f28}
+.meta{font-size:9px;opacity:.65;margin-top:5px}.compose{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:12px}
+.compose input{padding:12px;border:1px solid var(--line);border-radius:999px;background:#fff}.compose button,.reset{border:0;border-radius:999px;padding:11px 16px;background:#17130f;color:#fff;cursor:pointer}
+.tools{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:14px;font-size:12px;color:#786f65}.reset{background:#b88a49}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.thread{height:320px}.top{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div>
+      <div class="badge">Staging only · not connected to production</div>
+      <h1>Client ↔ Advisor Chat Persistence Test</h1>
+      <p>Shared test thread using the same message contract planned for the Client Messages sheet.</p>
+    </div>
+    <div id="status" class="badge">0 messages</div>
+  </div>
+
+  <div class="grid">
+    <section class="pane">
+      <h2>Client View</h2>
+      <div class="thread" id="clientThread"></div>
+      <div class="compose">
+        <input id="clientInput" placeholder="Client message">
+        <button id="clientSend">Send</button>
+      </div>
+    </section>
+
+    <section class="pane">
+      <h2>Advisor View</h2>
+      <div class="thread" id="advisorThread"></div>
+      <div class="compose">
+        <input id="advisorInput" placeholder="Advisor reply">
+        <button id="advisorSend">Send</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="tools">
+    <span>Application: TFC-STAGING-001 · Refresh the page to verify retention.</span>
+    <button class="reset" id="reset">Reset Test Thread</button>
+  </div>
+</main>
+<script>
+const KEY='tfc-chat-staging-thread-v1';
+const APP_ID='TFC-STAGING-001';
+const $=id=>document.getElementById(id);
+
+function read(){
+  try{
+    const data=JSON.parse(localStorage.getItem(KEY)||'[]');
+    return Array.isArray(data)?data:[];
+  }catch(_){return[]}
+}
+function write(items){localStorage.setItem(KEY,JSON.stringify(items.slice(-200)))}
+function make(senderType,senderName,message){
+  return{
+    messageId:'MSG-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),
+    timestamp:new Date().toISOString(),
+    applicationId:APP_ID,
+    senderType,
+    senderName,
+    message:String(message||'').trim()
+  };
+}
+function seed(){
+  let items=read();
+  if(!items.length){
+    items=[make('ADVISOR','Toronto Finance Company','Your approval is available. Ask any questions here.')];
+    write(items);
+  }
+  return items;
+}
+function renderThread(el,items){
+  el.replaceChildren();
+  items.forEach(item=>{
+    const div=document.createElement('div');
+    div.className='msg '+(item.senderType==='CLIENT'?'client':'advisor');
+    const body=document.createElement('div');
+    body.textContent=item.message;
+    const meta=document.createElement('div');
+    meta.className='meta';
+    meta.textContent=item.senderName+' · '+new Date(item.timestamp).toLocaleString();
+    div.append(body,meta);
+    el.appendChild(div);
+  });
+  el.scrollTop=el.scrollHeight;
+}
+function render(){
+  const items=seed().sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
+  renderThread($('clientThread'),items);
+  renderThread($('advisorThread'),items);
+  $('status').textContent=items.length+' message'+(items.length===1?'':'s');
+}
+function send(type){
+  const input=type==='CLIENT'?$('clientInput'):$('advisorInput');
+  const text=input.value.trim();
+  if(!text)return;
+  const items=read();
+  items.push(make(type,type==='CLIENT'?'Sample Client':'Toronto Finance Company',text));
+  write(items);
+  input.value='';
+  render();
+}
+$('clientSend').onclick=()=>send('CLIENT');
+$('advisorSend').onclick=()=>send('ADVISOR');
+$('clientInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send('CLIENT')}});
+$('advisorInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send('ADVISOR')}});
+$('reset').onclick=()=>{localStorage.removeItem(KEY);render()};
+render();
+</script>
+</body>
+</html>
