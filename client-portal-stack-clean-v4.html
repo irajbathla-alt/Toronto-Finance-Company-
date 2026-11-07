@@ -1522,6 +1522,19 @@ button,input{font:inherit}
   .task-grid .task strong{font-size:13px}
 }
 
+
+@media(max-width:760px){
+  #lenderCarousel,
+  .funding-row .route,
+  .funding-row .deck-wrap{
+    touch-action:pan-y pinch-zoom;
+  }
+  body{
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1811,6 +1824,8 @@ const requestedDoc2Desc=document.getElementById('requestedDoc2Desc');
 const SAMPLE_CHAT_KEY='tfc-v4-chat-thread-v1';
 let currentCard=0;
 let deckAnimating=false;
+let dragAxis=null;
+let dragPointerId=null;
 let dragCard=null,dragStartX=0,dragStartY=0,dragX=0,dragY=0,suppressCardClick=false;
 let dragStartTime=0,lastMoveX=0,lastMoveTime=0,dragVelocityX=0;
 
@@ -1869,35 +1884,95 @@ lenderCarousel.addEventListener('pointerdown',e=>{
   if(!top.contains(e.target)) return;
   if(e.target.closest('.card-action')) return;
   if(e.pointerType==='mouse' && e.button!==0) return;
+
   dragCard=top;
-  dragStartX=e.clientX;dragStartY=e.clientY;dragX=0;dragY=0;suppressCardClick=false;
-  dragStartTime=performance.now();lastMoveX=e.clientX;lastMoveTime=dragStartTime;dragVelocityX=0;
-  top.classList.add('dragging');
-  try{top.setPointerCapture(e.pointerId)}catch(_){}
+  dragPointerId=e.pointerId;
+  dragStartX=e.clientX;
+  dragStartY=e.clientY;
+  dragX=0;
+  dragY=0;
+  dragAxis=e.pointerType==='mouse'?'horizontal':null;
+  suppressCardClick=false;
+  dragStartTime=performance.now();
+  lastMoveX=e.clientX;
+  lastMoveTime=dragStartTime;
+  dragVelocityX=0;
+
+  if(e.pointerType==='mouse'){
+    top.classList.add('dragging');
+    try{top.setPointerCapture(e.pointerId)}catch(_){}
+  }
 });
+
 lenderCarousel.addEventListener('pointermove',e=>{
-  if(!dragCard)return;
-  dragX=e.clientX-dragStartX;dragY=e.clientY-dragStartY;
+  if(!dragCard || e.pointerId!==dragPointerId) return;
+
+  dragX=e.clientX-dragStartX;
+  dragY=e.clientY-dragStartY;
+  const absX=Math.abs(dragX);
+  const absY=Math.abs(dragY);
+
+  if(e.pointerType!=='mouse' && !dragAxis){
+    if(absY>8 && absY>absX*1.15){
+      // Vertical intent belongs entirely to the page.
+      dragCard.classList.remove('dragging');
+      dragCard.style.transform='';
+      dragCard=null;
+      dragPointerId=null;
+      dragAxis='vertical';
+      return;
+    }
+    if(absX>8 && absX>absY*1.15){
+      dragAxis='horizontal';
+      dragCard.classList.add('dragging');
+      try{dragCard.setPointerCapture(e.pointerId)}catch(_){}
+    }else{
+      return;
+    }
+  }
+
+  if(dragAxis!=='horizontal') return;
+
+  if(e.cancelable) e.preventDefault();
+
   const now=performance.now();
   const dt=Math.max(1,now-lastMoveTime);
   dragVelocityX=(e.clientX-lastMoveX)/dt;
-  lastMoveX=e.clientX;lastMoveTime=now;
-  if(Math.abs(dragX)>5) suppressCardClick=true;
+  lastMoveX=e.clientX;
+  lastMoveTime=now;
+  if(absX>5) suppressCardClick=true;
+
   const rotation=Math.max(-6,Math.min(6,dragX/38));
-  const vertical=e.pointerType==='mouse'?dragY*.08:dragY*.18;
+  const vertical=e.pointerType==='mouse'?dragY*.08:0;
   dragCard.style.transform='translate3d('+dragX+'px,'+vertical+'px,0) rotate('+rotation+'deg)';
 });
+
 function finishDrag(e){
-  if(!dragCard)return;
+  if(!dragCard || e.pointerId!==dragPointerId){
+    dragAxis=null;
+    dragPointerId=null;
+    return;
+  }
+
   const card=dragCard;
   dragCard=null;
+  dragPointerId=null;
+
   try{card.releasePointerCapture(e.pointerId)}catch(_){}
   card.classList.remove('dragging');
   card.style.transform='';
+
+  if(dragAxis!=='horizontal'){
+    dragAxis=null;
+    renderDeck();
+    return;
+  }
+
   const desktop=e.pointerType==='mouse';
-  const distanceThreshold=desktop?52:90;
-  const velocityThreshold=desktop?.45:.65;
+  const distanceThreshold=desktop?52:70;
+  const velocityThreshold=desktop?.45:.55;
   const shouldSwipe=Math.abs(dragX)>distanceThreshold || Math.abs(dragVelocityX)>velocityThreshold;
+
   if(shouldSwipe){
     suppressCardClick=true;
     const direction=(Math.abs(dragX)>10?dragX:dragVelocityX)>0?'right':'left';
@@ -1906,32 +1981,18 @@ function finishDrag(e){
   }else{
     renderDeck();
   }
+
+  dragAxis=null;
 }
+
 lenderCarousel.addEventListener('pointerup',finishDrag);
 lenderCarousel.addEventListener('pointercancel',finishDrag);
 
-let deckTouchStartX=0;
-let deckTouchStartY=0;
-let deckTouchActive=false;
-lenderCarousel.addEventListener('touchstart',e=>{
-  const touch=e.touches&&e.touches[0];
-  if(!touch) return;
-  deckTouchStartX=touch.clientX;
-  deckTouchStartY=touch.clientY;
-  deckTouchActive=true;
-},{passive:true,capture:true});
-lenderCarousel.addEventListener('touchmove',e=>{
-  if(!deckTouchActive) return;
-  const touch=e.touches&&e.touches[0];
-  if(!touch) return;
-  const dx=touch.clientX-deckTouchStartX;
-  const dy=touch.clientY-deckTouchStartY;
-  if(Math.abs(dx)>8 && Math.abs(dx)>Math.abs(dy)*1.15){
-    e.preventDefault();
+renderDeck();
   }
-},{passive:false,capture:true});
-lenderCarousel.addEventListener('touchend',()=>{deckTouchActive=false},{passive:true,capture:true});
-lenderCarousel.addEventListener('touchcancel',()=>{deckTouchActive=false},{passive:true,capture:true});
+}
+lenderCarousel.addEventListener('pointerup',finishDrag);
+lenderCarousel.addEventListener('pointercancel',finishDrag);
 
 renderDeck();
 
