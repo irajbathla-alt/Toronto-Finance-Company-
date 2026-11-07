@@ -1386,6 +1386,76 @@ button,input{font:inherit}
   .approval-side-amount{font-size:28px}
 }
 
+
+/* V4 mobile alignment + TFC application-step fix */
+@media(max-width:760px){
+  /* Route card is centered in an 18px taller stage: match its 9px top inset. */
+  .approval-side.visible:not(.focused){
+    margin-top:9px;
+  }
+
+  /* Keep Review & Sign and Bank Statements as equal tabs on one line. */
+  .task-grid{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:8px;
+    align-items:stretch;
+  }
+  .task{
+    min-width:0;
+    min-height:72px;
+    padding:12px 10px;
+    gap:8px;
+    align-items:center;
+  }
+  .task small{
+    font-size:6.5px;
+    letter-spacing:.11em;
+    margin-bottom:4px;
+  }
+  .task strong{
+    font-size:16px;
+    line-height:1.05;
+  }
+  .task span{
+    font-size:14px;
+    flex:0 0 auto;
+  }
+
+  /* Make the bank-statement upload panel unmistakably visible when selected. */
+  #uploadPanel.show{
+    display:block;
+  }
+  #uploadPanel .upload-zone{
+    padding:20px 14px;
+    border-radius:12px;
+  }
+  #uploadPanel .upload-zone strong{
+    font-size:22px;
+  }
+  #uploadPanel .upload-zone p{
+    font-size:9px;
+    line-height:1.5;
+  }
+  #uploadPanel .upload-zone input{
+    width:100%;
+    margin-top:14px;
+  }
+
+  /* Requested-document uploads remain visible whenever Admin requested them. */
+  .approval-workspace.visible .requested-docs-list.visible{
+    display:block;
+  }
+}
+
+@media(max-width:390px){
+  .task{
+    min-height:68px;
+    padding:10px 8px;
+  }
+  .task strong{font-size:14px}
+  .task span{font-size:12px}
+}
+
 </style>
 </head>
 <body>
