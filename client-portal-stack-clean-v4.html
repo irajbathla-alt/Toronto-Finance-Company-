@@ -392,7 +392,6 @@ button,input{font:inherit}
   z-index:6;
 }
 .approval-side:hover{
-  transform:translateY(-3px);
   box-shadow:0 24px 58px rgba(40,28,18,.18);
   border-color:rgba(198,150,78,.52);
 }
@@ -540,6 +539,7 @@ button,input{font:inherit}
 }
 .approval-side.focused:hover{
   transform:translate(-50%,-50%) scale(1.015);
+  box-shadow:0 34px 90px rgba(0,0,0,.40);
 }
 .approval-focus-close{
   position:absolute;
@@ -1640,6 +1640,7 @@ function openApprovalFocus(){
 function closeApprovalFocus(){
   approvalSideSample.classList.remove('focused');
   approvalFocusBackdrop.classList.remove('show');
+  approvalSideSample.getBoundingClientRect();
 }
 approvalSideSample.addEventListener('click',e=>{
   if(e.target.closest('button')) return;
@@ -1652,12 +1653,25 @@ approvalSideSample.addEventListener('keydown',e=>{
   }
 });
 approvalFocusBackdrop.addEventListener('click',closeApprovalFocus);
-approvalFocusClose.addEventListener('click',e=>{e.stopPropagation();closeApprovalFocus()});
+
+[approvalFocusClose,approvalProceed,approvalMore].forEach(button=>{
+  button.addEventListener('pointerdown',e=>e.stopPropagation());
+  button.addEventListener('mousedown',e=>e.stopPropagation());
+  button.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});
+});
+
+approvalFocusClose.addEventListener('click',e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  closeApprovalFocus();
+});
 approvalProceed.addEventListener('click',e=>{
+  e.preventDefault();
   e.stopPropagation();
   approvalActionStatus.textContent='Proceed selected — your advisor would be notified.';
 });
 approvalMore.addEventListener('click',e=>{
+  e.preventDefault();
   e.stopPropagation();
   approvalActionStatus.textContent='Opening advisor chat...';
   closeApprovalFocus();
