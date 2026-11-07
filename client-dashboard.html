@@ -2664,7 +2664,9 @@ async function uploadCurrentClientFile(file,type='document'){
 function startCurrentClientRefresh(){
   if(crmRefreshTimer) clearInterval(crmRefreshTimer);
   if(!liveClientReady()) return;
-  crmRefreshTimer=setInterval(()=>refreshCurrentClient(false).catch(()=>{}),12000);
+  crmRefreshTimer=setInterval(()=>{
+    if(document.visibilityState==='visible') refreshCurrentClient(false).catch(()=>{});
+  },12000);
 }
 
 let currentCard=0;
@@ -3195,7 +3197,7 @@ function renderPortalConversation(){
         ...(crmClient.clientDecisionNote ? [{sender:'CLIENT',message:String(crmClient.clientDecisionNote)}] : [])
       ];
 
-  const signature=JSON.stringify(entries);
+  const signature=String(crmClient.applicationId||'')+'|'+JSON.stringify(entries);
   if(signature===portalConversationSignature) return;
 
   const nearBottom=(chatHistory.scrollHeight-chatHistory.scrollTop-chatHistory.clientHeight)<48;
@@ -3490,6 +3492,8 @@ function showCandidateLogin(message=''){
     crmRefreshTimer=null;
   }
   crmClient=null;
+  portalConversationSignature='';
+  chatHistory.replaceChildren();
   portalShell.hidden=true;
   candidateLogin.hidden=false;
   candidateLoginMsg.textContent=message;
