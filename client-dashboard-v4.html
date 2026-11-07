@@ -1707,6 +1707,43 @@ button,input{font:inherit}
   }
 }
 
+
+/* CRM-driven funding layout:
+   before approval = centered lender deck;
+   after approval = lender deck + Approval Snapshot. */
+.funding-row.no-approval{
+  grid-template-columns:minmax(0,560px)!important;
+  justify-content:center;
+  max-width:560px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.funding-row.no-approval .deck-wrap{
+  width:100%;
+  max-width:560px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.funding-row.has-approval{
+  justify-content:stretch;
+}
+
+@media(max-width:760px){
+  .funding-row.no-approval{
+    grid-template-columns:minmax(0,1fr)!important;
+    width:100%;
+    max-width:100%;
+    justify-content:center;
+    overflow:visible;
+  }
+  .funding-row.no-approval .deck-wrap{
+    width:min(100%,390px);
+    max-width:390px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2635,6 +2672,8 @@ function renderPortalState(data){
   const hasOffer=Boolean(data.approvedAmount||data.quote||data.term||data.paymentAmount||data.totalRepayment);
   const approved=['Conditional Approval','Approved'].includes(status)&&hasOffer;
 
+  fundingRow.classList.toggle('has-approval',approved);
+  fundingRow.classList.toggle('no-approval',!approved);
   approvalSideSample.classList.toggle('visible',approved);
   document.getElementById('approvalWorkspace').classList.toggle('visible',approved);
 
