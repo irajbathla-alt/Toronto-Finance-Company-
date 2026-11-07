@@ -3,9 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="refresh" content="0;url=index.html?apply=1">
 <title>Apply | Toronto Finance Company</title>
-<script>window.location.replace('index.html?apply=1');</script>
+<script>
+(function(){
+  const params=new URLSearchParams(window.location.search);
+  params.set('apply','1');
+  window.location.replace('index.html?'+params.toString());
+})();
+</script>
 </head>
 <body>
 <p>Opening the Toronto Finance Company application…</p>
