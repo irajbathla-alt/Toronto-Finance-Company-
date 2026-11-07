@@ -90,12 +90,7 @@ button,input{font:inherit}
 .route.tfc{background:linear-gradient(145deg,#fffaf2,#f3e5cf);border-color:rgba(185,137,63,.42)}
 
 .route.tfc .route-logo strong{color:#9b7137}
-@media(max-width:760px){
-  .funding-row .route.tfc .route-logo strong{
-    font-size:5.2px;
-    letter-spacing:.025em;
-  }
-}
+
 .card-actions{
   display:flex;
   flex-direction:column;
@@ -817,6 +812,23 @@ button,input{font:inherit}
   .route.dragging{cursor:grabbing}
   .route img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
 }
+
+
+/* Final mobile composition: compact side-by-side preview, full details on focus */
+
+
+
+
+
+/* V4 mobile alignment + TFC application-step fix */
+
+
+
+
+
+/* V4 debug stabilization */
+
+/* Canonical mobile layout — keep all core mobile behavior in this block. */
 @media(max-width:760px){
   html,
   body{
@@ -824,54 +836,60 @@ button,input{font:inherit}
     max-width:100%;
     overflow-x:hidden;
     background:#f6efe5;
-    overscroll-behavior-x:none;
-    overscroll-behavior-y:none;
   }
+  html{overscroll-behavior-x:none}
   body{
     min-height:100dvh;
+    overflow-y:auto;
+    overscroll-behavior-y:auto;
+    -webkit-overflow-scrolling:touch;
   }
+
   .shell{
-    width:100%;margin:0;min-height:100dvh;border-radius:0;
-    border-left:0;border-right:0;
+    width:100%;
+    margin:0;
+    min-height:100dvh;
+    border-radius:0;
+    border-left:0;
+    border-right:0;
     box-shadow:none;
+    overflow:visible;
   }
   .top{
     padding:16px 18px 14px;
     align-items:flex-start;
-    min-height:auto
+    min-height:auto;
   }
   .brand{
     font-size:clamp(17px,4.9vw,22px)!important;
     line-height:1!important;
     max-width:none;
     white-space:nowrap;
-    letter-spacing:-.01em
+    letter-spacing:-.01em;
   }
   .tag{
     margin-top:7px!important;
     font-size:6.5px!important;
-    letter-spacing:.18em!important
+    letter-spacing:.18em!important;
   }
   .sample{
     font-size:6.5px;
     letter-spacing:.10em;
     padding:7px 9px;
-    white-space:nowrap
+    white-space:nowrap;
   }
   .criteria-modal,
   .approval-focus-backdrop{
     backdrop-filter:none;
     -webkit-backdrop-filter:none;
   }
-  .content{padding:22px 16px 30px}
-  .hero{
-    margin-bottom:18px;
-    max-width:none
-  }
+
+  .content{padding:20px 12px 30px}
+  .hero{margin-bottom:18px;max-width:none}
   .eyebrow{
     font-size:6.8px;
     letter-spacing:.18em;
-    margin-bottom:8px
+    margin-bottom:8px;
   }
   .hero h1{
     font-size:clamp(25px,7.1vw,34px)!important;
@@ -879,356 +897,57 @@ button,input{font:inherit}
     margin:0 0 9px!important;
     max-width:none;
     white-space:nowrap;
-    letter-spacing:-.025em
+    letter-spacing:-.025em;
   }
   .hero p{
     font-size:10px!important;
     line-height:1.5!important;
-    max-width:95%
+    max-width:95%;
   }
 
   .funding-row{
     grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-    gap:4px;
+    gap:8px;
     width:100%;
     max-width:100%;
     min-width:0;
     align-items:start;
-    overflow-x:clip;
+    overflow:hidden;
   }
   .funding-row .deck-wrap{
+    width:100%;
     min-width:0;
     max-width:none;
     margin:0;
+    touch-action:pan-y pinch-zoom;
   }
   .funding-row .route-grid{
-    height:292px;
     width:100%;
     max-width:100%;
     min-width:0;
+    height:318px;
+    margin:0;
     touch-action:pan-y pinch-zoom;
     overscroll-behavior-x:none;
   }
   .funding-row .route{
+    top:9px;
+    right:0;
+    bottom:auto;
+    left:0;
     width:100%;
     max-width:100%;
-    height:275px;
-    padding:13px 11px;
-    border-radius:15px;
-    touch-action:pan-y pinch-zoom;
-  }
-  .funding-row .route h2{
-    font-size:18px!important;
-    margin:6px 0 5px;
-  }
-  .funding-row .route p{
-    font-size:7px!important;
-    line-height:1.35!important;
-    max-width:100%;
-  }
-  .funding-row .route-logo{
-    gap:8px;
-    margin-bottom:8px;
-    min-width:0;
-  }
-  .funding-row .route-logo img{
-    width:28px!important;
-    height:28px!important;
-    border-radius:8px!important;
-    padding:4px!important;
-  }
-  .funding-row .route-logo>div{
-    width:31px!important;
-    height:31px!important;
-    min-width:31px!important;
-    flex:0 0 31px;
-    border-radius:9px!important;
-    padding:0!important;
-    font-size:12px!important;
-    line-height:1!important;
-  }
-  .funding-row .route-logo strong{
-    min-width:0;
-    font-size:5.6px;
-    line-height:1.2;
-    letter-spacing:.04em;
-    white-space:normal;
-    overflow-wrap:normal;
-  }
-  .funding-row .route .route-kicker{
-    font-size:4.5px;
-  }
-  .funding-row .card-actions{
-    gap:5px;
-    margin:6px 0;
-  }
-  .funding-row .card-action{
-    width:88%;
-    padding:7px 8px;
-    font-size:5.5px;
-  }
-  .funding-row .route .arrow{
-    width:25px;
-    height:25px;
-    right:10px;
-    bottom:10px;
-    font-size:11px;
-  }
-  .funding-row .carousel-controls{
-    gap:7px;
-  }
-  .funding-row .carousel-arrow{
-    width:30px;
-    height:30px;
-    font-size:13px;
-  }
-  .funding-row .swipe-hint{
-    font-size:5.5px;
-    letter-spacing:.08em;
-    margin-top:6px;
-  }
-  .funding-row .deck-status{
-    font-size:6.5px;
-  }
-  .approval-side{
-    width:100%;
-    height:275px;
-    margin:9px 0 0;
-    padding:13px 11px;
-    border-radius:15px;
-  }
-  .approval-side .approval-kicker{
-    font-size:5px;
-    flex:0 0 auto;
-  }
-  .approval-side-status{
-    margin-top:5px;
-    padding:4px 7px;
-    font-size:4.8px;
-    flex:0 0 auto;
-  }
-  .approval-side h3{
-    font-size:18px;
-    line-height:.98;
-    margin:7px 0 2px;
-    flex:0 0 auto;
-  }
-  .approval-side-amount{
-    font-size:27px;
-    line-height:1;
-    margin:3px 0 7px;
-    flex:0 0 auto;
-  }
-  .approval-side-grid{
-    width:100%;
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-    flex:0 0 auto;
-  }
-  .approval-side-grid div{
-    min-height:29px;
-    padding:5px 6px;
-  }
-  .approval-side-grid small{
-    font-size:4.1px;
-    line-height:1.1;
-    margin-bottom:2px;
-  }
-  .approval-side-grid strong{
-    font-size:6.2px;
-    line-height:1.15;
-    overflow-wrap:normal;
-    word-break:normal;
-  }
-  .approval-doc-state{
-    flex:0 0 auto;
-    padding:5px 7px;
-    margin-top:5px;
-    font-size:5.7px;
-    line-height:1.2;
-  }
-  .approval-doc-state strong{
-    font-size:4.2px;
-    margin-bottom:2px;
-  }
-  .approval-doc-state #approvalDocsSummary{
-    display:block;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-  .approval-card-actions{
-    flex:0 0 auto;
-    gap:4px;
-    margin-top:auto;
-    padding-top:5px;
-  }
-  .approval-card-actions button{
-    width:88%;
-    padding:6px 8px;
-    font-size:5.4px;
-  }
-  .approval-action-status{
-    display:none;
-  }
-  .approval-side-note{
-    display:none;
-  }
-  .approval-side.focused{
-    width:min(88vw,390px);
-    height:min(86vh,520px);
-    padding:20px 18px;
-  }
-  .approval-side.focused h3{font-size:31px}
-  .approval-side.focused .approval-side-amount{font-size:40px}
-  .approval-side.focused .approval-side-grid div{padding:10px 9px}
-  .approval-side.focused .approval-side-grid strong{font-size:8.5px;line-height:1.3}
-  .approval-side.focused .approval-doc-state{padding:10px;font-size:8px}
-  .approval-side.focused .approval-doc-state #approvalDocsSummary{white-space:normal;overflow:visible;text-overflow:clip}
-  .approval-side.focused .approval-action-status{display:block;min-height:10px;margin-top:4px;font-size:5.5px}
-  .approval-side.focused .approval-card-actions button{width:min(190px,78%);padding:9px 14px;font-size:7px}
-  .approval-workspace-head{
-    align-items:flex-start;
-    flex-direction:column;
-    gap:7px;
-  }
-  .approval-workspace-head h2{font-size:27px}
-  .chat-compose{grid-template-columns:1fr auto}
-  .requested-doc-item{
-    grid-template-columns:24px 1fr;
-  }
-  .requested-doc-upload{
-    grid-column:2;
-    justify-self:start;
-  }
-  .deck-wrap{
-    max-width:100%;
-    margin-top:2px
-  }
-  .route-grid{
-    height:470px;
-    margin:0;
-  }
-  .route{
-    width:min(78vw,360px);
-    height:435px;
-    min-height:0!important;
-    padding:20px 18px;
-    border-radius:20px
-  }
-  .route h2{
-    font-size:clamp(24px,7.3vw,31px)!important;
-    line-height:.98;
-    margin:9px 0 7px
-  }
-  .route p{
-    font-size:9.8px!important;
-    line-height:1.5!important;
-    max-width:92%
-  }
-  .route .route-kicker{
-    font-size:5.8px;
-    letter-spacing:.14em
-  }
-  .route-logo{
-    gap:9px;
-    margin-bottom:15px
-  }
-  .route-logo img{
-    width:34px;
-    height:34px;
-    border-radius:9px;
-    padding:5px
-  }
-  .route-logo>div{
-    width:34px!important;
-    height:34px!important;
-    border-radius:9px!important;
-    font-size:14px!important
-  }
-  .route-logo strong{
-    font-size:7.6px;
-    letter-spacing:.055em
-  }
-  .route .arrow{
-    right:14px;
-    bottom:14px;
-    width:31px;
-    height:31px;
-    font-size:14px
-  }
-  .route.swipe-left{transform:translate(-58%,6px) rotate(-3deg)!important}
-  .route.swipe-right{transform:translate(58%,6px) rotate(3deg)!important}
-  .route[data-pos="1"]{transform:translateY(12px) scale(.97)}
-  .route[data-pos="2"]{transform:translateY(24px) scale(.94)}
-  .route[data-pos="3"]{transform:translateY(35px) scale(.91)}
-  .route[data-pos="hidden"]{transform:translateY(44px) scale(.89)}
-
-  .carousel-controls{margin-top:0;gap:10px}
-  .carousel-arrow{width:32px;height:32px;font-size:14px}
-  .carousel-dot{width:6px;height:6px}
-  .carousel-dot.active{width:18px}
-  .swipe-hint{
-    margin-top:7px;
-    font-size:5.8px;
-    letter-spacing:.10em
-  }
-  .deck-status{
-    margin-top:3px;
-    font-size:7px
-  }
-  @media(max-width:390px){
-    .brand{font-size:16px!important}
-    .sample{font-size:5.8px;padding:6px 7px}
-    .hero h1{font-size:24px!important;white-space:normal;max-width:100%}
-  }
-  .helper{
-    margin-top:13px!important;
-    font-size:7.5px!important;
-    line-height:1.45!important
-  }
-
-  .internal-head{align-items:flex-start;flex-direction:column}
-  .task-grid{grid-template-columns:1fr}
-  .panel{padding:14px!important}
-  .adobe{
-    width:100%;
-    height:980px;
-    overflow:hidden;
-    border-radius:10px
-  }
-  .adobe iframe{
-    display:block;
-    width:100%!important;
-    min-width:0!important;
-    height:100%!important;
-    border:0
-  }
-}
-
-/* Final mobile composition: compact side-by-side preview, full details on focus */
-@media(max-width:760px){
-  .content{padding:20px 12px 30px}
-
-  .funding-row{
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-    gap:8px;
-    align-items:start;
-    overflow:hidden;
-  }
-
-  .funding-row .route-grid{
-    height:318px;
-  }
-
-  .funding-row .route{
     height:300px;
+    min-height:0!important;
+    margin:0;
     padding:14px 12px;
     border-radius:17px;
+    touch-action:pan-y pinch-zoom;
   }
-
   .funding-row .route-logo{
     gap:7px;
     margin-bottom:9px;
+    min-width:0;
   }
   .funding-row .route-logo>div,
   .funding-row .route-logo img{
@@ -1236,15 +955,29 @@ button,input{font:inherit}
     height:31px!important;
     min-width:31px!important;
     flex:0 0 31px;
+    border-radius:9px!important;
   }
+  .funding-row .route-logo>div{
+    padding:0!important;
+    font-size:12px!important;
+    line-height:1!important;
+  }
+  .funding-row .route-logo img{padding:4px!important}
   .funding-row .route-logo strong{
+    min-width:0;
     font-size:6.3px;
     line-height:1.15;
+    letter-spacing:.02em;
+    white-space:normal;
+    overflow-wrap:normal;
+  }
+  .funding-row .route.tfc .route-logo strong{
+    font-size:5.6px;
     letter-spacing:.02em;
   }
   .funding-row .route .route-kicker{
     font-size:5px;
-    letter-spacing:.1em;
+    letter-spacing:.10em;
   }
   .funding-row .route h2{
     font-size:20px!important;
@@ -1271,38 +1004,61 @@ button,input{font:inherit}
   }
   .funding-row .route .arrow{display:none}
 
+  .route.swipe-left{transform:translate(-58%,6px) rotate(-3deg)!important}
+  .route.swipe-right{transform:translate(58%,6px) rotate(3deg)!important}
+  .route[data-pos="1"]{transform:translateY(10px) scale(.97)}
+  .route[data-pos="2"]{transform:translateY(18px) scale(.94)}
+  .route[data-pos="3"]{transform:translateY(25px) scale(.91)}
+  .route[data-pos="hidden"]{transform:translateY(34px) scale(.89)}
+
+  .carousel-controls{margin-top:0;gap:10px}
+  .carousel-arrow{width:32px;height:32px;font-size:14px}
+  .carousel-dot{width:6px;height:6px}
+  .carousel-dot.active{width:18px}
+  .swipe-hint{
+    margin-top:7px;
+    font-size:5.8px;
+    letter-spacing:.10em;
+  }
+  .deck-status{
+    margin-top:3px;
+    font-size:7px;
+  }
+
   .approval-side{
+    width:100%;
     height:300px;
-    margin:0;
     padding:14px 12px;
     border-radius:17px;
   }
+  .approval-side.visible:not(.focused){margin:9px 0 0}
   .approval-side .approval-kicker{
     font-size:5.4px;
     letter-spacing:.12em;
+    flex:0 0 auto;
   }
   .approval-side-status{
     margin-top:6px;
     padding:5px 7px;
     font-size:5.1px;
     letter-spacing:.06em;
+    flex:0 0 auto;
   }
   .approval-side h3{
     font-size:19px;
     line-height:1;
     margin:10px 0 3px;
+    flex:0 0 auto;
   }
   .approval-side-amount{
     font-size:31px;
     line-height:1;
     margin:4px 0 10px;
+    flex:0 0 auto;
   }
-
-  /* Do not crush the full approval grid into half a phone screen. */
-  .approval-side:not(.focused) .approval-side-grid{
-    display:none;
-  }
+  .approval-side:not(.focused) .approval-side-grid{display:none}
   .approval-side:not(.focused) .approval-doc-state{
+    flex:0 0 auto;
     margin-top:4px;
     padding:8px;
     font-size:6.3px;
@@ -1310,6 +1066,7 @@ button,input{font:inherit}
   }
   .approval-side:not(.focused) .approval-doc-state strong{
     font-size:4.8px;
+    margin-bottom:2px;
   }
   .approval-side:not(.focused) .approval-doc-state #approvalDocsSummary{
     white-space:normal;
@@ -1320,6 +1077,7 @@ button,input{font:inherit}
     -webkit-box-orient:vertical;
   }
   .approval-side:not(.focused) .approval-card-actions{
+    flex:0 0 auto;
     gap:6px;
     padding-top:8px;
     margin-top:auto;
@@ -1329,10 +1087,13 @@ button,input{font:inherit}
     padding:8px 6px;
     font-size:6.3px;
   }
+  .approval-action-status{display:none}
+  .approval-side-note{display:none}
 
   .approval-side.focused{
     width:min(90vw,390px);
     height:min(84vh,520px);
+    margin:0;
     padding:20px 18px;
   }
   .approval-side.focused .approval-side-grid{
@@ -1348,9 +1109,7 @@ button,input{font:inherit}
     min-height:48px;
     padding:10px 9px;
   }
-  .approval-side.focused .approval-side-grid small{
-    font-size:5.5px;
-  }
+  .approval-side.focused .approval-side-grid small{font-size:5.5px}
   .approval-side.focused .approval-side-grid strong{
     font-size:8.5px;
     line-height:1.25;
@@ -1359,6 +1118,11 @@ button,input{font:inherit}
     margin-top:10px;
     padding:10px;
     font-size:8px;
+  }
+  .approval-side.focused .approval-doc-state #approvalDocsSummary{
+    white-space:normal;
+    overflow:visible;
+    text-overflow:clip;
   }
   .approval-side.focused .approval-card-actions{
     gap:7px;
@@ -1369,69 +1133,90 @@ button,input{font:inherit}
     padding:10px 14px;
     font-size:7px;
   }
-
-  .funding-row .swipe-hint{font-size:5.8px}
-  .funding-row .deck-status{font-size:6.8px}
-}
-
-@media(max-width:390px){
-  .funding-row{gap:6px}
-  .funding-row .route,
-  .approval-side{
-    height:292px;
-  }
-  .funding-row .route-grid{height:310px}
-  .funding-row .route h2{font-size:18px!important}
-  .approval-side h3{font-size:17px}
-  .approval-side-amount{font-size:28px}
-}
-
-
-/* V4 mobile alignment + TFC application-step fix */
-@media(max-width:760px){
-  /* Route card is centered in an 18px taller stage: match its 9px top inset. */
-  .approval-side.visible:not(.focused){
-    margin-top:9px;
+  .approval-side.focused .approval-action-status{
+    display:block;
+    min-height:10px;
+    margin-top:4px;
+    font-size:5.5px;
   }
 
-  /* Keep Review & Sign and Bank Statements as equal tabs on one line. */
+  .approval-workspace-head{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:7px;
+  }
+  .approval-workspace-head h2{font-size:27px}
+  .chat-compose{grid-template-columns:minmax(0,1fr) auto}
+  .requested-doc-item{
+    grid-template-columns:24px minmax(0,1fr);
+  }
+  .requested-doc-upload{
+    grid-column:2;
+    justify-self:start;
+    min-width:92px;
+    text-align:center;
+  }
+  .approval-workspace.visible .requested-docs-list.visible{
+    display:block!important;
+    visibility:visible;
+  }
+
+  .helper{
+    margin-top:13px!important;
+    font-size:7.5px!important;
+    line-height:1.45!important;
+  }
+
+  .internal-head{
+    align-items:flex-start;
+    flex-direction:column;
+  }
   .task-grid{
+    display:grid;
     grid-template-columns:minmax(0,1fr) minmax(0,1fr);
     gap:8px;
     align-items:stretch;
   }
-  .task{
-    min-width:0;
+  .task-grid .task{
+    width:100%;
+    height:72px;
     min-height:72px;
-    padding:12px 10px;
+    min-width:0;
+    margin:0;
+    padding:11px 10px;
     gap:8px;
     align-items:center;
   }
-  .task small{
+  .task-grid .task>div{min-width:0}
+  .task-grid .task small{
     font-size:6.5px;
     letter-spacing:.11em;
     margin-bottom:4px;
   }
-  .task strong{
-    font-size:16px;
+  .task-grid .task strong{
+    display:block;
+    font-size:15px;
     line-height:1.05;
+    white-space:normal;
   }
-  .task span{
+  .task-grid .task span{
     font-size:14px;
     flex:0 0 auto;
   }
 
-  /* Make the bank-statement upload panel unmistakably visible when selected. */
+  .panel{padding:14px!important}
   #uploadPanel.show{
-    display:block;
+    display:block!important;
+    visibility:visible;
+    opacity:1;
   }
   #uploadPanel .upload-zone{
+    display:block;
+    width:100%;
     padding:20px 14px;
     border-radius:12px;
   }
-  #uploadPanel .upload-zone strong{
-    font-size:22px;
-  }
+  #uploadPanel .upload-zone strong{font-size:22px}
   #uploadPanel .upload-zone p{
     font-size:9px;
     line-height:1.5;
@@ -1441,100 +1226,44 @@ button,input{font:inherit}
     margin-top:14px;
   }
 
-  /* Requested-document uploads remain visible whenever Admin requested them. */
-  .approval-workspace.visible .requested-docs-list.visible{
+  .adobe{
+    width:100%;
+    height:980px;
+    overflow:hidden;
+    border-radius:10px;
+  }
+  .adobe iframe{
     display:block;
+    width:100%!important;
+    min-width:0!important;
+    height:100%!important;
+    border:0;
   }
 }
 
 @media(max-width:390px){
-  .task{
-    min-height:68px;
-    padding:10px 8px;
-  }
-  .task strong{font-size:14px}
-  .task span{font-size:12px}
-}
-
-
-/* V4 debug stabilization */
-@media(max-width:760px){
-  .funding-row .route{
-    top:9px;
-    right:0;
-    bottom:auto;
-    left:0;
-    margin:0;
-  }
-  .approval-side.visible:not(.focused){
-    margin:9px 0 0;
-  }
-
-  .task-grid{
-    display:grid;
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-    gap:8px;
-  }
-  .task-grid .task{
-    width:100%;
-    height:72px;
-    min-height:72px;
-    margin:0;
-    padding:11px 10px;
-    align-items:center;
-  }
-  .task-grid .task>div{
-    min-width:0;
-  }
-  .task-grid .task strong{
-    display:block;
-    font-size:15px;
-    line-height:1.05;
+  .brand{font-size:16px!important}
+  .sample{font-size:5.8px;padding:6px 7px}
+  .hero h1{
+    font-size:24px!important;
     white-space:normal;
+    max-width:100%;
   }
-
-  #uploadPanel.show{
-    display:block!important;
-    visibility:visible;
-    opacity:1;
-  }
-  #uploadPanel .upload-zone{
-    display:block;
-    width:100%;
-  }
-
-  .approval-workspace.visible .requested-docs-list.visible{
-    display:block!important;
-    visibility:visible;
-  }
-  .requested-docs-list .requested-doc-upload{
-    min-width:92px;
-    text-align:center;
-  }
-}
-
-@media(max-width:390px){
+  .funding-row{gap:6px}
+  .funding-row .route,
+  .approval-side{height:292px}
+  .funding-row .route-grid{height:310px}
+  .funding-row .route h2{font-size:18px!important}
+  .approval-side h3{font-size:17px}
+  .approval-side-amount{font-size:28px}
   .task-grid .task{
     height:68px;
     min-height:68px;
     padding:10px 8px;
   }
   .task-grid .task strong{font-size:13px}
+  .task-grid .task span{font-size:12px}
 }
-
-
-@media(max-width:760px){
-  #lenderCarousel,
-  .funding-row .route,
-  .funding-row .deck-wrap{
-    touch-action:pan-y pinch-zoom;
-  }
-  body{
-    overflow-y:auto;
-    -webkit-overflow-scrolling:touch;
-  }
-}
-
 </style>
 </head>
 <body>
@@ -2409,7 +2138,7 @@ function openApplicationFlow(){
   flowUploadCopy.textContent='Choose recent monthly business bank statements in PDF format. This sample demonstrates the client experience only.';
   tfcFlow.classList.add('show');
   showTask('sign');
-  requestAnimationFrame(()=>tfcFlow.scrollIntoView({behavior:'smooth',block:'nearest'}));
+  requestAnimationFrame(()=>tfcFlow.scrollIntoView({behavior:'smooth',block:'start'}));
 }
 function openTfcFlow(){
   openApplicationFlow();
