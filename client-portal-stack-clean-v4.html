@@ -15,7 +15,11 @@
   --green:#2f855a;--blue:#406b8a;--red:#a13f33;
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
+html{
+  scroll-behavior:smooth;
+  overflow-x:hidden;
+}
+body{overflow-x:hidden}
 body{
   margin:0;min-height:100vh;color:var(--ink);font-family:"DM Sans",sans-serif;
   background:
@@ -816,7 +820,11 @@ button,input{font:inherit}
 @media(max-width:760px){
   html,
   body{
+    width:100%;
+    max-width:100%;
+    overflow-x:hidden;
     background:#f6efe5;
+    overscroll-behavior-x:none;
     overscroll-behavior-y:none;
   }
   body{
@@ -882,8 +890,11 @@ button,input{font:inherit}
   .funding-row{
     grid-template-columns:minmax(0,1fr) minmax(0,1fr);
     gap:4px;
+    width:100%;
     max-width:100%;
+    min-width:0;
     align-items:start;
+    overflow-x:clip;
   }
   .funding-row .deck-wrap{
     min-width:0;
@@ -892,12 +903,19 @@ button,input{font:inherit}
   }
   .funding-row .route-grid{
     height:292px;
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    touch-action:pan-y;
+    overscroll-behavior-x:contain;
   }
   .funding-row .route{
     width:100%;
+    max-width:100%;
     height:275px;
     padding:13px 11px;
     border-radius:15px;
+    touch-action:pan-y;
   }
   .funding-row .route h2{
     font-size:18px!important;
@@ -1138,6 +1156,8 @@ button,input{font:inherit}
     height:31px;
     font-size:14px
   }
+  .route.swipe-left{transform:translate(-72%,8px) rotate(-4deg)!important}
+  .route.swipe-right{transform:translate(72%,8px) rotate(4deg)!important}
   .route[data-pos="1"]{transform:translateY(12px) scale(.97)}
   .route[data-pos="2"]{transform:translateY(24px) scale(.94)}
   .route[data-pos="3"]{transform:translateY(35px) scale(.91)}
