@@ -4,18 +4,3213 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive">
-<title>Client Portal | Toronto Finance Company</title>
-<script>
-(function(){
-  const target='client-dashboard-v4.html'+window.location.search+window.location.hash;
-  window.location.replace(target);
-})();
-</script>
-<noscript>
-  <meta http-equiv="refresh" content="0;url=client-dashboard-v4.html">
-</noscript>
+<title>Client Dashboard | Toronto Finance Company</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#17130f;--deep:#211a14;--paper:#f5ecdf;--cream:#fbf7f0;--white:#fff;
+  --gold:#b8893f;--gold2:#cfa968;--muted:#786f65;--line:rgba(61,46,31,.14);
+  --green:#2f855a;--blue:#406b8a;--red:#a13f33;
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  overflow-x:hidden;
+}
+body{overflow-x:hidden}
+body{
+  margin:0;min-height:100vh;color:var(--ink);font-family:"DM Sans",sans-serif;
+  background:
+    radial-gradient(circle at 78% 5%,rgba(188,142,76,.14),transparent 26%),
+    radial-gradient(circle at 10% 88%,rgba(120,83,43,.08),transparent 28%),
+    linear-gradient(140deg,#15120f 0%,#211a14 58%,#100d0b 100%);
+}
+button,input{font:inherit}
+.shell{
+  width:min(1180px,94vw);margin:28px auto 60px;min-height:calc(100vh - 88px);
+  background:linear-gradient(180deg,rgba(252,249,244,.995),rgba(246,239,229,.995));
+  border:1px solid rgba(198,150,78,.16);border-radius:22px;
+  box-shadow:0 34px 100px rgba(0,0,0,.38);overflow:hidden;
+}
+.top{
+  padding:26px 30px 22px;display:flex;justify-content:space-between;gap:20px;align-items:center;
+  border-bottom:1px solid rgba(185,137,63,.18);
+}
+.brand{font-family:"Cormorant Garamond",serif;font-size:27px;line-height:1;text-transform:uppercase;font-weight:300;white-space:nowrap}
+.tag{font-size:8px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:#987344;margin-top:9px}
+.sample{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#8f806f;border:1px solid var(--line);padding:8px 11px;border-radius:999px;background:rgba(255,255,255,.62)}
+.content{padding:38px 34px 42px}
+.eyebrow{font-size:8px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:#9b763f;margin-bottom:11px}
+.hero{max-width:760px;margin-bottom:30px}
+.hero h1{font-family:"Cormorant Garamond",serif;font-size:clamp(34px,4.8vw,52px);line-height:.95;font-weight:400;margin:0 0 11px;letter-spacing:-.02em}
+.hero p{font-size:11.5px;line-height:1.62;color:var(--muted);margin:0;max-width:720px}
+.deck-wrap{max-width:560px;margin:6px auto 0;position:relative}
+.route-grid{
+  position:relative;height:560px;overflow:visible;margin:0 auto;
+  touch-action:pan-y;user-select:none
+}
+.route{
+  position:absolute;inset:0;margin:auto;width:min(460px,82vw);height:520px;padding:24px 22px;
+  text-decoration:none;color:var(--ink);text-align:left;border:1px solid rgba(98,78,57,.18);
+  border-radius:20px;box-shadow:0 18px 48px rgba(40,28,18,.11);
+  display:flex;flex-direction:column;justify-content:space-between;
+  overflow:hidden;transform-origin:50% 88%;
+  transition:transform .30s cubic-bezier(.22,.75,.24,1),opacity .24s ease,filter .24s ease,box-shadow .24s ease;
+  cursor:grab
+}
+.route.dragging{transition:none!important;cursor:grabbing}
+.route[data-pos="0"]{z-index:5;transform:translateY(0) scale(1);opacity:1;filter:none;box-shadow:0 20px 50px rgba(40,28,18,.10)}
+.route[data-pos="1"]{z-index:4;transform:translateY(10px) scale(.975);opacity:1;filter:none;box-shadow:0 14px 34px rgba(40,28,18,.08)}
+.route[data-pos="2"]{z-index:3;transform:translateY(18px) scale(.952);opacity:1;filter:none;box-shadow:0 10px 28px rgba(40,28,18,.06)}
+.route[data-pos="3"]{z-index:2;transform:translateY(25px) scale(.93);opacity:1;filter:none;box-shadow:0 8px 22px rgba(40,28,18,.045)}
+.route[data-pos="hidden"]{z-index:1;transform:translateY(38px) scale(.91);opacity:0;pointer-events:none}
+.route.swipe-left{transform:translate(-112%,12px) rotate(-6deg)!important;opacity:1}
+.route.swipe-right{transform:translate(112%,12px) rotate(6deg)!important;opacity:1}
+.route .route-kicker{font-size:7px;letter-spacing:.17em;text-transform:uppercase;font-weight:700;opacity:.62}
+.route h2{
+  font-family:"Cormorant Garamond",serif;font-weight:400;
+  font-size:clamp(28px,3.4vw,38px);line-height:.98;margin:10px 0 8px;text-transform:uppercase
+}
+.route p{font-size:clamp(10px,1vw,11.5px);line-height:1.58;margin:0;max-width:360px;opacity:.76}
+.route .arrow{
+  position:absolute;right:18px;bottom:18px;width:34px;height:34px;border-radius:50%;
+  display:grid;place-items:center;background:#fff;border:1px solid rgba(23,19,15,.12);font-size:16px
+}
+.route-logo{display:flex;align-items:center;gap:6px;margin-bottom:18px}
+.route-logo img{width:44px;height:44px;border-radius:11px;object-fit:contain;background:#fff;padding:6px;border:1px solid rgba(23,19,15,.08)}
+.route-logo strong{font-size:9px;letter-spacing:.07em;text-transform:uppercase}
+.route.journey{background:#f8f2ef;border-color:rgba(41,55,105,.18)}
+.route.journey .route-logo strong{color:#253466}
+.route.merchant{background:linear-gradient(145deg,#f2fbff,#eef9f4);border-color:rgba(8,115,167,.2)}
+.route.merchant .route-logo strong{color:#0873a7}
+.route.xuper{background:linear-gradient(145deg,#fff8f3,#fff0e8);border-color:rgba(227,67,47,.2)}
+.route.xuper .route-logo strong{color:#d9402d}
+.route.tfc{background:linear-gradient(145deg,#fffaf2,#f3e5cf);border-color:rgba(185,137,63,.42)}
+
+.route.tfc .route-logo strong{color:#9b7137}
+
+.card-actions{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  width:100%;
+  margin:12px 0 10px;
+}
+.card-action{
+  width:min(190px,72%);
+  border:0;
+  border-radius:999px;
+  padding:10px 18px;
+  font-size:8px;
+  line-height:1;
+  font-weight:600;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:0 4px 12px rgba(23,19,15,.07);
+  transition:transform .16s ease,box-shadow .16s ease,filter .16s ease;
+}
+.card-action:hover{
+  transform:translateY(-1px);
+  box-shadow:0 7px 16px rgba(23,19,15,.11);
+}
+.card-action.apply{background:#6F89A8;color:#fff}
+.card-action.more{background:#B08A57;color:#fff}
+.route-requirement{
+  width:100%;
+  margin:1px auto 8px!important;
+  text-align:center;
+  font-size:7px!important;
+  line-height:1.35!important;
+  color:#8a7967!important;
+  opacity:1!important;
+  letter-spacing:.02em;
+}
+
+.criteria-modal{
+  position:fixed;
+  inset:0;
+  z-index:300;
+  display:grid;
+  place-items:center;
+  padding:20px;
+  background:rgba(18,14,10,.56);
+  backdrop-filter:blur(5px);
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .18s ease,visibility .18s ease;
+}
+.criteria-modal.show{opacity:1;visibility:visible}
+.criteria-card{
+  width:min(430px,92vw);
+  max-height:min(620px,86vh);
+  overflow:auto;
+  border-radius:22px;
+  background:linear-gradient(180deg,#fffaf2,#f4e7d5);
+  border:1px solid rgba(185,137,63,.28);
+  box-shadow:0 28px 80px rgba(0,0,0,.32);
+  padding:24px 22px 20px;
+  position:relative;
+}
+.criteria-close{
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  border:1px solid rgba(23,19,15,.10);
+  background:#fff;
+  color:#17130f;
+  font-size:17px;
+  cursor:pointer;
+}
+.criteria-kicker{
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:#9b763f;
+  margin-bottom:7px;
+}
+.criteria-card h3{
+  font-family:"Cormorant Garamond",serif;
+  font-size:31px;
+  line-height:1;
+  font-weight:400;
+  margin:0 42px 12px 0;
+}
+.criteria-card p{
+  margin:0 0 14px;
+  font-size:12px;
+  line-height:1.6;
+  color:#5f554c;
+}
+.criteria-highlights{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin:2px 0 16px;
+}
+.criteria-highlight{
+  padding:11px 9px;
+  border-radius:12px;
+  background:#17130f;
+  color:#fff;
+  text-align:center;
+}
+.criteria-highlight strong{
+  display:block;
+  font-family:"Cormorant Garamond",serif;
+  font-size:20px;
+  line-height:1;
+  font-weight:500;
+}
+.criteria-highlight span{
+  display:block;
+  margin-top:4px;
+  font-size:6.5px;
+  line-height:1.25;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#d8c3a5;
+}
+.criteria-section-title{
+  margin:15px 0 8px;
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  color:#9b763f;
+}
+.criteria-network{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+.criteria-network span{
+  display:inline-flex;
+  align-items:center;
+  padding:8px 10px;
+  border-radius:999px;
+  background:rgba(176,138,87,.10);
+  border:1px solid rgba(176,138,87,.20);
+  color:#5f4931;
+  font-size:8.5px;
+  line-height:1;
+  font-weight:600;
+}
+
+.criteria-products{
+  display:grid;
+  gap:8px;
+}
+.criteria-product{
+  padding:11px 12px;
+  border-radius:12px;
+  background:rgba(255,255,255,.66);
+  border:1px solid rgba(23,19,15,.07);
+}
+.criteria-product strong{
+  display:block;
+  font-size:10.5px;
+  color:#28211b;
+  margin-bottom:4px;
+}
+.criteria-product span{
+  display:block;
+  font-size:9.5px;
+  line-height:1.48;
+  color:#6d6258;
+}
+
+.criteria-list{
+  display:grid;
+  gap:9px;
+  margin:0;
+  padding:0;
+  list-style:none;
+}
+.criteria-list li{
+  padding:11px 12px;
+  border-radius:11px;
+  background:rgba(255,255,255,.68);
+  border:1px solid rgba(23,19,15,.07);
+  font-size:10.5px;
+  line-height:1.5;
+  color:#302821;
+}
+.criteria-note{
+  margin-top:14px!important;
+  font-size:9.5px!important;
+  line-height:1.5!important;
+  color:#847568!important;
+}
+
+/* Journey profile: intentionally larger for easier reading */
+.criteria-card.journey-profile{
+  width:min(470px,94vw);
+}
+.criteria-card.journey-profile h3{
+  font-size:36px;
+  margin-bottom:14px;
+}
+.criteria-card.journey-profile #criteriaIntro{
+  font-size:13px;
+  line-height:1.62;
+}
+.criteria-card.journey-profile .criteria-highlight strong{
+  font-size:23px;
+}
+.criteria-card.journey-profile .criteria-highlight span{
+  font-size:7.5px;
+  line-height:1.3;
+}
+.criteria-card.journey-profile .criteria-section-title{
+  font-size:8.5px;
+  margin-top:18px;
+  margin-bottom:10px;
+}
+.criteria-card.journey-profile .criteria-list li{
+  font-size:11.5px;
+  line-height:1.5;
+  padding:12px 13px;
+}
+.criteria-card.journey-profile .criteria-product{
+  padding:13px 14px;
+}
+.criteria-card.journey-profile .criteria-product strong{
+  font-size:11.5px;
+  margin-bottom:5px;
+}
+.criteria-card.journey-profile .criteria-product span{
+  font-size:10.5px;
+  line-height:1.52;
+}
+.criteria-card.journey-profile .criteria-note{
+  font-size:10.5px!important;
+  line-height:1.55!important;
+}
+@media(max-width:760px){
+  .card-actions{gap:7px;margin:10px 0 9px}
+  .card-action{width:min(176px,76%);padding:9px 14px;font-size:7px}
+  .criteria-card{padding:22px 18px 18px}
+  .criteria-card h3{font-size:28px}
+  .criteria-highlights{gap:6px;margin-bottom:13px}
+  .criteria-highlight{padding:9px 6px}
+  .criteria-highlight strong{font-size:17px}
+  .criteria-highlight span{font-size:5.8px}
+  .criteria-list li{font-size:9.4px}
+  .criteria-product strong{font-size:9.5px}
+  .criteria-product span{font-size:8.8px}
+  .criteria-card.journey-profile h3{font-size:31px}
+  .criteria-card.journey-profile #criteriaIntro{font-size:11.5px}
+  .criteria-card.journey-profile .criteria-highlight strong{font-size:20px}
+  .criteria-card.journey-profile .criteria-highlight span{font-size:6.6px}
+  .criteria-card.journey-profile .criteria-section-title{font-size:7.5px}
+  .criteria-card.journey-profile .criteria-list li{font-size:10.5px}
+  .criteria-card.journey-profile .criteria-product strong{font-size:10.5px}
+  .criteria-card.journey-profile .criteria-product span{font-size:9.5px}
+  .criteria-card.journey-profile .criteria-note{font-size:9.5px!important}
+}
+
+.carousel-controls{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:4px}
+.carousel-arrow{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:16px}
+.carousel-dots{display:flex;gap:7px}.carousel-dot{width:7px;height:7px;border:0;padding:0;border-radius:50%;background:#cfc4b7;cursor:pointer}
+.carousel-dot.active{width:22px;border-radius:999px;background:#9f7434}
+.swipe-hint{text-align:center;margin-top:10px;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:#9c8e7e}
+.deck-status{text-align:center;margin-top:4px;font-size:9px;color:#9b8d7d}
+.helper{margin:17px 2px 0;font-size:10px;line-height:1.6;color:#9b8d7d}
+.funding-row{
+  display:grid;
+  grid-template-columns:minmax(560px,1fr) minmax(460px,460px);
+  gap:10px;
+  align-items:start;
+  max-width:1045px;
+  margin:6px auto 0;
+}
+.funding-row .deck-wrap{
+  width:100%;
+  max-width:560px;
+  margin:0 auto;
+}
+.approval-side{
+  display:none;
+  position:relative;
+  width:min(460px,82vw);
+  height:520px;
+  margin:20px auto 0;
+  border-radius:20px;
+  padding:24px 22px;
+  background:linear-gradient(145deg,#17130f,#241c16);
+  color:#fff;
+  border:1px solid rgba(185,137,63,.34);
+  box-shadow:0 18px 48px rgba(40,28,18,.12);
+  overflow:hidden;
+  flex-direction:column;
+  cursor:default;
+  transition:transform .34s cubic-bezier(.22,.75,.24,1),box-shadow .28s ease,border-color .28s ease;
+  z-index:6;
+}
+.approval-side.visible{display:flex}
+.approval-workspace.visible{display:block}
+.requested-docs-list.visible{display:block}
+.approval-card-open-zone{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  border:0;
+  padding:0;
+  margin:0;
+  background:transparent;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+.approval-card-open-zone:focus-visible{
+  outline:2px solid rgba(222,196,138,.65);
+  outline-offset:-3px;
+  border-radius:inherit;
+}
+.approval-card-actions,
+.approval-focus-close{
+  position:relative;
+  z-index:3;
+}
+.approval-side:hover{
+  box-shadow:0 24px 58px rgba(40,28,18,.18);
+  border-color:rgba(198,150,78,.52);
+}
+.approval-side .approval-kicker{
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:#d3a75f;
+}
+.approval-side-status{
+  display:inline-flex;
+  align-items:center;
+  align-self:flex-start;
+  margin-top:11px;
+  padding:7px 10px;
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12);
+  color:#eadbc4;
+  font-size:7px;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+}
+.approval-side h3{
+  margin:20px 0 4px;
+  font-family:"Cormorant Garamond",serif;
+  font-size:36px;
+  line-height:.98;
+  font-weight:400;
+  text-transform:uppercase;
+}
+.approval-side-amount{
+  font-family:"Cormorant Garamond",serif;
+  font-size:48px;
+  line-height:1;
+  color:#dec48a;
+  margin:6px 0 20px;
+}
+.approval-side-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1px;
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:12px;
+  overflow:hidden;
+}
+.approval-side-grid div{
+  padding:13px 11px;
+  background:rgba(255,255,255,.045);
+  min-width:0;
+}
+.approval-side-grid small{
+  display:block;
+  font-size:6px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#bdb2a5;
+  margin-bottom:5px;
+  white-space:normal;
+}
+.approval-side-grid strong{
+  display:block;
+  min-width:0;
+  max-width:100%;
+  font-size:clamp(7.5px,.78vw,9px);
+  line-height:1.3;
+  font-weight:600;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+.approval-doc-state{
+  margin-top:15px;
+  padding:13px;
+  border-radius:11px;
+  background:rgba(222,196,138,.10);
+  border:1px solid rgba(222,196,138,.18);
+  color:#eadbc4;
+  font-size:9px;
+  line-height:1.5;
+}
+.approval-doc-state strong{
+  display:block;
+  margin-bottom:5px;
+  color:#dec48a;
+  font-size:6.5px;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+}
+.approval-card-actions{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:9px;
+  margin-top:auto;
+  padding-top:16px;
+}
+.approval-card-actions button{
+  width:min(220px,78%);
+  border:0;
+  border-radius:999px;
+  padding:11px 18px;
+  font-size:8px;
+  line-height:1;
+  font-weight:600;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:0 4px 12px rgba(0,0,0,.10);
+}
+.approval-card-actions .approval-proceed{background:#6F89A8;color:#fff}
+.approval-card-actions .approval-more{background:#B08A57;color:#fff}
+.approval-side-note{
+  margin-top:10px;
+  font-size:7px;
+  line-height:1.45;
+  color:#9c8e81;
+  text-align:center;
+}
+.approval-focus-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:490;
+  background:rgba(18,14,10,.48);
+  backdrop-filter:blur(5px);
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .22s ease,visibility .22s ease;
+}
+.approval-focus-backdrop.show{
+  opacity:1;
+  visibility:visible;
+}
+.approval-side.focused .approval-card-open-zone{
+  pointer-events:none;
+}
+.approval-side.focused{
+  position:fixed;
+  left:50%;
+  top:50%;
+  margin:0;
+  transform:translate(-50%,-50%) scale(1.015);
+  z-index:500;
+  box-shadow:0 34px 90px rgba(0,0,0,.40);
+  border-color:rgba(222,196,138,.55);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+.approval-side.focused:hover{
+  transform:translate(-50%,-50%) scale(1.015);
+  box-shadow:0 34px 90px rgba(0,0,0,.40);
+}
+.approval-focus-close{
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  font-size:17px;
+  cursor:pointer;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .18s ease;
+}
+.approval-side.focused .approval-focus-close{
+  opacity:1;
+  pointer-events:auto;
+}
+.approval-action-status{
+  min-height:17px;
+  margin-top:8px;
+  text-align:center;
+  font-size:8px;
+  color:#dec48a;
+}
+.approval-workspace{
+  display:none;
+  margin-top:24px;
+  padding-top:26px;
+  border-top:1px solid rgba(23,19,15,.08);
+}
+.approval-workspace-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:14px;
+}
+.approval-workspace-head h2{
+  margin:4px 0 0;
+  font-family:"Cormorant Garamond",serif;
+  font-size:32px;
+  font-weight:400;
+  text-transform:uppercase;
+}
+.approval-workspace-head p{
+  margin:0;
+  max-width:480px;
+  font-size:10px;
+  line-height:1.55;
+  color:var(--muted);
+}
+.advisor-chat{
+  background:#fff;
+  border:1px solid rgba(23,19,15,.08);
+  border-radius:15px;
+  padding:18px;
+  box-shadow:0 10px 28px rgba(40,28,18,.04);
+}
+.chat-history{
+  display:grid;
+  gap:8px;
+  margin-bottom:14px;
+}
+.chat-bubble{
+  width:fit-content;
+  max-width:78%;
+  padding:10px 12px;
+  border-radius:12px;
+  font-size:9px;
+  line-height:1.5;
+}
+.chat-bubble.advisor{
+  width:100%;
+  max-width:100%;
+  background:#f4eadc;
+  color:#4b4138;
+  border-bottom-left-radius:4px;
+}
+.chat-bubble.client{
+  margin-left:auto;
+  background:#17130f;
+  color:#fff;
+  border-bottom-right-radius:4px;
+}
+.chat-compose{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:9px;
+  padding:7px;
+  border:1px solid rgba(23,19,15,.10);
+  border-radius:999px;
+  background:#fbf7f0;
+}
+.chat-compose input{
+  min-width:0;
+  border:0;
+  outline:0;
+  background:transparent;
+  padding:8px 10px;
+  font-size:10px;
+  color:#17130f;
+}
+.chat-compose button{
+  border:0;
+  border-radius:999px;
+  padding:9px 16px;
+  background:#17130f;
+  color:#fff;
+  font-size:7px;
+  font-weight:600;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.requested-docs-list{
+  display:none;
+  margin-top:14px;
+  background:#fff;
+  border:1px solid rgba(185,137,63,.20);
+  border-radius:15px;
+  padding:18px;
+}
+.requested-docs-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:11px;
+}
+.requested-docs-top h3{
+  margin:0;
+  font-family:"Cormorant Garamond",serif;
+  font-size:25px;
+  font-weight:400;
+  text-transform:uppercase;
+}
+.requested-count{
+  padding:6px 9px;
+  border-radius:999px;
+  background:#fff5e5;
+  color:#9b7137;
+  font-size:6.5px;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.requested-doc-item{
+  display:grid;
+  grid-template-columns:28px 1fr auto;
+  align-items:center;
+  gap:11px;
+  padding:11px 0;
+  border-top:1px solid rgba(23,19,15,.07);
+}
+.requested-doc-item:first-of-type{border-top:0}
+.requested-doc-icon{
+  width:28px;
+  height:28px;
+  border-radius:9px;
+  display:grid;
+  place-items:center;
+  background:#f4eadc;
+  color:#9b7137;
+  font-size:12px;
+}
+.requested-doc-copy strong{
+  display:block;
+  font-size:9px;
+  font-weight:600;
+  margin-bottom:3px;
+}
+.requested-doc-copy span{
+  display:block;
+  font-size:7.5px;
+  line-height:1.4;
+  color:var(--muted);
+}
+.requested-doc-upload{
+  border:1px solid rgba(23,19,15,.10);
+  background:#fffaf3;
+  color:#17130f;
+  border-radius:999px;
+  padding:8px 12px;
+  font-size:6.5px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  cursor:pointer;
+}
+.requested-doc-upload.selected{
+  background:#edf6f0;
+  color:#2f855a;
+  border-color:rgba(47,133,90,.22);
+}
+.internal{display:none;margin-top:28px;border-top:1px solid rgba(23,19,15,.08);padding-top:30px}
+.internal.show{display:block;animation:fadeUp .28s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.internal-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:16px}
+.internal-head h2{font-family:"Cormorant Garamond",serif;font-weight:400;font-size:38px;text-transform:uppercase;margin:3px 0}
+.internal-head p{font-size:11px;color:var(--muted);margin:0;line-height:1.6}
+.close{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 14px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.task-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.task{
+  padding:18px;border:1px solid rgba(98,78,57,.16);background:#fff;border-radius:13px;
+  display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer;
+  transition:.16s ease;
+}
+.task:hover,.task.active{border-color:#b78a49;background:#fffaf3;box-shadow:0 0 0 3px rgba(185,137,63,.06)}
+.task small{display:block;font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#9b763f;margin-bottom:5px}
+.task strong{font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:400;text-transform:uppercase}
+.task span{font-size:18px;color:#9b763f}
+.panel{display:none;background:#fff;border:1px solid rgba(23,19,15,.08);border-radius:14px;padding:20px}
+.panel.show{display:block}
+.panel h3{font-family:"Cormorant Garamond",serif;font-size:29px;font-weight:400;text-transform:uppercase;margin:0 0 8px}
+.panel>p{font-size:11px;line-height:1.65;color:var(--muted);margin:0 0 16px}
+.adobe{height:920px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.adobe iframe{display:block;width:100%;height:100%;min-width:0!important;border:0}
+.upload-zone{
+  border:1px dashed rgba(145,111,69,.55);border-radius:12px;padding:30px;text-align:center;
+  background:linear-gradient(180deg,#fcf9f4,#f8f1e8)
+}
+.upload-zone strong{display:block;font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:400;text-transform:uppercase;margin-bottom:6px}
+.upload-zone p{font-size:11px;color:var(--muted);line-height:1.6;margin:0}
+.upload-zone input{margin-top:16px;max-width:100%}
+.file-list{margin-top:16px;text-align:left}
+.file-item{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid rgba(23,19,15,.07);font-size:11px}
+.file-item:last-child{border-bottom:0}
+.progress{height:7px;border-radius:999px;background:#e9e2d8;margin-top:16px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#b9873e,#d6ad69);transition:.25s ease}
+.local-note{margin-top:13px;font-size:9px;line-height:1.6;color:#9b8d7d}
+@media(min-width:761px){
+  .route{cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;will-change:transform}
+  .route.dragging{cursor:grabbing}
+  .route img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
+}
+
+
+/* Final mobile composition: compact side-by-side preview, full details on focus */
+
+
+
+
+
+/* V4 mobile alignment + TFC application-step fix */
+
+
+
+
+
+/* V4 debug stabilization */
+
+/* Canonical mobile layout — keep all core mobile behavior in this block. */
+@media(max-width:760px){
+  html,
+  body{
+    width:100%;
+    max-width:100%;
+    overflow-x:hidden;
+    background:#f6efe5;
+  }
+  html{overscroll-behavior-x:none}
+  body{
+    min-height:100dvh;
+    overflow-y:auto;
+    overscroll-behavior-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .shell{
+    width:100%;
+    margin:0;
+    min-height:100dvh;
+    border-radius:0;
+    border-left:0;
+    border-right:0;
+    box-shadow:none;
+    overflow:visible;
+  }
+  .top{
+    padding:16px 18px 14px;
+    align-items:flex-start;
+    min-height:auto;
+  }
+  .brand{
+    font-size:clamp(17px,4.9vw,22px)!important;
+    line-height:1!important;
+    max-width:none;
+    white-space:nowrap;
+    letter-spacing:-.01em;
+  }
+  .tag{
+    margin-top:7px!important;
+    font-size:6.5px!important;
+    letter-spacing:.18em!important;
+  }
+  .sample{
+    font-size:6.5px;
+    letter-spacing:.10em;
+    padding:7px 9px;
+    white-space:nowrap;
+  }
+  .criteria-modal,
+  .approval-focus-backdrop{
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+  }
+
+  .content{padding:20px 12px 30px}
+  .hero{margin-bottom:18px;max-width:none}
+  .eyebrow{
+    font-size:6.8px;
+    letter-spacing:.18em;
+    margin-bottom:8px;
+  }
+  .hero h1{
+    font-size:clamp(25px,7.1vw,34px)!important;
+    line-height:1!important;
+    margin:0 0 9px!important;
+    max-width:none;
+    white-space:nowrap;
+    letter-spacing:-.025em;
+  }
+  .hero p{
+    font-size:10px!important;
+    line-height:1.5!important;
+    max-width:95%;
+  }
+
+  .funding-row{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:8px;
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    align-items:start;
+    overflow:hidden;
+  }
+  .funding-row .deck-wrap{
+    width:100%;
+    min-width:0;
+    max-width:none;
+    margin:0;
+    touch-action:pan-y pinch-zoom;
+  }
+  .funding-row .route-grid{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    height:318px;
+    margin:0;
+    touch-action:pan-y pinch-zoom;
+    overscroll-behavior-x:none;
+  }
+  .funding-row .route{
+    top:9px;
+    right:0;
+    bottom:auto;
+    left:0;
+    width:100%;
+    max-width:100%;
+    height:300px;
+    min-height:0!important;
+    margin:0;
+    padding:14px 12px;
+    border-radius:17px;
+    touch-action:pan-y pinch-zoom;
+  }
+  .funding-row .route-logo{
+    gap:7px;
+    margin-bottom:9px;
+    min-width:0;
+  }
+  .funding-row .route-logo>div,
+  .funding-row .route-logo img{
+    width:31px!important;
+    height:31px!important;
+    min-width:31px!important;
+    flex:0 0 31px;
+    border-radius:9px!important;
+  }
+  .funding-row .route-logo>div{
+    padding:0!important;
+    font-size:12px!important;
+    line-height:1!important;
+  }
+  .funding-row .route-logo img{padding:4px!important}
+  .funding-row .route-logo strong{
+    min-width:0;
+    font-size:6.3px;
+    line-height:1.15;
+    letter-spacing:.02em;
+    white-space:normal;
+    overflow-wrap:normal;
+  }
+  .funding-row .route.tfc .route-logo strong{
+    font-size:5.6px;
+    letter-spacing:.02em;
+  }
+  .funding-row .route .route-kicker{
+    font-size:5px;
+    letter-spacing:.10em;
+  }
+  .funding-row .route h2{
+    font-size:20px!important;
+    line-height:1!important;
+    margin:7px 0 5px;
+  }
+  .funding-row .route p{
+    font-size:7.5px!important;
+    line-height:1.35!important;
+    max-width:100%;
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .funding-row .card-actions{
+    gap:6px;
+    margin:8px 0;
+  }
+  .funding-row .card-action{
+    width:94%;
+    padding:8px 6px;
+    font-size:6.4px;
+  }
+  .funding-row .route .arrow{display:none}
+
+  .route.swipe-left{transform:translate(-58%,6px) rotate(-3deg)!important}
+  .route.swipe-right{transform:translate(58%,6px) rotate(3deg)!important}
+  .route[data-pos="1"]{transform:translateY(10px) scale(.97)}
+  .route[data-pos="2"]{transform:translateY(18px) scale(.94)}
+  .route[data-pos="3"]{transform:translateY(25px) scale(.91)}
+  .route[data-pos="hidden"]{transform:translateY(34px) scale(.89)}
+
+  .carousel-controls{margin-top:0;gap:10px}
+  .carousel-arrow{width:32px;height:32px;font-size:14px}
+  .carousel-dot{width:6px;height:6px}
+  .carousel-dot.active{width:18px}
+  .swipe-hint{
+    margin-top:7px;
+    font-size:5.8px;
+    letter-spacing:.10em;
+  }
+  .deck-status{
+    margin-top:3px;
+    font-size:7px;
+  }
+
+  .approval-side{
+    width:100%;
+    height:300px;
+    padding:14px 12px;
+    border-radius:17px;
+  }
+  .approval-side.visible:not(.focused){margin:9px 0 0}
+  .approval-side .approval-kicker{
+    font-size:5.4px;
+    letter-spacing:.12em;
+    flex:0 0 auto;
+  }
+  .approval-side-status{
+    margin-top:6px;
+    padding:5px 7px;
+    font-size:5.1px;
+    letter-spacing:.06em;
+    flex:0 0 auto;
+  }
+  .approval-side h3{
+    font-size:19px;
+    line-height:1;
+    margin:10px 0 3px;
+    flex:0 0 auto;
+  }
+  .approval-side-amount{
+    font-size:29px;
+    line-height:1;
+    margin:3px 0 7px;
+    flex:0 0 auto;
+  }
+  .approval-side:not(.focused) .approval-side-grid{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:1px;
+    flex:0 0 auto;
+    border-radius:8px;
+  }
+  .approval-side:not(.focused) .approval-side-grid div{
+    min-height:27px;
+    padding:4px 5px;
+  }
+  .approval-side:not(.focused) .approval-side-grid small{
+    font-size:3.7px;
+    line-height:1.05;
+    margin-bottom:2px;
+    letter-spacing:.06em;
+  }
+  .approval-side:not(.focused) .approval-side-grid strong{
+    font-size:5.8px;
+    line-height:1.1;
+    overflow-wrap:normal;
+    word-break:normal;
+  }
+  .approval-side:not(.focused) .approval-doc-state{
+    flex:0 0 auto;
+    margin-top:4px;
+    padding:5px 6px;
+    font-size:5.5px;
+    line-height:1.2;
+  }
+  .approval-side:not(.focused) .approval-doc-state strong{
+    font-size:4.8px;
+    margin-bottom:2px;
+  }
+  .approval-side:not(.focused) .approval-doc-state #approvalDocsSummary{
+    white-space:normal;
+    overflow:visible;
+    text-overflow:clip;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+  }
+  .approval-side:not(.focused) .approval-card-actions{
+    flex:0 0 auto;
+    gap:4px;
+    padding-top:5px;
+    margin-top:auto;
+  }
+  .approval-side:not(.focused) .approval-card-actions button{
+    width:96%;
+    padding:7px 6px;
+    font-size:5.9px;
+  }
+  .approval-action-status{display:none}
+  .approval-side-note{display:none}
+
+  .approval-side.focused{
+    width:min(90vw,390px);
+    height:min(84vh,520px);
+    margin:0;
+    padding:20px 18px;
+  }
+  .approval-side.focused .approval-side-grid{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  }
+  .approval-side.focused h3{font-size:31px}
+  .approval-side.focused .approval-side-amount{
+    font-size:40px;
+    margin-bottom:14px;
+  }
+  .approval-side.focused .approval-side-grid div{
+    min-height:48px;
+    padding:10px 9px;
+  }
+  .approval-side.focused .approval-side-grid small{font-size:5.5px}
+  .approval-side.focused .approval-side-grid strong{
+    font-size:8.5px;
+    line-height:1.25;
+  }
+  .approval-side.focused .approval-doc-state{
+    margin-top:10px;
+    padding:10px;
+    font-size:8px;
+  }
+  .approval-side.focused .approval-doc-state #approvalDocsSummary{
+    white-space:normal;
+    overflow:visible;
+    text-overflow:clip;
+  }
+  .approval-side.focused .approval-card-actions{
+    gap:7px;
+    padding-top:10px;
+  }
+  .approval-side.focused .approval-card-actions button{
+    width:min(210px,82%);
+    padding:10px 14px;
+    font-size:7px;
+  }
+  .approval-side.focused .approval-action-status{
+    display:block;
+    min-height:10px;
+    margin-top:4px;
+    font-size:5.5px;
+  }
+
+  .approval-workspace-head{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:7px;
+  }
+  .approval-workspace-head h2{font-size:27px}
+  .chat-compose{grid-template-columns:minmax(0,1fr) auto}
+  .requested-doc-item{
+    grid-template-columns:24px minmax(0,1fr);
+  }
+  .requested-doc-upload{
+    grid-column:2;
+    justify-self:start;
+    min-width:92px;
+    text-align:center;
+  }
+  .approval-workspace.visible .requested-docs-list.visible{
+    display:block!important;
+    visibility:visible;
+  }
+
+  .helper{
+    margin-top:13px!important;
+    font-size:7.5px!important;
+    line-height:1.45!important;
+  }
+
+  .internal-head{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .task-grid{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:8px;
+    align-items:stretch;
+  }
+  .task-grid .task{
+    width:100%;
+    height:72px;
+    min-height:72px;
+    min-width:0;
+    margin:0;
+    padding:11px 10px;
+    gap:8px;
+    align-items:center;
+  }
+  .task-grid .task>div{min-width:0}
+  .task-grid .task small{
+    font-size:6.5px;
+    letter-spacing:.11em;
+    margin-bottom:4px;
+  }
+  .task-grid .task strong{
+    display:block;
+    font-size:15px;
+    line-height:1.05;
+    white-space:normal;
+  }
+  .task-grid .task span{
+    font-size:14px;
+    flex:0 0 auto;
+  }
+
+  .panel{padding:14px!important}
+  #uploadPanel.show{
+    display:block!important;
+    visibility:visible;
+    opacity:1;
+  }
+  #uploadPanel .upload-zone{
+    display:block;
+    width:100%;
+    padding:20px 14px;
+    border-radius:12px;
+  }
+  #uploadPanel .upload-zone strong{font-size:22px}
+  #uploadPanel .upload-zone p{
+    font-size:9px;
+    line-height:1.5;
+  }
+  #uploadPanel .upload-zone input{
+    width:100%;
+    margin-top:14px;
+  }
+
+  .adobe{
+    width:100%;
+    height:980px;
+    overflow:hidden;
+    border-radius:10px;
+  }
+  .adobe iframe{
+    display:block;
+    width:100%!important;
+    min-width:0!important;
+    height:100%!important;
+    border:0;
+  }
+}
+
+@media(max-width:390px){
+  .brand{font-size:16px!important}
+  .sample{font-size:5.8px;padding:6px 7px}
+  .hero h1{
+    font-size:24px!important;
+    white-space:normal;
+    max-width:100%;
+  }
+  .funding-row{gap:6px}
+  .funding-row .route,
+  .approval-side{height:292px}
+  .funding-row .route-grid{height:310px}
+  .funding-row .route h2{font-size:18px!important}
+  .approval-side h3{font-size:17px}
+  .approval-side-amount{font-size:28px}
+  .task-grid .task{
+    height:68px;
+    min-height:68px;
+    padding:10px 8px;
+  }
+  .task-grid .task strong{font-size:13px}
+  .task-grid .task span{font-size:12px}
+}
+
+.crm-primary-action{
+  display:block;
+  width:min(280px,100%);
+  margin:14px auto 0;
+  border:0;
+  border-radius:999px;
+  padding:11px 16px;
+  background:#6F89A8;
+  color:#fff;
+  font-size:8px;
+  font-weight:600;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.crm-primary-action:disabled{opacity:.55;cursor:not-allowed}
+.crm-action-msg{
+  min-height:16px;
+  margin-top:8px;
+  text-align:center;
+  font-size:8px;
+  line-height:1.45;
+  color:#7a6d60;
+}
+.crm-action-msg.success{color:#2f855a}
+.crm-action-msg.error{color:#a13f33}
+@media(max-width:760px){
+  .crm-primary-action{
+    width:100%;
+    padding:10px 12px;
+    font-size:7px;
+  }
+  .crm-action-msg{font-size:7px}
+}
+
+
+
+
+
+.approval-side.focused{
+  left:var(--approval-focus-center-x,50%);
+  top:var(--approval-focus-center-y,50%);
+  transform:translate(-50%,-50%) scale(1.015);
+}
+.approval-side.focused:hover{
+  transform:translate(-50%,-50%) scale(1.015);
+}
+
+/* Keep action feedback visible even before the Snapshot is opened. */
+.approval-side:not(.focused) .approval-action-status{
+  display:block;
+  min-height:14px;
+  margin-top:5px;
+  font-size:7px;
+  line-height:1.25;
+  color:#dec48a;
+}
+
+@media(max-width:760px){
+  .approval-side:not(.focused) .approval-action-status{
+    display:block;
+    min-height:10px;
+    margin-top:3px;
+    font-size:5px;
+    line-height:1.15;
+  }
+}
+
+
+.candidate-login{
+  width:min(440px,92vw);
+  margin:72px auto;
+  padding:30px;
+  border-radius:18px;
+  background:#fffaf2;
+  border:1px solid rgba(185,137,63,.18);
+  box-shadow:0 26px 80px rgba(0,0,0,.30);
+}
+.candidate-login h1{
+  margin:0 0 8px;
+  text-align:center;
+  font-family:"Cormorant Garamond",serif;
+  font-size:38px;
+  font-weight:400;
+  text-transform:uppercase;
+}
+.candidate-login>p{
+  margin:0;
+  text-align:center;
+  color:#786f65;
+  font-size:12px;
+  line-height:1.6;
+}
+.candidate-field{margin-top:16px}
+.candidate-field label{
+  display:block;
+  margin-bottom:7px;
+  font-size:8px;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.candidate-field input{
+  width:100%;
+  padding:13px;
+  border:1px solid rgba(23,19,15,.16);
+  border-radius:9px;
+  background:#fff;
+  color:#17130f;
+}
+.candidate-login-button{
+  width:100%;
+  margin-top:20px;
+  border:0;
+  border-radius:999px;
+  padding:13px 16px;
+  background:#17130f;
+  color:#fff;
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.candidate-login-button:disabled{opacity:.55;cursor:not-allowed}
+.candidate-login-message{
+  min-height:18px;
+  margin-top:11px;
+  color:#a13f33;
+  font-size:10px;
+  line-height:1.5;
+  text-align:center;
+}
+.candidate-login-message.success{color:#2f855a}
+.candidate-top-actions{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.candidate-logout{
+  border:1px solid rgba(23,19,15,.12);
+  border-radius:999px;
+  padding:8px 11px;
+  background:#fff;
+  color:#17130f;
+  font-size:7px;
+  font-weight:600;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+#candidateLogin[hidden],
+#portalShell[hidden]{display:none!important}
+@media(max-width:760px){
+  .candidate-login{margin:34px auto;padding:24px 20px}
+  .candidate-login h1{font-size:31px}
+  .candidate-top-actions{gap:6px}
+  .candidate-logout{font-size:5.8px;padding:7px 8px}
+}
+
+
+/* Current live-portal requested-document pattern */
+.current-requested-layout{
+  padding:24px;
+  background:#fff;
+  border:1px solid rgba(23,19,15,.08);
+  border-radius:14px;
+}
+.current-requested-layout .requested-kicker{
+  margin-bottom:7px;
+  color:#c6964e;
+  font-size:8px;
+  font-weight:600;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.current-requested-layout h3{
+  margin:0 0 14px;
+  font-family:"Cormorant Garamond",serif;
+  font-size:28px;
+  line-height:1;
+  font-weight:400;
+  text-transform:uppercase;
+}
+.requested-request-box{
+  margin:0 0 14px;
+  padding:14px 16px;
+  border-left:3px solid #c6964e;
+  background:#fbf7f0;
+  color:#4f473f;
+  font-size:11px;
+  line-height:1.6;
+  white-space:pre-wrap;
+}
+.requested-upload-row{
+  display:grid;
+  grid-template-columns:180px minmax(0,1fr);
+  gap:10px;
+}
+.requested-upload-row select,
+.requested-upload-row input{
+  width:100%;
+  min-width:0;
+  padding:11px;
+  border:1px solid rgba(23,19,15,.13);
+  border-radius:9px;
+  background:#fff;
+  color:#17130f;
+  font-size:10px;
+}
+.requested-upload-main{
+  width:100%;
+  margin-top:12px;
+  border:0;
+  border-radius:999px;
+  padding:12px 14px;
+  background:#17130f;
+  color:#fff;
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.requested-upload-main:disabled{opacity:.55;cursor:not-allowed}
+.requested-upload-msg{
+  min-height:16px;
+  margin-top:9px;
+  color:#786f65;
+  font-size:9px;
+  line-height:1.45;
+}
+@media(max-width:760px){
+  .current-requested-layout{padding:18px 14px}
+  .current-requested-layout h3{font-size:24px}
+  .requested-upload-row{grid-template-columns:1fr}
+  .requested-request-box{font-size:9px}
+}
+
+
+/* Responsive split-screen desktop/tablet layout.
+   Keeps lender + approval side-by-side while allowing both cards to shrink. */
+@media (min-width:761px) and (max-width:1120px){
+  .shell{
+    width:calc(100vw - 20px);
+    margin:10px auto 28px;
+    min-height:calc(100vh - 38px);
+    border-radius:18px;
+  }
+
+  .top{
+    padding:20px 22px 18px;
+    gap:12px;
+  }
+  .brand{font-size:clamp(20px,2.8vw,26px)}
+  .tag{font-size:7px}
+  .candidate-top-actions{gap:7px}
+  .sample{font-size:7px;padding:7px 9px}
+  .candidate-logout{font-size:6px;padding:7px 9px}
+
+  .content{
+    padding:28px 22px 34px;
+  }
+  .hero{
+    max-width:680px;
+    margin-bottom:22px;
+  }
+  .hero h1{
+    font-size:clamp(34px,5vw,46px);
+  }
+  .hero p{
+    font-size:10.5px;
+  }
+
+  .funding-row{
+    width:100%;
+    max-width:100%;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:14px;
+    align-items:start;
+    overflow:visible;
+  }
+
+  .funding-row .deck-wrap{
+    width:100%;
+    max-width:none;
+    min-width:0;
+    margin:0;
+  }
+
+  .funding-row .route-grid{
+    width:100%;
+    height:472px;
+    min-width:0;
+  }
+
+  .funding-row .route{
+    width:100%;
+    max-width:100%;
+    height:442px;
+    padding:20px 18px;
+  }
+
+  .funding-row .route-logo{
+    margin-bottom:12px;
+  }
+  .funding-row .route-logo>div,
+  .funding-row .route-logo img{
+    width:48px!important;
+    height:48px!important;
+    min-width:48px!important;
+    flex:0 0 48px;
+  }
+  .funding-row .route-logo strong{
+    font-size:7.5px;
+    line-height:1.2;
+    min-width:0;
+    white-space:normal;
+  }
+  .funding-row .route h2{
+    font-size:clamp(25px,3.5vw,33px);
+  }
+  .funding-row .route p{
+    font-size:9.5px;
+    line-height:1.45;
+  }
+  .funding-row .card-actions{
+    gap:7px;
+    margin:9px 0 8px;
+  }
+  .funding-row .card-action{
+    width:min(190px,82%);
+    padding:9px 12px;
+    font-size:7px;
+  }
+
+  .approval-side{
+    width:100%;
+    max-width:100%;
+    height:442px;
+    margin:0;
+    padding:20px 18px;
+    min-width:0;
+  }
+  .approval-side h3{
+    margin-top:14px;
+    font-size:clamp(26px,3.5vw,34px);
+  }
+  .approval-side-amount{
+    font-size:clamp(37px,4.8vw,46px);
+    margin:5px 0 14px;
+  }
+  .approval-side-grid div{
+    padding:10px 9px;
+  }
+  .approval-doc-state{
+    margin-top:10px;
+    padding:10px;
+  }
+  .approval-card-actions{
+    gap:7px;
+    padding-top:10px;
+  }
+  .approval-card-actions button{
+    width:min(210px,86%);
+    padding:9px 14px;
+    font-size:7px;
+  }
+
+  .carousel-controls{margin-top:0}
+  .swipe-hint{margin-top:7px}
+  .helper{font-size:9px}
+
+  .approval-workspace{
+    margin-top:20px;
+    padding-top:22px;
+  }
+}
+
+/* Very narrow split-screen desktop: still two columns, but compact. */
+@media (min-width:761px) and (max-width:900px){
+  .content{padding-left:16px;padding-right:16px}
+  .funding-row{gap:10px}
+  .funding-row .route-grid{height:420px}
+  .funding-row .route,
+  .approval-side{
+    height:392px;
+    padding:16px 14px;
+  }
+  .funding-row .route-logo>div,
+  .funding-row .route-logo img{
+    width:40px!important;
+    height:40px!important;
+    min-width:40px!important;
+    flex-basis:40px;
+  }
+  .funding-row .route-logo strong{font-size:6.5px}
+  .funding-row .route .route-kicker{font-size:5.8px}
+  .funding-row .route h2{font-size:25px}
+  .funding-row .route p{font-size:8.5px}
+  .funding-row .card-action{font-size:6.3px;padding:8px 10px}
+
+  .approval-side .approval-kicker{font-size:6px}
+  .approval-side-status{font-size:5.8px;padding:6px 8px}
+  .approval-side h3{font-size:27px}
+  .approval-side-amount{font-size:37px;margin-bottom:10px}
+  .approval-side-grid small{font-size:5px}
+  .approval-side-grid strong{font-size:7px}
+  .approval-doc-state{font-size:7px;line-height:1.35}
+  .approval-card-actions button{font-size:6.2px;padding:8px 10px}
+  .approval-side-note{font-size:6px}
+
+  .current-requested-layout{
+    padding:20px;
+  }
+  .requested-upload-row{
+    grid-template-columns:150px minmax(0,1fr);
+  }
+}
+
+
+/* CRM-driven funding layout:
+   before approval = centered lender deck;
+   after approval = lender deck + Approval Snapshot. */
+.funding-row.no-approval{
+  grid-template-columns:minmax(0,560px)!important;
+  justify-content:center;
+  max-width:560px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.funding-row.no-approval .deck-wrap{
+  width:100%;
+  max-width:560px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.funding-row.has-approval{
+  justify-content:stretch;
+}
+
+@media(max-width:760px){
+  .funding-row.no-approval{
+    grid-template-columns:minmax(0,1fr)!important;
+    width:100%;
+    max-width:100%;
+    justify-content:center;
+    overflow:visible;
+  }
+  .funding-row.no-approval .deck-wrap{
+    width:min(100%,390px);
+    max-width:390px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+}
+
+
+/* Final state-specific card sizing/alignment.
+   No approval: retain the original portrait-card proportion.
+   Approval: align Snapshot top edge with the active lender card. */
+.funding-row.no-approval{
+  grid-template-columns:minmax(0,500px)!important;
+  max-width:500px;
+}
+.funding-row.no-approval .deck-wrap,
+.funding-row.no-approval .route-grid{
+  width:100%;
+  max-width:500px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.funding-row.no-approval .route{
+  width:min(460px,100%);
+  max-width:460px;
+  left:50%;
+  right:auto;
+  transform-origin:50% 88%;
+}
+.funding-row.no-approval .route[data-pos="0"]{
+  transform:translateX(-50%) translateY(0) scale(1);
+}
+.funding-row.no-approval .route[data-pos="1"]{
+  transform:translateX(-50%) translateY(10px) scale(.975);
+}
+.funding-row.no-approval .route[data-pos="2"]{
+  transform:translateX(-50%) translateY(18px) scale(.952);
+}
+.funding-row.no-approval .route[data-pos="3"]{
+  transform:translateX(-50%) translateY(25px) scale(.93);
+}
+.funding-row.no-approval .route[data-pos="hidden"]{
+  transform:translateX(-50%) translateY(38px) scale(.91);
+}
+
+@media (min-width:1121px){
+  .funding-row.has-approval .approval-side.visible:not(.focused){
+    margin-top:20px;
+  }
+}
+
+@media (min-width:901px) and (max-width:1120px){
+  .funding-row.has-approval .approval-side.visible:not(.focused){
+    margin-top:15px;
+  }
+}
+
+@media (min-width:761px) and (max-width:900px){
+  .funding-row.has-approval .approval-side.visible:not(.focused){
+    margin-top:14px;
+  }
+}
+
+@media(max-width:760px){
+  .funding-row.no-approval{
+    grid-template-columns:minmax(0,1fr)!important;
+    max-width:100%;
+  }
+  .funding-row.no-approval .deck-wrap,
+  .funding-row.no-approval .route-grid{
+    width:min(100%,390px);
+    max-width:390px;
+  }
+  .funding-row.no-approval .route{
+    width:100%;
+    max-width:100%;
+    left:0;
+    right:0;
+  }
+  .funding-row.no-approval .route[data-pos="0"]{
+    transform:translateY(0) scale(1);
+  }
+  .funding-row.no-approval .route[data-pos="1"]{
+    transform:translateY(10px) scale(.97);
+  }
+  .funding-row.no-approval .route[data-pos="2"]{
+    transform:translateY(18px) scale(.94);
+  }
+  .funding-row.no-approval .route[data-pos="3"]{
+    transform:translateY(25px) scale(.91);
+  }
+  .funding-row.no-approval .route[data-pos="hidden"]{
+    transform:translateY(34px) scale(.89);
+  }
+  .funding-row.has-approval .approval-side.visible:not(.focused){
+    margin-top:9px;
+  }
+}
+
+
+/* Restore native swipe geometry for centered no-approval deck.
+   Center with left/right + auto margins, not translateX, so drag/swipe transforms stay normal. */
+@media(min-width:761px){
+  .funding-row.no-approval .route{
+    width:min(460px,100%);
+    max-width:460px;
+    left:0;
+    right:0;
+    margin-left:auto;
+    margin-right:auto;
+  }
+  .funding-row.no-approval .route[data-pos="0"]{
+    transform:translateY(0) scale(1);
+  }
+  .funding-row.no-approval .route[data-pos="1"]{
+    transform:translateY(10px) scale(.975);
+  }
+  .funding-row.no-approval .route[data-pos="2"]{
+    transform:translateY(18px) scale(.952);
+  }
+  .funding-row.no-approval .route[data-pos="3"]{
+    transform:translateY(25px) scale(.93);
+  }
+  .funding-row.no-approval .route[data-pos="hidden"]{
+    transform:translateY(38px) scale(.91);
+  }
+}
+
+</style>
 </head>
 <body>
-<p>Opening your secure client portal…</p>
+<section class="candidate-login" id="candidateLogin">
+  <h1>Client Login</h1>
+  <p>Use the same email address and password used to create your Toronto Finance Company account.</p>
+  <div class="candidate-field">
+    <label for="candidateEmail">Email Address</label>
+    <input id="candidateEmail" type="email" autocomplete="email">
+  </div>
+  <div class="candidate-field">
+    <label for="candidatePassword">Password</label>
+    <input id="candidatePassword" type="password" autocomplete="current-password">
+  </div>
+  <button class="candidate-login-button" id="candidateLoginBtn" type="button">Log In</button>
+  <div class="candidate-login-message" id="candidateLoginMsg"></div>
+</section>
+
+<div class="shell" id="portalShell" hidden>
+  <header class="top">
+    <div>
+      <div class="brand">Toronto Finance Company</div>
+      <div class="tag">Business Financing Solutions</div>
+    </div>
+    <div class="candidate-top-actions">
+      <div class="sample" id="portalModeBadge">Secure Client Portal</div>
+      <button class="candidate-logout" id="candidateLogout" type="button">Log Out</button>
+    </div>
+  </header>
+
+  <main class="content">
+    <section class="hero">
+      <div class="eyebrow">Choose Your Application Route</div>
+      <h1>Continue your application.</h1>
+      <p>Select the funding partner you would like to continue with. Direct lender applications open securely in a new tab. Toronto Finance Company keeps the application and document steps together in one guided experience.</p>
+    </section>
+
+    <div class="funding-row">
+    <div class="deck-wrap"><section class="route-grid" id="lenderCarousel" aria-label="Funding application routes">
+      <article class="route tfc" id="openTfc">
+        <div class="route-logo"><div style="width:62px;height:62px;border-radius:15px;background:#17130f;color:#d0a15b;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:23px">TFC</div><strong>Toronto Finance Company</strong></div>
+        <div class="route-kicker">Toronto Finance Company</div>
+        <h2>Apply With Us</h2>
+        <div class="card-actions">
+          <button class="card-action apply" type="button" data-action="apply">Apply Now</button>
+          <button class="card-action more" type="button" data-action="more">Know More</button>
+        </div>
+        <p>Review and sign the Toronto Finance Company application, then prepare your recent business bank statements.</p>
+        <div class="arrow">→</div>
+      </article>
+
+      <article class="route journey" data-url="https://app.journeycapital.ca/elending?ls=rajkunwarsingh&emlredir=true">
+        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=journeycapital.ca&sz=128" alt=""><strong>Journey Capital</strong></div>
+        <div class="route-kicker">Direct Application</div>
+        <h2>Journey Capital</h2>
+        <div class="card-actions">
+          <button class="card-action apply" type="button" data-action="apply">Apply Now</button>
+          <button class="card-action more" type="button" data-action="more">Know More</button>
+        </div>
+        <p>Continue directly to Journey Capital's customer application.</p>
+        <div class="arrow">↗</div>
+      </article>
+
+      <article class="route merchant" data-url="https://new.merchantgrowth.com/welcome?userId=005JR00000ArwOHYAZ">
+        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=merchantgrowth.com&sz=128" alt=""><strong>Merchant Growth</strong></div>
+        <div class="route-kicker">Direct Application</div>
+        <h2>Merchant Growth</h2>
+        <div class="card-actions">
+          <button class="card-action apply" type="button" data-action="apply">Apply Now</button>
+          <button class="card-action more" type="button" data-action="more">Know More</button>
+        </div>
+        <p>Continue directly to Merchant Growth's customer application.</p>
+        <div class="arrow">↗</div>
+      </article>
+
+      <article class="route xuper" data-url="https://app.xpfunding.com/xf-en/f/get-funded-today-vancouver-finance-company-inc">
+        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=xpfunding.com&sz=128" alt=""><strong>Xuper Funding</strong></div>
+        <div class="route-kicker">Direct Application</div>
+        <h2>Xuper Funding</h2>
+        <div class="card-actions">
+          <button class="card-action apply" type="button" data-action="apply">Apply Now</button>
+          <button class="card-action more" type="button" data-action="more">Know More</button>
+        </div>
+        <p>Continue directly to Xuper Funding's customer application.</p>
+        <div class="arrow">↗</div>
+      </article>
+    </section>
+    <div class="carousel-controls">
+      <button class="carousel-arrow" id="carouselPrev" type="button" aria-label="Previous lender">←</button>
+      <div class="carousel-dots" id="carouselDots"></div>
+      <button class="carousel-arrow" id="carouselNext" type="button" aria-label="Next lender">→</button>
+    </div>
+    <div class="swipe-hint">Swipe left or right to explore funding partners</div>
+    <div class="deck-status" id="deckStatus">1 of 4</div>
+    </div>
+
+    <aside class="approval-side" id="approvalSideSample">
+      <button class="approval-card-open-zone" id="approvalOpenZone" type="button" aria-label="Open approval details"></button>
+      <button class="approval-focus-close" id="approvalFocusClose" type="button" aria-label="Close approval details">×</button>
+      <div class="approval-kicker">Approval Snapshot</div>
+      <div class="approval-side-status" id="approvalStatusText">Conditional Approval</div>
+      <h3 id="approvalProductText">Business Term Loan</h3>
+      <div class="approval-side-amount" id="approvalAmountText">CA$75,000</div>
+      <div class="approval-side-grid">
+        <div><small>Term</small><strong id="approvalTermText">12 Months</strong></div>
+        <div><small>Payment</small><strong id="approvalPaymentText">CA$1,825</strong></div>
+        <div><small>Frequency</small><strong id="approvalFrequencyText">Weekly</strong></div>
+        <div><small>Total Repayment</small><strong id="approvalTotalText">CA$94,900</strong></div>
+      </div>
+      <div class="approval-doc-state">
+        <strong>Additional Documents</strong>
+        <span id="approvalDocsSummary">2 documents requested by your advisor.</span>
+      </div>
+      <div class="approval-card-actions">
+        <button class="approval-proceed" id="approvalProceed" type="button">Proceed</button>
+        <button class="approval-more" id="approvalMore" type="button">Request More Info</button>
+      </div>
+      <div class="approval-action-status" id="approvalActionStatus"></div>
+      <div class="approval-side-note">Tap this card to bring your approval details to the front.</div>
+    </aside>
+    </div>
+
+    <p class="helper" id="portalModeHelper">Preview mode. If an authenticated Toronto Finance Company client session is available, this page will use the existing Apps Script, Google Sheets and Google Drive workflow automatically.</p>
+
+    <section class="approval-workspace" id="approvalWorkspace">
+      <div class="approval-workspace-head">
+        <div>
+          <div class="eyebrow">After Approval</div>
+          <h2>Advisor Chat & Requested Documents</h2>
+        </div>
+        <p>This area becomes the client’s next-action workspace after an approval is sent.</p>
+      </div>
+
+      <div class="advisor-chat" id="advisorChat">
+        <div class="chat-history" id="chatHistory">
+          <div class="chat-bubble advisor">Your approval is available above. If you have a question about the terms, send us a message here.</div>
+        </div>
+        <div class="chat-compose">
+          <input id="chatInput" type="text" placeholder="Ask your advisor about this approval...">
+          <button id="chatSend" type="button">Send</button>
+        </div>
+      </div>
+
+      <div class="requested-docs-list current-requested-layout" id="requestedDocsList">
+        <div class="requested-kicker">Additional Documents Requested</div>
+        <h3>Upload Requested Documents.</h3>
+        <div class="requested-request-box" id="requestedText"></div>
+        <div class="requested-upload-row">
+          <select id="requestedCategory" aria-label="Requested document category">
+            <option value="identification">Identification</option>
+            <option value="financial">Financial Statements</option>
+            <option value="other">Other Documents</option>
+          </select>
+          <input id="requestedFiles" type="file" multiple>
+        </div>
+        <button class="requested-upload-main" id="requestedUpload" type="button">Upload Selected Documents</button>
+        <div class="requested-upload-msg" id="requestedMsg"></div>
+      </div>
+    </section>
+
+    <section class="internal" id="tfcFlow">
+      <div class="internal-head">
+        <div>
+          <div class="eyebrow" id="flowEyebrow">Toronto Finance Company Route</div>
+          <h2 id="flowTitle">Complete your application.</h2>
+          <p id="flowIntro">Two simple steps: review and sign, then provide your recent business bank statements.</p>
+        </div>
+        <button class="close" id="closeTfc" type="button">Close</button>
+      </div>
+
+      <div class="task-grid">
+        <button class="task active" id="taskSign" type="button">
+          <div><small>Step 1</small><strong>Review & Sign</strong></div><span>→</span>
+        </button>
+        <button class="task" id="taskUpload" type="button">
+          <div><small>Step 2</small><strong>Bank Statements</strong></div><span>→</span>
+        </button>
+      </div>
+
+      <section class="panel show" id="signPanel">
+        <h3>Review & Sign</h3>
+        <p id="flowSignCopy">Complete the Toronto Finance Company application and provide your secure Adobe electronic signature.</p>
+        <div class="adobe">
+          <iframe
+            src="https://na4.documents.adobe.com/public/esignWidget?wid=CBFCIBAA3AAABLblqZhBgCTXn5u_TlQ7fvxZVQRsrOtRGUybq5Exlw8eHr4geWAx9Ptarkd-XwhkIlxmWwlk*&hosted=false"
+            title="Toronto Finance Company Secure Electronic Signature"
+            loading="lazy"></iframe>
+        </div>
+        <button class="crm-primary-action" id="confirmSignatureBtn" type="button">I Have Finished Signing</button>
+        <div class="crm-action-msg" id="signatureActionMsg"></div>
+      </section>
+
+      <section class="panel" id="uploadPanel">
+        <h3>Bank Statements</h3>
+        <p id="flowUploadCopy">Choose recent monthly business bank statements in PDF format. Uploaded statements are saved to your secure client file.</p>
+        <div class="upload-zone">
+          <strong id="fileCount">No statements selected</strong>
+          <p>Select multiple PDF statements at once. In the live portal these would continue to Google Drive.</p>
+          <input id="statements" type="file" accept="application/pdf,.pdf" multiple>
+          <button class="crm-primary-action" id="statementUploadBtn" type="button">Upload Selected Statements</button>
+          <div class="crm-action-msg" id="statementUploadMsg"></div>
+          <div class="progress"><i id="progressBar"></i></div>
+          <div class="file-list" id="fileList"></div>
+        </div>
+        <div class="local-note" id="statementModeNote">Uploaded statements are sent through the current secure CRM workflow to your existing client Google Drive folder.</div>
+      </section>
+    </section>
+  </main>
+</div>
+
+
+<div class="approval-focus-backdrop" id="approvalFocusBackdrop"></div>
+
+<div class="criteria-modal" id="criteriaModal" aria-hidden="true">
+  <div class="criteria-card" id="criteriaCard" role="dialog" aria-modal="true" aria-labelledby="criteriaTitle">
+    <button class="criteria-close" id="criteriaClose" type="button" aria-label="Close">×</button>
+    <div class="criteria-kicker">Lender Profile</div>
+    <h3 id="criteriaTitle"></h3>
+    <p id="criteriaIntro"></p>
+    <div class="criteria-highlights" id="criteriaHighlights"></div>
+    <div class="criteria-section-title" id="criteriaEligibilityTitle">Minimum Eligibility</div>
+    <ul class="criteria-list" id="criteriaList"></ul>
+    <div id="criteriaNetworkWrap">
+      <div class="criteria-section-title" id="criteriaNetworkTitle">Lender Network</div>
+      <div class="criteria-network" id="criteriaNetwork"></div>
+    </div>
+    <div id="criteriaProductsWrap">
+      <div class="criteria-section-title" id="criteriaProductsTitle">Which product may fit?</div>
+      <div class="criteria-products" id="criteriaProducts"></div>
+    </div>
+    <p class="criteria-note" id="criteriaNote"></p>
+  </div>
+</div>
+
+<script src="crm-config.js?v=20260906-debug2"></script>
+<script>
+const openTfc=document.getElementById('openTfc');
+const tfcFlow=document.getElementById('tfcFlow');
+const closeTfc=document.getElementById('closeTfc');
+const taskSign=document.getElementById('taskSign');
+const taskUpload=document.getElementById('taskUpload');
+const signPanel=document.getElementById('signPanel');
+const uploadPanel=document.getElementById('uploadPanel');
+const statements=document.getElementById('statements');
+const fileCount=document.getElementById('fileCount');
+const fileList=document.getElementById('fileList');
+const progressBar=document.getElementById('progressBar');
+const flowEyebrow=document.getElementById('flowEyebrow');
+const flowTitle=document.getElementById('flowTitle');
+const flowIntro=document.getElementById('flowIntro');
+const flowSignCopy=document.getElementById('flowSignCopy');
+const flowUploadCopy=document.getElementById('flowUploadCopy');
+const fundingRow=document.querySelector('.funding-row');
+const lenderCarousel=document.getElementById('lenderCarousel');
+const lenderCards=[...lenderCarousel.querySelectorAll('.route')];
+const carouselDots=document.getElementById('carouselDots');
+const carouselPrev=document.getElementById('carouselPrev');
+const carouselNext=document.getElementById('carouselNext');
+const deckStatus=document.getElementById('deckStatus');
+const criteriaModal=document.getElementById('criteriaModal');
+const criteriaCard=document.getElementById('criteriaCard');
+const criteriaClose=document.getElementById('criteriaClose');
+const criteriaTitle=document.getElementById('criteriaTitle');
+const criteriaIntro=document.getElementById('criteriaIntro');
+const criteriaHighlights=document.getElementById('criteriaHighlights');
+const criteriaEligibilityTitle=document.getElementById('criteriaEligibilityTitle');
+const criteriaList=document.getElementById('criteriaList');
+const criteriaNetworkWrap=document.getElementById('criteriaNetworkWrap');
+const criteriaNetworkTitle=document.getElementById('criteriaNetworkTitle');
+const criteriaNetwork=document.getElementById('criteriaNetwork');
+const criteriaProductsWrap=document.getElementById('criteriaProductsWrap');
+const criteriaProductsTitle=document.getElementById('criteriaProductsTitle');
+const criteriaProducts=document.getElementById('criteriaProducts');
+const criteriaNote=document.getElementById('criteriaNote');
+const approvalSideSample=document.getElementById('approvalSideSample');
+const approvalFocusBackdrop=document.getElementById('approvalFocusBackdrop');
+const approvalOpenZone=document.getElementById('approvalOpenZone');
+const approvalFocusClose=document.getElementById('approvalFocusClose');
+const approvalProceed=document.getElementById('approvalProceed');
+const approvalMore=document.getElementById('approvalMore');
+const approvalActionStatus=document.getElementById('approvalActionStatus');
+const advisorChat=document.getElementById('advisorChat');
+const chatInput=document.getElementById('chatInput');
+const chatSend=document.getElementById('chatSend');
+const chatHistory=document.getElementById('chatHistory');
+const requestedDocsList=document.getElementById('requestedDocsList');
+const requestedText=document.getElementById('requestedText');
+const requestedCategory=document.getElementById('requestedCategory');
+const requestedFiles=document.getElementById('requestedFiles');
+const requestedUpload=document.getElementById('requestedUpload');
+const requestedMsg=document.getElementById('requestedMsg');
+const approvalStatusText=document.getElementById('approvalStatusText');
+const approvalProductText=document.getElementById('approvalProductText');
+const approvalAmountText=document.getElementById('approvalAmountText');
+const approvalTermText=document.getElementById('approvalTermText');
+const approvalPaymentText=document.getElementById('approvalPaymentText');
+const approvalFrequencyText=document.getElementById('approvalFrequencyText');
+const approvalTotalText=document.getElementById('approvalTotalText');
+const approvalDocsSummary=document.getElementById('approvalDocsSummary');
+const portalModeBadge=document.getElementById('portalModeBadge');
+const portalShell=document.getElementById('portalShell');
+const candidateLogin=document.getElementById('candidateLogin');
+const candidateEmail=document.getElementById('candidateEmail');
+const candidatePassword=document.getElementById('candidatePassword');
+const candidateLoginBtn=document.getElementById('candidateLoginBtn');
+const candidateLoginMsg=document.getElementById('candidateLoginMsg');
+const candidateLogout=document.getElementById('candidateLogout');
+const portalModeHelper=document.getElementById('portalModeHelper');
+const confirmSignatureBtn=document.getElementById('confirmSignatureBtn');
+const signatureActionMsg=document.getElementById('signatureActionMsg');
+const statementUploadBtn=document.getElementById('statementUploadBtn');
+const statementUploadMsg=document.getElementById('statementUploadMsg');
+const statementModeNote=document.getElementById('statementModeNote');
+
+const crmCfg=window.TFC_CONFIG||{};
+
+/*
+ * CURRENT BACKEND CONTRACT
+ * This V4 intentionally targets the existing google-apps-script/Code_SIMPLE.gs
+ * and crm-config.js deployment. Keep action names here so future production
+ * implementation can swap the UI without rewriting the Apps Script workflow.
+ *
+ * Existing supported actions used by the shared workflow:
+ * - health
+ * - createAccount (both intake experiences)
+ * - sendSignupNotification
+ * - clientLogin
+ * - getClient
+ * - clientConfirmSignature
+ * - clientDecision
+ * - uploadDocument (POST only)
+ *
+ * Retained two-way chat is NOT part of Code_SIMPLE.gs yet. When added later,
+ * add clientChatList/clientChatSend to this same backend and wire the existing
+ * conversation UI to those actions. Do not create a second Apps Script deployment.
+ */
+const CURRENT_CRM_ACTIONS=Object.freeze({
+  health:'health',
+  createAccount:'createAccount',
+  sendSignupNotification:'sendSignupNotification',
+  clientLogin:'clientLogin',
+  getClient:'getClient',
+  confirmSignature:'clientConfirmSignature',
+  clientDecision:'clientDecision',
+  uploadDocument:'uploadDocument'
+});
+const CURRENT_CRM_FIELDS=Object.freeze({
+  approvalStatus:'status',
+  signatureConfirmed:'signatureConfirmed',
+  statements:'statements',
+  advisorTitle:'messageTitle',
+  advisorBody:'messageBody',
+  approvedAmount:'approvedAmount',
+  product:'quote',
+  term:'term',
+  paymentFrequency:'paymentFrequency',
+  paymentAmount:'paymentAmount',
+  totalRepayment:'totalRepayment',
+  documentsRequested:'documentsRequested',
+  additionalDocsEnabled:'additionalDocsEnabled',
+  clientDecision:'clientDecision',
+  clientDecisionNote:'clientDecisionNote'
+});
+
+/*
+ * Shared intake contract:
+ * - current intake sends name/email/phone/password
+ * - future fuller intake may also send the optional application fields already
+ *   accepted by Code_SIMPLE.gs createAccount()
+ * Both return the same safe-client record and use the same application/session.
+ */
+const CURRENT_CRM_INTAKES=Object.freeze({
+  current:Object.freeze(['name','email','phone','password']),
+  extended:Object.freeze([
+    'name','email','phone','password',
+    'business','address','city','province','postal',
+    'industry','revenue','requested','years','purpose'
+  ])
+});
+
+const CRM_SESSION_KEY='tfc-client-auth';
+const CRM_LEGACY_KEY='tfc-current-application';
+const CRM_REQUEST_TIMEOUT=Math.max(Number(crmCfg.requestTimeout||30000),30000);
+let crmClient=null;
+let crmRefreshTimer=null;
+let crmHealthReady=false;
+let pendingMoreInfo=false;
+function crmIsTrue(v){
+  return v===true||['true','1','yes'].includes(String(v||'').trim().toLowerCase());
+}
+function readCurrentClientSession(){
+  let auth={},stored={};
+  try{auth=JSON.parse(sessionStorage.getItem(CRM_SESSION_KEY)||'{}')}catch(_){}
+  try{stored=JSON.parse(localStorage.getItem(CRM_LEGACY_KEY)||'{}')}catch(_){}
+  if(!auth.applicationId||!stored.applicationId||String(auth.applicationId)!==String(stored.applicationId)) return null;
+  return {auth,stored};
+}
+function crmJsonp(action,payload={},mode='direct',timeout=CRM_REQUEST_TIMEOUT){
+  return new Promise((resolve,reject)=>{
+    if(!crmCfg.apiUrl) return reject(new Error('CRM service is not configured.'));
+    const callback='tfc_v4_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script');
+    const params=new URLSearchParams({action,callback,_:String(Date.now())});
+    if(mode==='payload') params.set('payload',JSON.stringify({action,...payload}));
+    else Object.entries(payload).forEach(([k,v])=>{
+      if(v!==undefined&&v!==null) params.set(k,String(v));
+    });
+    const timer=setTimeout(()=>{cleanup();reject(new Error('The CRM is taking longer than expected.'))},timeout);
+    function cleanup(){
+      clearTimeout(timer);
+      try{delete window[callback]}catch(_){window[callback]=undefined}
+      if(script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[callback]=data=>{cleanup();resolve(data)};
+    script.onerror=()=>{cleanup();reject(new Error('The CRM service could not be reached.'))};
+    script.src=crmCfg.apiUrl+'?'+params.toString();
+    document.head.appendChild(script);
+  });
+}
+async function crmApi(action,payload={}){
+  try{return await crmJsonp(action,payload,'direct')}
+  catch(first){
+    try{return await crmJsonp(action,payload,'payload')}
+    catch(_){throw first}
+  }
+}
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(String(reader.result).split(',')[1]||'');
+    reader.onerror=()=>reject(new Error('Could not read '+file.name));
+    reader.readAsDataURL(file);
+  });
+}
+function liveClientReady(){
+  return Boolean(crmClient?.applicationId&&crmClient?.email);
+}
+function saveCurrentClient(data){
+  crmClient=data||crmClient;
+  if(!crmClient) return;
+  localStorage.setItem(CRM_LEGACY_KEY,JSON.stringify(crmClient));
+}
+async function refreshCurrentClient(showError=false){
+  if(!liveClientReady()) return null;
+  try{
+    const result=await crmApi(CURRENT_CRM_ACTIONS.getClient,{applicationId:crmClient.applicationId,email:crmClient.email});
+    if(!result?.ok) throw new Error(result?.error||'Could not refresh this application.');
+    crmClient={...crmClient,...result.data};
+    saveCurrentClient(crmClient);
+    renderPortalState(crmClient);
+    renderPortalConversation();
+    refreshTfcFlowState();
+    return crmClient;
+  }catch(error){
+    if(showError){
+      portalModeHelper.textContent='Current CRM session detected, but the latest client data could not be refreshed: '+(error.message||error);
+    }
+    throw error;
+  }
+}
+async function uploadCurrentClientFile(file,type='document'){
+  if(!liveClientReady()) throw new Error('Open V4 from an authenticated client session before uploading.');
+  if(file.size>20*1024*1024) throw new Error('Each file must be smaller than 20 MB.');
+  if(type==='statement' && file.type!=='application/pdf'&&!/\.pdf$/i.test(file.name)){
+    throw new Error('Bank statements must be PDF files.');
+  }
+  const base64=await fileToBase64(file);
+  await fetch(crmCfg.apiUrl,{
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'text/plain;charset=UTF-8'},
+    body:JSON.stringify({
+      action:CURRENT_CRM_ACTIONS.uploadDocument,
+      applicationId:crmClient.applicationId,
+      email:crmClient.email,
+      fileName:file.name,
+      mimeType:file.type||'application/octet-stream',
+      base64,
+      type
+    })
+  });
+}
+function startCurrentClientRefresh(){
+  if(crmRefreshTimer) clearInterval(crmRefreshTimer);
+  if(!liveClientReady()) return;
+  crmRefreshTimer=setInterval(()=>refreshCurrentClient(false).catch(()=>{}),45000);
+}
+
+let currentCard=0;
+let deckAnimating=false;
+let dragAxis=null;
+let dragPointerId=null;
+let dragCard=null,dragStartX=0,dragStartY=0,dragX=0,dragY=0,suppressCardClick=false;
+let dragStartTime=0,lastMoveX=0,lastMoveTime=0,dragVelocityX=0;
+
+lenderCards.forEach((_,i)=>{
+  const b=document.createElement('button');
+  b.className='carousel-dot'+(i===0?' active':'');
+  b.type='button';
+  b.setAttribute('aria-label','Go to funding option '+(i+1));
+  b.onclick=()=>setCard(i);
+  carouselDots.appendChild(b);
+});
+
+function renderDeck(){
+  lenderCards.forEach((card,index)=>{
+    const distance=(index-currentCard+lenderCards.length)%lenderCards.length;
+    card.dataset.pos=distance<=3?String(distance):'hidden';
+    card.style.pointerEvents=distance===0?'auto':'none';
+    card.classList.remove('swipe-left','swipe-right','dragging');
+    card.style.transform='';
+  });
+  [...carouselDots.children].forEach((dot,i)=>dot.classList.toggle('active',i===currentCard));
+  deckStatus.textContent=(currentCard+1)+' of '+lenderCards.length;
+}
+function setCard(index){
+  closeCriteria();
+  closeTfcFlow();
+  if(deckAnimating) return;
+  currentCard=(index+lenderCards.length)%lenderCards.length;
+  renderDeck();
+}
+function moveCard(step,direction){
+  if(deckAnimating) return;
+  closeCriteria();
+  closeTfcFlow();
+  deckAnimating=true;
+  const card=lenderCards[currentCard];
+  card.classList.add(direction==='right'?'swipe-right':'swipe-left');
+  setTimeout(()=>{
+    currentCard=(currentCard+step+lenderCards.length)%lenderCards.length;
+    renderDeck();
+    deckAnimating=false;
+  },145);
+}
+function nextCard(direction='left'){
+  moveCard(1,direction);
+}
+function prevCard(){
+  moveCard(-1,'right');
+}
+carouselNext.onclick=()=>nextCard('left');
+carouselPrev.onclick=()=>prevCard();
+
+lenderCarousel.addEventListener('pointerdown',e=>{
+  if(deckAnimating) return;
+  const top=lenderCards[currentCard];
+  if(!top.contains(e.target)) return;
+  if(e.target.closest('.card-action')) return;
+  if(e.pointerType==='mouse' && e.button!==0) return;
+
+  dragCard=top;
+  dragPointerId=e.pointerId;
+  dragStartX=e.clientX;
+  dragStartY=e.clientY;
+  dragX=0;
+  dragY=0;
+  dragAxis=e.pointerType==='mouse'?'horizontal':null;
+  suppressCardClick=false;
+  dragStartTime=performance.now();
+  lastMoveX=e.clientX;
+  lastMoveTime=dragStartTime;
+  dragVelocityX=0;
+
+  if(e.pointerType==='mouse'){
+    top.classList.add('dragging');
+    try{top.setPointerCapture(e.pointerId)}catch(_){}
+  }
+});
+
+lenderCarousel.addEventListener('pointermove',e=>{
+  if(!dragCard || e.pointerId!==dragPointerId) return;
+
+  dragX=e.clientX-dragStartX;
+  dragY=e.clientY-dragStartY;
+  const absX=Math.abs(dragX);
+  const absY=Math.abs(dragY);
+
+  if(e.pointerType!=='mouse' && !dragAxis){
+    if(absY>8 && absY>absX*1.15){
+      // Vertical intent belongs entirely to the page.
+      dragCard.classList.remove('dragging');
+      dragCard.style.transform='';
+      dragCard=null;
+      dragPointerId=null;
+      dragAxis='vertical';
+      return;
+    }
+    if(absX>8 && absX>absY*1.15){
+      dragAxis='horizontal';
+      dragCard.classList.add('dragging');
+      try{dragCard.setPointerCapture(e.pointerId)}catch(_){}
+    }else{
+      return;
+    }
+  }
+
+  if(dragAxis!=='horizontal') return;
+
+  if(e.cancelable) e.preventDefault();
+
+  const now=performance.now();
+  const dt=Math.max(1,now-lastMoveTime);
+  dragVelocityX=(e.clientX-lastMoveX)/dt;
+  lastMoveX=e.clientX;
+  lastMoveTime=now;
+  if(absX>5) suppressCardClick=true;
+
+  const rotation=Math.max(-6,Math.min(6,dragX/38));
+  const vertical=e.pointerType==='mouse'?dragY*.08:0;
+  dragCard.style.transform='translate3d('+dragX+'px,'+vertical+'px,0) rotate('+rotation+'deg)';
+});
+
+function finishDrag(e){
+  if(!dragCard || e.pointerId!==dragPointerId){
+    dragAxis=null;
+    dragPointerId=null;
+    return;
+  }
+
+  const card=dragCard;
+  dragCard=null;
+  dragPointerId=null;
+
+  try{card.releasePointerCapture(e.pointerId)}catch(_){}
+  card.classList.remove('dragging');
+  card.style.transform='';
+
+  if(dragAxis!=='horizontal'){
+    dragAxis=null;
+    renderDeck();
+    return;
+  }
+
+  const desktop=e.pointerType==='mouse';
+  const distanceThreshold=desktop?52:70;
+  const velocityThreshold=desktop?.45:.55;
+  const shouldSwipe=Math.abs(dragX)>distanceThreshold || Math.abs(dragVelocityX)>velocityThreshold;
+
+  if(shouldSwipe){
+    suppressCardClick=true;
+    const direction=(Math.abs(dragX)>10?dragX:dragVelocityX)>0?'right':'left';
+    nextCard(direction);
+    setTimeout(()=>{suppressCardClick=false},180);
+  }else{
+    renderDeck();
+  }
+
+  dragAxis=null;
+}
+
+lenderCarousel.addEventListener('pointerup',finishDrag);
+lenderCarousel.addEventListener('pointercancel',finishDrag);
+
+renderDeck();
+
+const lenderCriteria={
+  tfc:{
+    title:'Toronto Finance Company',
+    intro:'A manual application-submission route that lets one client package be reviewed across multiple Canadian business-financing partners.',
+    highlights:[
+      {value:'5+',label:'Lender partners'},
+      {value:'590',label:'Credit may be considered from'},
+      {value:'Manual',label:'Application submission'}
+    ],
+    eligibility:[
+      'Signed business financing application required',
+      '6–12 months of recent business bank statements',
+      'Most industries can be considered',
+      'Minimum Credit 590',
+      'Select lender partners can consider more difficult files and 3rd-position financing'
+    ],
+    lenders:[
+      'KM Capital',
+      'Sheaves Capital',
+      'Canacap Funding',
+      'iCapital',
+      'DUCA Financial Credit Union'
+    ],
+    networkTitle:'Participating lender network',
+    productTitle:'Financing solutions',
+    products:[
+      {name:'Term Loans',desc:'Structured business financing for a defined funding need, expansion, working capital or growth initiative.'},
+      {name:'Lines of Credit',desc:'Revolving business credit for ongoing working-capital and cash-flow needs.'},
+      {name:'Flex Funds',desc:'Flexible business funding designed for businesses that may prefer repayment tied more closely to cash flow.'},
+      {name:'Equipment Financing',desc:'Financing for eligible business equipment purchases or equipment-related capital needs.'},
+      {name:'Difficult & 3rd-Position Files',desc:'Select lender partners may consider more challenging credit profiles and financing behind existing obligations, including 3rd-position structures.'}
+    ],
+    note:'Toronto Finance Company manually packages and submits applications to suitable lender partners. Select partners may consider difficult files and 3rd-position structures. Final lender selection, approval, amount, pricing, documentation and terms are subject to each lender’s underwriting and due diligence.'
+  },
+  journey:{
+    title:'Journey Capital',
+    intro:'A direct Canadian lender built for small businesses that want fast access to working capital without a complicated bank process.',
+    highlights:[
+      {value:'10 min',label:'Online application'},
+      {value:'Up to $500K',label:'Available funding'},
+      {value:'24 hrs',label:'Funding can be as fast as'}
+    ],
+    eligibility:[
+      '6+ months in business',
+      '600+ personal credit score',
+      '$120,000+ annual business revenue',
+      'Canadian incorporated business',
+      'Canadian business bank account',
+      'Complete Journey Capital’s online application and provide any supporting documents requested during underwriting'
+    ],
+    products:[
+      {name:'Business Term Loan',desc:'Best for a defined project or larger one-time need. Predictable repayment over 6–24 months.'},
+      {name:'Business Line of Credit',desc:'Best for ongoing working capital. Draw what you need and pay interest only on the amount used.'},
+      {name:'Flex Funds Advance',desc:'Best for businesses with variable sales. Repayment adjusts with business revenue.'}
+    ],
+    note:'Soft credit check for pre-qualification. Journey Capital says it has funded $1B+ across 16,000+ loans since 2009. Final approval, pricing and terms are subject to Journey Capital underwriting; amounts above $300,000 may require additional security.'
+  },
+  merchant:{
+    title:'Merchant Growth',
+    intro:'A Canadian alternative financing provider built to give small businesses fast access to capital based on real business performance and cash flow.',
+    highlights:[
+      {value:'15 min',label:'Online application'},
+      {value:'Up to $1M',label:'Term financing'},
+      {value:'Same day',label:'Approval available'}
+    ],
+    eligibility:[
+      'Business located in Canada',
+      'More than 6 months in operation',
+      '$10,000+ in monthly business revenue'
+    ],
+    products:[
+      {name:'Term Financing',desc:'Best for a specific growth plan such as equipment, inventory, hiring or expansion. $5,000-$1,000,000 with terms from 6-24 months.'},
+      {name:'Business Line of Credit',desc:'Best for ongoing cash-flow flexibility. Revolving access from $7,500-$125,000, with available credit replenishing as you repay.'}
+    ],
+    note:'Soft credit inquiry during the application does not affect your credit score; a hard credit check is only completed if you move forward with funding. Merchant Growth says applications are typically processed within 6-24 hours and some approved funding can be deposited in as little as 6 hours. Since 2009, it has funded 15,000+ Canadian small businesses and deployed $1.5B+. Final approval and offers depend on business performance.'
+  },
+  xuper:{
+    title:'Xuper Funding',
+    intro:'A business-funding provider focused on fast working capital and flexible underwriting for businesses with established revenue.',
+    highlights:[
+      {value:'10 min',label:'Online application'},
+      {value:'Up to $750K',label:'Funding advertised'},
+      {value:'3rd pos.',label:'May be considered'}
+    ],
+    eligibility:[
+      'Typically $5,000+ in monthly business revenue',
+      'Canadian and U.S. businesses may apply',
+      'A range of credit profiles may be considered',
+      'Approval is based heavily on business revenue and cash flow'
+    ],
+    products:[
+      {name:'Revenue-Based Funding',desc:'Working-capital financing structured around business revenue and cash flow.'},
+      {name:'3rd-Position Funding',desc:'Xuper may consider financing in 3rd position on select files, subject to existing obligations and underwriting.'},
+      {name:'Difficult Files',desc:'May consider files that do not fit traditional bank lending, depending on revenue strength, current debt and overall risk.'}
+    ],
+    note:'Xuper Funding advertises a 10-minute application and fast funding. 3rd-position and difficult-file approvals are case-by-case and remain subject to Xuper Funding underwriting, existing debt obligations and business cash flow.'
+  }};
+
+function lenderKey(card){
+  if(card.classList.contains('tfc')) return 'tfc';
+  if(card.classList.contains('journey')) return 'journey';
+  if(card.classList.contains('merchant')) return 'merchant';
+  return 'xuper';
+}
+function openCriteria(card){
+  closeApprovalFocus();
+  const key=lenderKey(card);
+  const data=lenderCriteria[key];
+  criteriaCard.classList.toggle('journey-profile',key==='journey');
+  criteriaTitle.textContent=data.title;
+  criteriaIntro.textContent=data.intro;
+
+  criteriaHighlights.replaceChildren();
+  (data.highlights||[]).forEach(item=>{
+    const box=document.createElement('div');
+    box.className='criteria-highlight';
+    const strong=document.createElement('strong');
+    strong.textContent=item.value;
+    const span=document.createElement('span');
+    span.textContent=item.label;
+    box.append(strong,span);
+    criteriaHighlights.appendChild(box);
+  });
+  criteriaHighlights.style.display=(data.highlights&&data.highlights.length)?'grid':'none';
+
+  criteriaList.replaceChildren();
+  const eligibility=data.eligibility||data.items||[];
+  eligibility.forEach(item=>{
+    const li=document.createElement('li');
+    li.textContent=item;
+    criteriaList.appendChild(li);
+  });
+  criteriaEligibilityTitle.textContent=data.eligibility?'Minimum Eligibility':'Key Criteria';
+
+  criteriaNetwork.replaceChildren();
+  (data.lenders||[]).forEach(name=>{
+    const chip=document.createElement('span');
+    chip.textContent=name;
+    criteriaNetwork.appendChild(chip);
+  });
+  criteriaNetworkTitle.textContent=data.networkTitle||'Lender Network';
+  criteriaNetworkWrap.style.display=(data.lenders&&data.lenders.length)?'block':'none';
+
+  criteriaProducts.replaceChildren();
+  (data.products||[]).forEach(item=>{
+    const box=document.createElement('div');
+    box.className='criteria-product';
+    const strong=document.createElement('strong');
+    strong.textContent=item.name;
+    const span=document.createElement('span');
+    span.textContent=item.desc;
+    box.append(strong,span);
+    criteriaProducts.appendChild(box);
+  });
+  criteriaProductsTitle.textContent=data.productTitle||'Which product may fit?';
+  criteriaProductsWrap.style.display=(data.products&&data.products.length)?'block':'none';
+
+  criteriaNote.textContent=data.note;
+  criteriaModal.classList.add('show');
+  criteriaModal.setAttribute('aria-hidden','false');
+}
+function closeCriteria(){
+  criteriaModal.classList.remove('show');
+  criteriaModal.setAttribute('aria-hidden','true');
+}
+criteriaClose.addEventListener('click',closeCriteria);
+criteriaModal.addEventListener('click',e=>{
+  if(e.target===criteriaModal) closeCriteria();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closeCriteria();
+});
+
+function openApprovalFocus(){
+  closeCriteria();
+
+  const lenderRect=lenderCards[currentCard]?.getBoundingClientRect();
+  const approvalRect=approvalSideSample.getBoundingClientRect();
+
+  if(lenderRect&&approvalRect){
+    const lenderCenterX=lenderRect.left+lenderRect.width/2;
+    const approvalCenterX=approvalRect.left+approvalRect.width/2;
+    const lenderCenterY=lenderRect.top+lenderRect.height/2;
+    const approvalCenterY=approvalRect.top+approvalRect.height/2;
+
+    approvalSideSample.style.setProperty('--approval-focus-center-x',((lenderCenterX+approvalCenterX)/2)+'px');
+    approvalSideSample.style.setProperty('--approval-focus-center-y',((lenderCenterY+approvalCenterY)/2)+'px');
+  }
+
+  approvalSideSample.classList.add('focused');
+  approvalFocusBackdrop.classList.add('show');
+}
+function closeApprovalFocus(){
+  approvalSideSample.classList.remove('focused');
+  approvalFocusBackdrop.classList.remove('show');
+  approvalSideSample.style.removeProperty('--approval-focus-center-x');
+  approvalSideSample.style.removeProperty('--approval-focus-center-y');
+  approvalSideSample.getBoundingClientRect();
+}
+approvalOpenZone.addEventListener('click',e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  openApprovalFocus();
+});
+approvalFocusBackdrop.addEventListener('click',closeApprovalFocus);
+
+[approvalFocusClose,approvalProceed,approvalMore].forEach(button=>{
+  ['pointerdown','pointerup','mousedown','mouseup','touchstart','touchend','click'].forEach(type=>{
+    button.addEventListener(type,e=>e.stopPropagation(),{passive:type.startsWith('touch')});
+  });
+});
+
+approvalFocusClose.addEventListener('click',e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  closeApprovalFocus();
+});
+approvalProceed.addEventListener('click',async e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  if(!approvalSideSample.classList.contains('visible')) return;
+  approvalProceed.disabled=true;
+  approvalMore.disabled=true;
+  approvalActionStatus.textContent='Sending your response...';
+  try{
+    const result=await crmApi(CURRENT_CRM_ACTIONS.clientDecision,{
+      applicationId:crmClient.applicationId,
+      email:crmClient.email,
+      decision:'Proceed',
+      note:''
+    });
+    if(!result?.ok) throw new Error(result?.error||'Your response could not be sent.');
+    crmClient={...crmClient,...(result.data||{})};
+    saveCurrentClient(crmClient);
+    renderPortalState(crmClient);
+    renderPortalConversation();
+    approvalActionStatus.textContent='Proceed sent to your advisor.';
+  }catch(error){
+    approvalActionStatus.textContent=error.message||'Your response could not be sent.';
+  }finally{
+    approvalProceed.disabled=false;
+    approvalMore.disabled=false;
+  }
+});
+approvalMore.addEventListener('click',e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  if(!approvalSideSample.classList.contains('visible')) return;
+  pendingMoreInfo=true;
+  approvalActionStatus.textContent='Tell your advisor what you need below.';
+  closeApprovalFocus();
+  chatInput.placeholder='Tell your advisor what information you need...';
+  requestAnimationFrame(()=>advisorChat.scrollIntoView({behavior:'smooth',block:'nearest'}));
+});
+
+function formatPortalMoney(value){
+  const n=Number(String(value||'').replace(/[^0-9.-]/g,''));
+  return Number.isFinite(n)&&n?'CA$'+n.toLocaleString('en-CA',{maximumFractionDigits:2}):(value||'—');
+}
+
+
+function renderPortalState(data){
+  const status=String(data.status||'');
+  const hasOffer=Boolean(data.approvedAmount||data.quote||data.term||data.paymentAmount||data.totalRepayment);
+  const approved=['Conditional Approval','Approved'].includes(status)&&hasOffer;
+
+  fundingRow.classList.toggle('has-approval',approved);
+  fundingRow.classList.toggle('no-approval',!approved);
+  approvalSideSample.classList.toggle('visible',approved);
+  document.getElementById('approvalWorkspace').classList.toggle('visible',approved);
+
+  if(!approved){
+    closeApprovalFocus();
+    requestedDocsList.classList.remove('visible');
+    return;
+  }
+
+  approvalStatusText.textContent=status;
+  approvalProductText.textContent=data.quote||'Financing Available';
+  approvalAmountText.textContent=formatPortalMoney(data.approvedAmount);
+  approvalTermText.textContent=data.term||'—';
+  approvalPaymentText.textContent=formatPortalMoney(data.paymentAmount);
+  approvalFrequencyText.textContent=data.paymentFrequency||'—';
+  approvalTotalText.textContent=formatPortalMoney(data.totalRepayment);
+
+  // Match current admin.js exactly: the Admin toggle controls visibility.
+  const showDocs=crmIsTrue(data.additionalDocsEnabled);
+  requestedDocsList.classList.toggle('visible',showDocs);
+
+  if(showDocs){
+    const rawRequest=String(data.documentsRequested||'').trim();
+    approvalDocsSummary.textContent=rawRequest
+      ? 'Additional documents requested by your advisor.'
+      : 'Additional document requested by your advisor.';
+    requestedText.textContent=rawRequest||'Please upload the additional documents requested by your advisor.';
+  }else{
+    approvalDocsSummary.textContent='No additional documents requested.';
+    requestedText.textContent='';
+    requestedFiles.value='';
+    requestedMsg.textContent='';
+  }
+
+  if(liveClientReady()){
+    approvalActionStatus.textContent=data.clientDecision
+      ? 'Latest response: '+data.clientDecision
+      : '';
+  }
+}
+
+
+
+/*
+ * Current Apps Script compatibility:
+ * Code_SIMPLE.gs currently stores the latest advisor update in messageTitle/messageBody
+ * and the latest client response in clientDecision/clientDecisionNote.
+ * Retained two-way chat will plug into this UI later using actions added to this SAME backend.
+ */
+function addChatBubble(senderType,message){
+  if(!message) return;
+  const bubble=document.createElement('div');
+  bubble.className='chat-bubble '+(senderType==='CLIENT'?'client':'advisor');
+  bubble.textContent=String(message);
+  chatHistory.appendChild(bubble);
+}
+function renderPortalConversation(){
+  chatHistory.replaceChildren();
+  if(!liveClientReady()) return;
+
+  const advisorMessage=crmClient.messageBody||crmClient.messageTitle||'Your Toronto Finance Company advisor will post updates here.';
+  addChatBubble('ADVISOR',advisorMessage);
+  if(crmClient.clientDecisionNote){
+    addChatBubble('CLIENT',crmClient.clientDecisionNote);
+  }
+}
+async function sendPortalChat(){
+  const message=chatInput.value.trim();
+  if(!message||!liveClientReady()) return;
+  chatSend.disabled=true;
+
+  try{
+    const result=await crmApi(CURRENT_CRM_ACTIONS.clientDecision,{
+      applicationId:crmClient.applicationId,
+      email:crmClient.email,
+      decision:'Request More Information',
+      note:message
+    });
+    if(!result?.ok) throw new Error(result?.error||'Your message could not be sent.');
+
+    crmClient={...crmClient,...(result.data||{})};
+    saveCurrentClient(crmClient);
+    pendingMoreInfo=false;
+    chatInput.value='';
+    chatInput.placeholder='Ask your advisor about this approval...';
+    renderPortalState(crmClient);
+    renderPortalConversation();
+    chatHistory.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }catch(error){
+    approvalActionStatus.textContent=error.message||'Your message could not be sent.';
+  }finally{
+    chatSend.disabled=false;
+  }
+}
+chatSend.addEventListener('click',sendPortalChat);
+chatInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    e.preventDefault();
+    sendPortalChat();
+  }
+});
+requestedUpload.addEventListener('click',async()=>{
+  if(!liveClientReady()) return;
+
+  const files=[...requestedFiles.files];
+  const category=requestedCategory.value;
+
+  if(!files.length){
+    requestedMsg.textContent='Select one or more requested documents first.';
+    return;
+  }
+  if(files.some(file=>file.size>20*1024*1024)){
+    requestedMsg.textContent='Each document must be smaller than 20 MB.';
+    return;
+  }
+
+  requestedUpload.disabled=true;
+  requestedMsg.textContent='Uploading '+files.length+' document'+(files.length===1?'':'s')+'...';
+
+  try{
+    for(const file of files){
+      await uploadCurrentClientFile(file,category);
+    }
+    requestedFiles.value='';
+    requestedMsg.textContent='Documents sent. Your advisor will see them in your file.';
+    setTimeout(()=>refreshCurrentClient(false).catch(()=>{}),1800);
+  }catch(error){
+    requestedMsg.textContent=error.message||'Upload failed.';
+  }finally{
+    requestedUpload.disabled=false;
+  }
+});
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&approvalSideSample.classList.contains('focused')) closeApprovalFocus();
+});
+
+lenderCards.forEach(card=>{
+  card.querySelectorAll('.card-action').forEach(button=>{
+    button.addEventListener('click',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      if(button.dataset.action==='more'){
+        openCriteria(card);
+        return;
+      }
+      if(card.classList.contains('tfc')){
+        openApplicationFlow();
+        return;
+      }
+      const url=card.dataset.url;
+      if(url) window.open(url,'_blank','noopener,noreferrer');
+    });
+  });
+});
+
+function showTask(which){
+  const sign=which==='sign';
+  taskSign.classList.toggle('active',sign);
+  taskUpload.classList.toggle('active',!sign);
+  signPanel.classList.toggle('show',sign);
+  uploadPanel.classList.toggle('show',!sign);
+}
+
+function closeTfcFlow(){
+  tfcFlow.classList.remove('show');
+}
+function openApplicationFlow(){
+  flowEyebrow.textContent='Toronto Finance Company Route';
+  flowTitle.textContent='Complete your application.';
+  flowIntro.textContent='Two simple steps: review and sign, then provide your recent business bank statements.';
+  flowSignCopy.textContent='Complete the Toronto Finance Company application and provide your secure Adobe electronic signature.';
+  flowUploadCopy.textContent='Choose recent monthly business bank statements in PDF format. Uploaded statements are saved to your secure client file.';
+  tfcFlow.classList.add('show');
+  showTask('sign');
+  requestAnimationFrame(()=>tfcFlow.scrollIntoView({behavior:'smooth',block:'start'}));
+}
+function openTfcFlow(){
+  openApplicationFlow();
+}
+closeTfc.addEventListener('click',closeTfcFlow);
+taskSign.addEventListener('click',()=>showTask('sign'));
+taskUpload.addEventListener('click',()=>showTask('upload'));
+
+function refreshTfcFlowState(){
+  if(!liveClientReady()) return;
+  const signed=crmIsTrue(crmClient.signatureConfirmed)||Number(crmClient.statements||0)>0;
+  confirmSignatureBtn.disabled=signed;
+  confirmSignatureBtn.textContent=signed?'Signing Confirmed ✓':'I Have Finished Signing';
+  signatureActionMsg.textContent=signed?'Your signing step is confirmed in the current CRM.':'';
+  signatureActionMsg.className='crm-action-msg'+(signed?' success':'');
+  taskUpload.disabled=!signed;
+  if(!signed && uploadPanel.classList.contains('show')) showTask('sign');
+  statementModeNote.textContent='Connected to your current Toronto Finance Company CRM. Statement uploads go to the existing Google Drive client folder.';
+}
+confirmSignatureBtn.addEventListener('click',async()=>{
+  if(!liveClientReady()) return;
+  confirmSignatureBtn.disabled=true;
+  signatureActionMsg.className='crm-action-msg';
+  signatureActionMsg.textContent='Saving signature confirmation...';
+  try{
+    const result=await crmApi(CURRENT_CRM_ACTIONS.confirmSignature,{
+      applicationId:crmClient.applicationId,
+      email:crmClient.email
+    });
+    if(!result?.ok) throw new Error(result?.error||'Signature confirmation could not be saved.');
+    crmClient={...crmClient,...(result.data||{}),signatureConfirmed:true};
+    localStorage.setItem('tfc-signed-'+crmClient.applicationId,'yes');
+    saveCurrentClient(crmClient);
+    signatureActionMsg.textContent='Signature confirmation saved to your current client file.';
+    signatureActionMsg.className='crm-action-msg success';
+    refreshTfcFlowState();
+  }catch(error){
+    confirmSignatureBtn.disabled=false;
+    signatureActionMsg.textContent=error.message||'Signature confirmation could not be saved.';
+    signatureActionMsg.className='crm-action-msg error';
+  }
+});
+
+function renderSelectedStatements(){
+  const files=[...statements.files];
+  const pdfs=files.filter(file=>file.type==='application/pdf'||/\.pdf$/i.test(file.name));
+  fileList.replaceChildren();
+
+  if(!pdfs.length){
+    fileCount.textContent='No statements selected';
+    progressBar.style.width='0%';
+    statementUploadMsg.textContent='';
+    return [];
+  }
+
+  fileCount.textContent=pdfs.length+' statement'+(pdfs.length===1?'':'s')+' selected';
+  progressBar.style.width=Math.min(100,(pdfs.length/Number(crmCfg.minimumStatements||6))*100)+'%';
+
+  pdfs.forEach(file=>{
+    const row=document.createElement('div');
+    row.className='file-item';
+    const name=document.createElement('span');
+    name.textContent=file.name;
+    const size=document.createElement('span');
+    size.textContent=(file.size/1024/1024).toFixed(1)+' MB';
+    row.append(name,size);
+    fileList.appendChild(row);
+  });
+  return pdfs;
+}
+statements.addEventListener('change',renderSelectedStatements);
+
+statementUploadBtn.addEventListener('click',async()=>{
+  const pdfs=renderSelectedStatements();
+  if(!pdfs.length){
+    statementUploadMsg.textContent='Select PDF bank statements first.';
+    statementUploadMsg.className='crm-action-msg error';
+    return;
+  }
+  if(!liveClientReady()){
+    statementUploadMsg.textContent='Preview mode: sign in through the current Client Portal first to send these files to Apps Script / Google Drive.';
+    statementUploadMsg.className='crm-action-msg';
+    return;
+  }
+  const signingSatisfied=crmIsTrue(crmClient.signatureConfirmed)||
+    localStorage.getItem('tfc-signed-'+crmClient.applicationId)==='yes'||
+    Number(crmClient.statements||0)>0;
+  if(!signingSatisfied){
+    statementUploadMsg.textContent='Please complete and confirm Step 1 before uploading statements.';
+    statementUploadMsg.className='crm-action-msg error';
+    return;
+  }
+
+  statementUploadBtn.disabled=true;
+  statementUploadMsg.className='crm-action-msg';
+  try{
+    for(let i=0;i<pdfs.length;i++){
+      statementUploadMsg.textContent='Uploading '+(i+1)+' of '+pdfs.length+'...';
+      await uploadCurrentClientFile(pdfs[i],'statement');
+    }
+    statementUploadMsg.textContent='Statements sent. Confirming the updated CRM count...';
+    await new Promise(r=>setTimeout(r,1800));
+    await refreshCurrentClient(false);
+    statements.value='';
+    fileList.replaceChildren();
+    fileCount.textContent=Number(crmClient.statements||0)+' statement'+(Number(crmClient.statements||0)===1?'':'s')+' received';
+    progressBar.style.width=Math.min(100,(Number(crmClient.statements||0)/Number(crmCfg.minimumStatements||6))*100)+'%';
+    statementUploadMsg.textContent='Upload complete. Current CRM statement count: '+Number(crmClient.statements||0)+'.';
+    statementUploadMsg.className='crm-action-msg success';
+  }catch(error){
+    statementUploadMsg.textContent=error.message||'Upload failed.';
+    statementUploadMsg.className='crm-action-msg error';
+  }finally{
+    statementUploadBtn.disabled=false;
+  }
+});
+
+
+function clearCurrentClientSession(){
+  sessionStorage.removeItem(CRM_SESSION_KEY);
+  localStorage.removeItem(CRM_LEGACY_KEY);
+}
+function writeCurrentClientSession(data){
+  const authenticatedAt=new Date().toISOString();
+  sessionStorage.setItem(CRM_SESSION_KEY,JSON.stringify({
+    applicationId:data.applicationId,
+    email:data.email||'',
+    authenticatedAt
+  }));
+  localStorage.setItem(CRM_LEGACY_KEY,JSON.stringify(data));
+}
+function showCandidateLogin(message=''){
+  if(crmRefreshTimer){
+    clearInterval(crmRefreshTimer);
+    crmRefreshTimer=null;
+  }
+  crmClient=null;
+  portalShell.hidden=true;
+  candidateLogin.hidden=false;
+  candidateLoginMsg.textContent=message;
+  candidateLoginMsg.className='candidate-login-message';
+}
+function showCandidatePortal(data){
+  crmClient=data;
+  saveCurrentClient(data);
+  candidateLogin.hidden=true;
+  portalShell.hidden=false;
+  portalModeBadge.textContent='Secure Client Portal';
+  portalModeHelper.textContent='Connected to the current Toronto Finance Company Apps Script, Sheets and Drive workflow.';
+  statementModeNote.textContent='Uploaded statements are sent through the current secure CRM workflow to this client’s existing Google Drive folder.';
+  renderPortalState(data);
+  renderPortalConversation();
+  refreshTfcFlowState();
+  startCurrentClientRefresh();
+}
+async function candidateLoginSubmit(){
+  if(!crmHealthReady){
+    candidateLoginMsg.textContent='The CRM connection is not ready. Please refresh the page.';
+    return;
+  }
+  const email=candidateEmail.value.trim().toLowerCase();
+  const password=candidatePassword.value;
+  if(!/^\S+@\S+\.\S+$/.test(email)){
+    candidateLoginMsg.textContent='Please enter a valid email address.';
+    return;
+  }
+  if(!password){
+    candidateLoginMsg.textContent='Please enter your password.';
+    return;
+  }
+
+  candidateLoginBtn.disabled=true;
+  candidateLoginBtn.textContent='Signing In...';
+  candidateLoginMsg.textContent='Checking your secure account...';
+
+  try{
+    const result=await crmApi(CURRENT_CRM_ACTIONS.clientLogin,{email,password});
+    if(!result?.ok) throw new Error(result?.error||'Login failed.');
+    writeCurrentClientSession(result.data);
+    candidatePassword.value='';
+    showCandidatePortal(result.data);
+    await refreshCurrentClient(false);
+    candidateLoginMsg.textContent='';
+  }catch(error){
+    clearCurrentClientSession();
+    showCandidateLogin(error.message||'Login failed.');
+  }finally{
+    candidateLoginBtn.disabled=false;
+    candidateLoginBtn.textContent='Log In';
+  }
+}
+candidateLoginBtn.addEventListener('click',candidateLoginSubmit);
+candidatePassword.addEventListener('keydown',e=>{
+  if(e.key==='Enter') candidateLoginSubmit();
+});
+candidateLogout.addEventListener('click',()=>{
+  clearCurrentClientSession();
+  showCandidateLogin('');
+  candidateEmail.value='';
+  candidatePassword.value='';
+});
+
+async function verifyCurrentCrmHealth(){
+  if(!crmCfg.apiUrl) throw new Error('CRM service is not configured.');
+  const result=await crmApi(CURRENT_CRM_ACTIONS.health,{});
+  if(!result?.ok) throw new Error(result?.error||'CRM health check failed.');
+  crmHealthReady=true;
+  return result;
+}
+
+async function initCurrentCrmBridge(){
+  try{
+    await verifyCurrentCrmHealth();
+  }catch(error){
+    showCandidateLogin('The Toronto Finance Company CRM could not be reached. Please refresh and try again.');
+    candidateLoginBtn.disabled=true;
+    return;
+  }
+
+  const forceFresh=new URLSearchParams(window.location.search).get('login')==='1';
+  if(forceFresh){
+    clearCurrentClientSession();
+    history.replaceState({},'', 'client-dashboard.html');
+    showCandidateLogin('');
+    return;
+  }
+
+  const session=readCurrentClientSession();
+  if(!session){
+    showCandidateLogin('');
+    return;
+  }
+
+  crmClient={...session.stored,applicationId:session.auth.applicationId,email:session.auth.email||session.stored.email||''};
+  portalShell.hidden=false;
+  candidateLogin.hidden=true;
+
+  try{
+    const latest=await refreshCurrentClient(true);
+    if(latest) showCandidatePortal(latest);
+  }catch(_){
+    clearCurrentClientSession();
+    showCandidateLogin('Your saved session could not be verified. Please log in again.');
+  }
+}
+initCurrentCrmBridge();
+</script>
 </body>
 </html>
