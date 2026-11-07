@@ -671,7 +671,7 @@
 
   const cfg = window.TFC_CONFIG || {};
   const $ = selector => document.querySelector(selector);
-  const MAX_PACKAGE_BYTES = 20 * 1024 * 1024;
+  const MAX_PACKAGE_BYTES = 17 * 1024 * 1024;
   let currentApplicationId = '';
   let lenders = [];
   let documents = [];
@@ -1240,7 +1240,7 @@
     const totalBytes = documents.filter(doc => selectedIds.has(String(doc.id)))
       .reduce((sum,doc) => sum + Number(doc.size || 0),0);
     if (totalBytes > MAX_PACKAGE_BYTES) {
-      return setStatus('#lenderSendStatus','Package is too large to email. Deselect one or more documents and try again.','error');
+      return setStatus('#lenderSendStatus','Package is too large to email safely. Keep the selected documents under 17 MB and try again.','error');
     }
 
     const button = $('#lenderSend');
@@ -1267,9 +1267,15 @@
       if (sent.length) {
         const names = sent.map(item => item.name || item.email).join(', ');
         const failureNote = failed.length ? ` ${failed.length} send(s) failed.` : '';
+        const attachmentNames = Array.isArray(result.attachments)
+          ? result.attachments.map(item => item.outgoingName || item.originalName).filter(Boolean)
+          : [];
+        const attachmentNote = attachmentNames.length
+          ? ' Files: ' + attachmentNames.join(', ')
+          : '';
         setStatus(
           '#lenderSendStatus',
-          `Sent successfully to ${names} with ${Number(result.documentCount || fileIds.length)} attachment(s).${failureNote}`,
+          `Sent successfully to ${names} with ${Number(result.documentCount || fileIds.length)} attachment(s).${failureNote}${attachmentNote}`,
           failed.length ? '' : 'success'
         );
         document.querySelectorAll('[data-lender-choice]:checked').forEach(input => { input.checked = false; });
