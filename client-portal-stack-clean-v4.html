@@ -1656,6 +1656,47 @@ const statementUploadMsg=document.getElementById('statementUploadMsg');
 const statementModeNote=document.getElementById('statementModeNote');
 
 const crmCfg=window.TFC_CONFIG||{};
+
+/*
+ * CURRENT BACKEND CONTRACT
+ * This V4 intentionally targets the existing google-apps-script/Code_SIMPLE.gs
+ * and crm-config.js deployment. Keep action names here so future production
+ * implementation can swap the UI without rewriting the Apps Script workflow.
+ *
+ * Existing supported actions:
+ * - getClient
+ * - clientConfirmSignature
+ * - clientDecision
+ * - uploadDocument (POST only)
+ *
+ * Retained two-way chat is NOT part of Code_SIMPLE.gs yet. When added later,
+ * add clientChatList/clientChatSend to this same backend and plug them into
+ * chatTransport below. Do not create a second Apps Script deployment.
+ */
+const CURRENT_CRM_ACTIONS=Object.freeze({
+  getClient:'getClient',
+  confirmSignature:'clientConfirmSignature',
+  clientDecision:'clientDecision',
+  uploadDocument:'uploadDocument'
+});
+const CURRENT_CRM_FIELDS=Object.freeze({
+  approvalStatus:'status',
+  signatureConfirmed:'signatureConfirmed',
+  statements:'statements',
+  advisorTitle:'messageTitle',
+  advisorBody:'messageBody',
+  approvedAmount:'approvedAmount',
+  product:'quote',
+  term:'term',
+  paymentFrequency:'paymentFrequency',
+  paymentAmount:'paymentAmount',
+  totalRepayment:'totalRepayment',
+  documentsRequested:'documentsRequested',
+  additionalDocsEnabled:'additionalDocsEnabled',
+  clientDecision:'clientDecision',
+  clientDecisionNote:'clientDecisionNote'
+});
+
 const CRM_SESSION_KEY='tfc-client-auth';
 const CRM_LEGACY_KEY='tfc-current-application';
 const CRM_REQUEST_TIMEOUT=Math.max(Number(crmCfg.requestTimeout||30000),30000);
@@ -1721,7 +1762,7 @@ function saveCurrentClient(data){
 async function refreshCurrentClient(showError=false){
   if(!liveClientReady()) return null;
   try{
-    const result=await crmApi('getClient',{applicationId:crmClient.applicationId,email:crmClient.email});
+    const result=await crmApi(CURRENT_CRM_ACTIONS.getClient,{applicationId:crmClient.applicationId,email:crmClient.email});
     if(!result?.ok) throw new Error(result?.error||'Could not refresh this application.');
     crmClient={...crmClient,...result.data};
     saveCurrentClient(crmClient);
@@ -1748,7 +1789,7 @@ async function uploadCurrentClientFile(file,type='document'){
     mode:'no-cors',
     headers:{'Content-Type':'text/plain;charset=UTF-8'},
     body:JSON.stringify({
-      action:'uploadDocument',
+      action:CURRENT_CRM_ACTIONS.uploadDocument,
       applicationId:crmClient.applicationId,
       email:crmClient.email,
       fileName:file.name,
@@ -2161,7 +2202,7 @@ approvalProceed.addEventListener('click',async e=>{
   approvalMore.disabled=true;
   approvalActionStatus.textContent='Sending your response...';
   try{
-    const result=await crmApi('clientDecision',{
+    const result=await crmApi(CURRENT_CRM_ACTIONS.clientDecision,{
       applicationId:crmClient.applicationId,
       email:crmClient.email,
       decision:'Proceed',
@@ -2193,6 +2234,11 @@ approvalMore.addEventListener('click',e=>{
   requestAnimationFrame(()=>advisorChat.scrollIntoView({behavior:'smooth',block:'nearest'}));
 });
 
+/*
+ * Preview fallback only.
+ * In an authenticated current client session, renderPortalState() is populated
+ * by CURRENT_CRM_ACTIONS.getClient using the exact fields in CURRENT_CRM_FIELDS.
+ */
 const sampleAdminState={
   status:new URLSearchParams(location.search).get('approval')==='0'?'Under Review':'Conditional Approval',
   approvedAmount:'75000',
@@ -2353,7 +2399,7 @@ async function sendPortalChat(){
 
   try{
     if(liveClientReady()){
-      const result=await crmApi('clientDecision',{
+      const result=await crmApi(CURRENT_CRM_ACTIONS.clientDecision,{
         applicationId:crmClient.applicationId,
         email:crmClient.email,
         decision:'Request More Information',
@@ -2499,7 +2545,7 @@ confirmSignatureBtn.addEventListener('click',async()=>{
   signatureActionMsg.className='crm-action-msg';
   signatureActionMsg.textContent='Saving signature confirmation...';
   try{
-    const result=await crmApi('clientConfirmSignature',{
+    const result=await crmApi(CURRENT_CRM_ACTIONS.confirmSignature,{
       applicationId:crmClient.applicationId,
       email:crmClient.email
     });
