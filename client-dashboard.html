@@ -966,13 +966,13 @@ button,input{font:inherit}
 
 
 
-/* V4 mobile alignment + TFC application-step fix */
+/* Mobile alignment + TFC application-step fix */
 
 
 
 
 
-/* V4 debug stabilization */
+/* Portal stabilization */
 
 /* Canonical mobile layout — keep all core mobile behavior in this block. */
 @media(max-width:760px){
@@ -2485,9 +2485,9 @@ const crmCfg=window.TFC_CONFIG||{};
 
 /*
  * CURRENT BACKEND CONTRACT
- * This V4 intentionally targets the existing google-apps-script/Code_SIMPLE.gs
- * and crm-config.js deployment. Keep action names here so future production
- * implementation can swap the UI without rewriting the Apps Script workflow.
+ * This portal targets the existing google-apps-script/Code_SIMPLE.gs
+ * and crm-config.js deployment. Keep action names centralized here so UI
+ * refinements do not require rewriting the Apps Script workflow.
  *
  * Existing supported actions used by the shared workflow:
  * - health
@@ -2499,9 +2499,8 @@ const crmCfg=window.TFC_CONFIG||{};
  * - clientDecision
  * - uploadDocument (POST only)
  *
- * Retained two-way chat is NOT part of Code_SIMPLE.gs yet. When added later,
- * add clientChatList/clientChatSend to this same backend and wire the existing
- * conversation UI to those actions. Do not create a second Apps Script deployment.
+ * Retained two-way chat uses clientChatSend on this same backend.
+ * Keep all client portal actions on this single Apps Script deployment.
  */
 const CURRENT_CRM_ACTIONS=Object.freeze({
   health:'health',
@@ -2554,7 +2553,9 @@ const CRM_LEGACY_KEY='tfc-current-application';
 const CRM_REQUEST_TIMEOUT=Math.max(Number(crmCfg.requestTimeout||30000),30000);
 let crmClient=null;
 let crmRefreshTimer=null;
+let crmRefreshInFlight=null;
 let crmHealthReady=false;
+let portalConversationSignature='';
 let pendingMoreInfo=false;
 function crmIsTrue(v){
   return v===true||['true','1','yes'].includes(String(v||'').trim().toLowerCase());
@@ -2613,24 +2614,33 @@ function saveCurrentClient(data){
 }
 async function refreshCurrentClient(showError=false){
   if(!liveClientReady()) return null;
-  try{
-    const result=await crmApi(CURRENT_CRM_ACTIONS.getClient,{applicationId:crmClient.applicationId,email:crmClient.email});
-    if(!result?.ok) throw new Error(result?.error||'Could not refresh this application.');
-    crmClient={...crmClient,...result.data};
-    saveCurrentClient(crmClient);
-    renderPortalState(crmClient);
-    renderPortalConversation();
-    refreshTfcFlowState();
-    return crmClient;
-  }catch(error){
-    if(showError){
-      portalModeHelper.textContent='Current CRM session detected, but the latest client data could not be refreshed: '+(error.message||error);
+  if(crmRefreshInFlight) return crmRefreshInFlight;
+
+  crmRefreshInFlight=(async()=>{
+    try{
+      const result=await crmApi(CURRENT_CRM_ACTIONS.getClient,{applicationId:crmClient.applicationId,email:crmClient.email});
+      if(!result?.ok) throw new Error(result?.error||'Could not refresh this application.');
+      crmClient={...crmClient,...result.data};
+      saveCurrentClient(crmClient);
+      renderPortalState(crmClient);
+      renderPortalConversation();
+      refreshTfcFlowState();
+      if(showError) portalModeHelper.textContent='Your portal is up to date.';
+      return crmClient;
+    }catch(error){
+      if(showError){
+        portalModeHelper.textContent='We could not refresh the latest update. Your current portal information is still available.';
+      }
+      throw error;
+    }finally{
+      crmRefreshInFlight=null;
     }
-    throw error;
-  }
+  })();
+
+  return crmRefreshInFlight;
 }
 async function uploadCurrentClientFile(file,type='document'){
-  if(!liveClientReady()) throw new Error('Open V4 from an authenticated client session before uploading.');
+  if(!liveClientReady()) throw new Error('Please sign in to your client portal before uploading.');
   if(file.size>20*1024*1024) throw new Error('Each file must be smaller than 20 MB.');
   if(type==='statement' && file.type!=='application/pdf'&&!/\.pdf$/i.test(file.name)){
     throw new Error('Bank statements must be PDF files.');
@@ -3165,18 +3175,37 @@ function addChatBubble(senderType,message){
   chatHistory.appendChild(bubble);
 }
 function renderPortalConversation(){
-  chatHistory.replaceChildren();
-  if(!liveClientReady()) return;
-
-  const history=parsePortalChatHistory(crmClient.chatHistory);
-  if(history.length){
-    history.forEach(entry=>addChatBubble(String(entry.sender||'ADVISOR').toUpperCase(),entry.message));
+  if(!liveClientReady()){
+    portalConversationSignature='';
+    chatHistory.replaceChildren();
     return;
   }
 
-  const advisorMessage=crmClient.messageBody||crmClient.messageTitle||'Your Toronto Finance Company advisor will post updates here.';
-  addChatBubble('ADVISOR',advisorMessage);
-  if(crmClient.clientDecisionNote) addChatBubble('CLIENT',crmClient.clientDecisionNote);
+  const history=parsePortalChatHistory(crmClient.chatHistory);
+  const entries=history.length
+    ? history.map(entry=>({
+        sender:String(entry.sender||'ADVISOR').toUpperCase(),
+        message:String(entry.message||'')
+      }))
+    : [
+        {
+          sender:'ADVISOR',
+          message:String(crmClient.messageBody||crmClient.messageTitle||'Your Toronto Finance Company advisor will post updates here.')
+        },
+        ...(crmClient.clientDecisionNote ? [{sender:'CLIENT',message:String(crmClient.clientDecisionNote)}] : [])
+      ];
+
+  const signature=JSON.stringify(entries);
+  if(signature===portalConversationSignature) return;
+
+  const nearBottom=(chatHistory.scrollHeight-chatHistory.scrollTop-chatHistory.clientHeight)<48;
+  chatHistory.replaceChildren();
+  entries.forEach(entry=>addChatBubble(entry.sender,entry.message));
+  portalConversationSignature=signature;
+
+  if(nearBottom){
+    requestAnimationFrame(()=>{ chatHistory.scrollTop=chatHistory.scrollHeight; });
+  }
 }
 async function sendPortalChat(){
   const message=chatInput.value.trim();
@@ -3389,7 +3418,7 @@ statementUploadBtn.addEventListener('click',async()=>{
     return;
   }
   if(!liveClientReady()){
-    statementUploadMsg.textContent='Preview mode: sign in through the current Client Portal first to send these files to Apps Script / Google Drive.';
+    statementUploadMsg.textContent='Please sign in to your client portal before uploading statements.';
     statementUploadMsg.className='crm-action-msg';
     return;
   }
@@ -3402,6 +3431,8 @@ statementUploadBtn.addEventListener('click',async()=>{
     return;
   }
 
+  const previousStatementCount=Number(crmClient.statements||0);
+  const expectedStatementCount=previousStatementCount+pdfs.length;
   statementUploadBtn.disabled=true;
   statementUploadMsg.className='crm-action-msg';
   try{
@@ -3409,9 +3440,21 @@ statementUploadBtn.addEventListener('click',async()=>{
       statementUploadMsg.textContent='Uploading '+(i+1)+' of '+pdfs.length+'...';
       await uploadCurrentClientFile(pdfs[i],'statement');
     }
+
     statementUploadMsg.textContent='Finishing upload...';
-    await new Promise(r=>setTimeout(r,1800));
-    await refreshCurrentClient(false);
+    let confirmed=false;
+    for(let attempt=0;attempt<4;attempt++){
+      if(attempt) await new Promise(r=>setTimeout(r,650));
+      await refreshCurrentClient(false);
+      if(Number(crmClient.statements||0)>=expectedStatementCount){
+        confirmed=true;
+        break;
+      }
+    }
+    if(!confirmed){
+      throw new Error('We could not confirm the upload yet. Please try again.');
+    }
+
     statements.value='';
     fileList.replaceChildren();
     fileCount.textContent='Statements uploaded';
@@ -3469,7 +3512,7 @@ function showCandidatePortal(data){
 }
 async function candidateLoginSubmit(){
   if(!crmHealthReady){
-    candidateLoginMsg.textContent='The CRM connection is not ready. Please refresh the page.';
+    candidateLoginMsg.textContent='The secure portal is still connecting. Please refresh the page.';
     return;
   }
   const email=candidateEmail.value.trim().toLowerCase();
@@ -3548,7 +3591,7 @@ async function initCurrentCrmBridge(){
     await verifyCurrentCrmHealth();
     showCandidateLogin('');
   }catch(error){
-    showCandidateLogin('The Toronto Finance Company CRM could not be reached. Please refresh and try again.');
+    showCandidateLogin('The secure client portal could not be reached. Please refresh and try again.');
     candidateLoginBtn.disabled=true;
   }
 }
