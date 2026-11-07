@@ -1456,6 +1456,72 @@ button,input{font:inherit}
   .task span{font-size:12px}
 }
 
+
+/* V4 debug stabilization */
+@media(max-width:760px){
+  .funding-row .route{
+    top:9px;
+    right:0;
+    bottom:auto;
+    left:0;
+    margin:0;
+  }
+  .approval-side.visible:not(.focused){
+    margin:9px 0 0;
+  }
+
+  .task-grid{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:8px;
+  }
+  .task-grid .task{
+    width:100%;
+    height:72px;
+    min-height:72px;
+    margin:0;
+    padding:11px 10px;
+    align-items:center;
+  }
+  .task-grid .task>div{
+    min-width:0;
+  }
+  .task-grid .task strong{
+    display:block;
+    font-size:15px;
+    line-height:1.05;
+    white-space:normal;
+  }
+
+  #uploadPanel.show{
+    display:block!important;
+    visibility:visible;
+    opacity:1;
+  }
+  #uploadPanel .upload-zone{
+    display:block;
+    width:100%;
+  }
+
+  .approval-workspace.visible .requested-docs-list.visible{
+    display:block!important;
+    visibility:visible;
+  }
+  .requested-docs-list .requested-doc-upload{
+    min-width:92px;
+    text-align:center;
+  }
+}
+
+@media(max-width:390px){
+  .task-grid .task{
+    height:68px;
+    min-height:68px;
+    padding:10px 8px;
+  }
+  .task-grid .task strong{font-size:13px}
+}
+
 </style>
 </head>
 <body>
@@ -2275,7 +2341,6 @@ function showTask(which){
   taskUpload.classList.toggle('active',!sign);
   signPanel.classList.toggle('show',sign);
   uploadPanel.classList.toggle('show',!sign);
-  requestAnimationFrame(()=>document.querySelector('.panel.show')?.scrollIntoView({behavior:'smooth',block:'start'}));
 }
 
 function closeTfcFlow(){
@@ -2289,7 +2354,7 @@ function openApplicationFlow(){
   flowUploadCopy.textContent='Choose recent monthly business bank statements in PDF format. This sample demonstrates the client experience only.';
   tfcFlow.classList.add('show');
   showTask('sign');
-  requestAnimationFrame(()=>tfcFlow.scrollIntoView({behavior:'smooth',block:'start'}));
+  requestAnimationFrame(()=>tfcFlow.scrollIntoView({behavior:'smooth',block:'nearest'}));
 }
 function openTfcFlow(){
   openApplicationFlow();
