@@ -1325,6 +1325,36 @@ button,input{font:inherit}
 
 
 
+
+.approval-side.focused{
+  left:var(--approval-focus-center-x,50%);
+  top:var(--approval-focus-center-y,50%);
+  transform:translate(-50%,-50%) scale(1.015);
+}
+.approval-side.focused:hover{
+  transform:translate(-50%,-50%) scale(1.015);
+}
+
+/* Keep action feedback visible even before the Snapshot is opened. */
+.approval-side:not(.focused) .approval-action-status{
+  display:block;
+  min-height:14px;
+  margin-top:5px;
+  font-size:7px;
+  line-height:1.25;
+  color:#dec48a;
+}
+
+@media(max-width:760px){
+  .approval-side:not(.focused) .approval-action-status{
+    display:block;
+    min-height:10px;
+    margin-top:3px;
+    font-size:5px;
+    line-height:1.15;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1570,6 +1600,7 @@ const flowTitle=document.getElementById('flowTitle');
 const flowIntro=document.getElementById('flowIntro');
 const flowSignCopy=document.getElementById('flowSignCopy');
 const flowUploadCopy=document.getElementById('flowUploadCopy');
+const fundingRow=document.querySelector('.funding-row');
 const lenderCarousel=document.getElementById('lenderCarousel');
 const lenderCards=[...lenderCarousel.querySelectorAll('.route')];
 const carouselDots=document.getElementById('carouselDots');
@@ -2076,12 +2107,28 @@ document.addEventListener('keydown',e=>{
 
 function openApprovalFocus(){
   closeCriteria();
+
+  const lenderRect=lenderCards[currentCard]?.getBoundingClientRect();
+  const approvalRect=approvalSideSample.getBoundingClientRect();
+
+  if(lenderRect&&approvalRect){
+    const lenderCenterX=lenderRect.left+lenderRect.width/2;
+    const approvalCenterX=approvalRect.left+approvalRect.width/2;
+    const lenderCenterY=lenderRect.top+lenderRect.height/2;
+    const approvalCenterY=approvalRect.top+approvalRect.height/2;
+
+    approvalSideSample.style.setProperty('--approval-focus-center-x',((lenderCenterX+approvalCenterX)/2)+'px');
+    approvalSideSample.style.setProperty('--approval-focus-center-y',((lenderCenterY+approvalCenterY)/2)+'px');
+  }
+
   approvalSideSample.classList.add('focused');
   approvalFocusBackdrop.classList.add('show');
 }
 function closeApprovalFocus(){
   approvalSideSample.classList.remove('focused');
   approvalFocusBackdrop.classList.remove('show');
+  approvalSideSample.style.removeProperty('--approval-focus-center-x');
+  approvalSideSample.style.removeProperty('--approval-focus-center-y');
   approvalSideSample.getBoundingClientRect();
 }
 approvalOpenZone.addEventListener('click',e=>{
