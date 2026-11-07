@@ -3,10 +3,6 @@
 
   const cfg = window.TFC_CONFIG || {};
   const $ = selector => document.querySelector(selector);
-  const FIELDS = [
-    'business','status','advisor','messageTitle','messageBody','approvedAmount','quote','term',
-    'paymentFrequency','paymentAmount','numberPayments','totalRepayment','documentsRequested','notes'
-  ];
   let currentApplicationId = '';
 
   document.addEventListener('click', event => {
@@ -32,7 +28,7 @@
 
       const timer = setTimeout(() => {
         cleanup();
-        reject(new Error('The notification request timed out.'));
+        reject(new Error('The message request timed out.'));
       }, timeout);
 
       function cleanup() {
@@ -48,7 +44,7 @@
 
       script.onerror = () => {
         cleanup();
-        reject(new Error('The notification service could not be reached.'));
+        reject(new Error('The messaging service could not be reached.'));
       };
 
       script.src = `${cfg.apiUrl}?${params.toString()}`;
@@ -56,31 +52,32 @@
     });
   }
 
-  function buildUpdate() {
+  async function sendClientMessage() {
+    const button = $('#saveNotify');
+    const textarea = $('#messageBody');
+    const status = $('#messageSendMsg');
+    const messageBody = String(textarea?.value || '').trim();
     const update = {
       applicationId: applicationId(),
+      messageBody,
       notifyClient: 'true',
       adminToken: String(sessionStorage.getItem('tfc-admin-token') || '').trim()
     };
-    FIELDS.forEach(key => {
-      const field = $('#' + key);
-      if (field) update[key] = field.value;
-    });
-    update.additionalDocsEnabled = $('#additionalDocsEnabled')?.checked ? 'true' : 'false';
-    return update;
-  }
-
-  async function saveAndNotify() {
-    const button = $('#saveNotify');
-    const saveButton = $('#save');
-    const message = $('#saveMsg');
-    const update = buildUpdate();
 
     if (!update.applicationId) {
-      if (message) {
-        message.className = 'notice error';
-        message.textContent = 'Open a client file before sending a notification.';
+      if (status) {
+        status.className = 'notice error';
+        status.textContent = 'Open a client file before sending a message.';
       }
+      return;
+    }
+
+    if (!messageBody) {
+      if (status) {
+        status.className = 'notice error';
+        status.textContent = 'Write a message to the client first.';
+      }
+      textarea?.focus();
       return;
     }
 
@@ -88,49 +85,43 @@
       button.disabled = true;
       button.textContent = 'Sending…';
     }
-    if (saveButton) saveButton.disabled = true;
-    if (message) {
-      message.className = 'notice';
-      message.textContent = 'Saving the client update and sending a secure notification…';
+    if (status) {
+      status.className = 'notice';
+      status.textContent = 'Sending message…';
     }
 
     try {
       const result = await jsonp('adminUpdate', update);
-      if (!result?.ok) throw new Error(result?.error || 'The client update could not be saved.');
+      if (!result?.ok) throw new Error(result?.error || 'The message could not be sent.');
 
       const notification = result.notification || {};
       if (!notification.sent) {
-        throw new Error(notification.error || 'The update was saved, but the client notification was not sent.');
+        throw new Error(notification.error || 'The message was saved, but the client email notification was not sent.');
       }
 
-      if ($('#summaryStatus') && result.data?.status) $('#summaryStatus').textContent = result.data.status;
-      if ($('#summaryAdvisor')) $('#summaryAdvisor').textContent = result.data?.advisor || 'Unassigned';
-      if ($('#previewTitle')) $('#previewTitle').textContent = result.data?.messageTitle || 'Welcome';
-      if ($('#previewBody')) $('#previewBody').textContent = result.data?.messageBody || 'Your advisor message will appear here.';
-
-      if (message) {
-        message.className = 'notice success';
-        message.textContent = `Saved successfully. Client notification sent from ${notification.sender || 'info@torontofinancecompany.com'}.`;
+      if (textarea) textarea.value = '';
+      if (status) {
+        status.className = 'notice success';
+        status.textContent = 'Message sent successfully.';
       }
 
       const refresh = $('#refresh');
       if (refresh && !refresh.disabled) refresh.click();
     } catch (error) {
-      if (message) {
-        message.className = 'notice error';
-        message.textContent = error.message || 'The client notification could not be sent.';
+      if (status) {
+        status.className = 'notice error';
+        status.textContent = error.message || 'The message could not be sent.';
       }
     } finally {
       if (button) {
         button.disabled = false;
-        button.textContent = 'Save & Notify Client';
+        button.textContent = 'Send Message to Client';
       }
-      if (saveButton) saveButton.disabled = false;
     }
   }
 
   const notifyButton = $('#saveNotify');
-  if (notifyButton) notifyButton.onclick = saveAndNotify;
+  if (notifyButton) notifyButton.onclick = sendClientMessage;
 })();
 
 (() => {
