@@ -1744,6 +1744,98 @@ button,input{font:inherit}
   }
 }
 
+
+/* Final state-specific card sizing/alignment.
+   No approval: retain the original portrait-card proportion.
+   Approval: align Snapshot top edge with the active lender card. */
+.funding-row.no-approval{
+  grid-template-columns:minmax(0,500px)!important;
+  max-width:500px;
+}
+.funding-row.no-approval .deck-wrap,
+.funding-row.no-approval .route-grid{
+  width:100%;
+  max-width:500px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.funding-row.no-approval .route{
+  width:min(460px,100%);
+  max-width:460px;
+  left:50%;
+  right:auto;
+  transform-origin:50% 88%;
+}
+.funding-row.no-approval .route[data-pos="0"]{
+  transform:translateX(-50%) translateY(0) scale(1);
+}
+.funding-row.no-approval .route[data-pos="1"]{
+  transform:translateX(-50%) translateY(10px) scale(.975);
+}
+.funding-row.no-approval .route[data-pos="2"]{
+  transform:translateX(-50%) translateY(18px) scale(.952);
+}
+.funding-row.no-approval .route[data-pos="3"]{
+  transform:translateX(-50%) translateY(25px) scale(.93);
+}
+.funding-row.no-approval .route[data-pos="hidden"]{
+  transform:translateX(-50%) translateY(38px) scale(.91);
+}
+
+@media (min-width:1121px){
+  .funding-row.has-approval .approval-side.visible:not(.focused){
+    margin-top:20px;
+  }
+}
+
+@media (min-width:901px) and (max-width:1120px){
+  .funding-row.has-approval .approval-side.visible:not(.focused){
+    margin-top:15px;
+  }
+}
+
+@media (min-width:761px) and (max-width:900px){
+  .funding-row.has-approval .approval-side.visible:not(.focused){
+    margin-top:14px;
+  }
+}
+
+@media(max-width:760px){
+  .funding-row.no-approval{
+    grid-template-columns:minmax(0,1fr)!important;
+    max-width:100%;
+  }
+  .funding-row.no-approval .deck-wrap,
+  .funding-row.no-approval .route-grid{
+    width:min(100%,390px);
+    max-width:390px;
+  }
+  .funding-row.no-approval .route{
+    width:100%;
+    max-width:100%;
+    left:0;
+    right:0;
+  }
+  .funding-row.no-approval .route[data-pos="0"]{
+    transform:translateY(0) scale(1);
+  }
+  .funding-row.no-approval .route[data-pos="1"]{
+    transform:translateY(10px) scale(.97);
+  }
+  .funding-row.no-approval .route[data-pos="2"]{
+    transform:translateY(18px) scale(.94);
+  }
+  .funding-row.no-approval .route[data-pos="3"]{
+    transform:translateY(25px) scale(.91);
+  }
+  .funding-row.no-approval .route[data-pos="hidden"]{
+    transform:translateY(34px) scale(.89);
+  }
+  .funding-row.has-approval .approval-side.visible:not(.focused){
+    margin-top:9px;
+  }
+}
+
 </style>
 </head>
 <body>
