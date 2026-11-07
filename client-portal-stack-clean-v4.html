@@ -53,7 +53,7 @@ button,input{font:inherit}
   border-radius:20px;box-shadow:0 18px 48px rgba(40,28,18,.11);
   display:flex;flex-direction:column;justify-content:space-between;
   overflow:hidden;transform-origin:50% 88%;
-  transition:transform .34s cubic-bezier(.22,.75,.24,1),opacity .28s ease,filter .28s ease,box-shadow .28s ease;
+  transition:transform .30s cubic-bezier(.22,.75,.24,1),opacity .24s ease,filter .24s ease,box-shadow .24s ease;
   cursor:grab
 }
 .route.dragging{transition:none!important;cursor:grabbing}
@@ -542,6 +542,8 @@ button,input{font:inherit}
   z-index:500;
   box-shadow:0 34px 90px rgba(0,0,0,.40);
   border-color:rgba(222,196,138,.55);
+  overflow-y:auto;
+  overscroll-behavior:contain;
 }
 .approval-side.focused:hover{
   transform:translate(-50%,-50%) scale(1.015);
@@ -1387,6 +1389,7 @@ const chatSend=document.getElementById('chatSend');
 const chatHistory=document.getElementById('chatHistory');
 const requestedDocsList=document.getElementById('requestedDocsList');
 let currentCard=0;
+let deckAnimating=false;
 let dragCard=null,dragStartX=0,dragStartY=0,dragX=0,dragY=0,suppressCardClick=false;
 let dragStartTime=0,lastMoveX=0,lastMoveTime=0,dragVelocityX=0;
 
@@ -1413,29 +1416,34 @@ function renderDeck(){
 function setCard(index){
   closeCriteria();
   closeTfcFlow();
+  if(deckAnimating) return;
   currentCard=(index+lenderCards.length)%lenderCards.length;
   renderDeck();
 }
-function nextCard(direction='left'){
+function moveCard(step,direction){
+  if(deckAnimating) return;
   closeCriteria();
   closeTfcFlow();
+  deckAnimating=true;
   const card=lenderCards[currentCard];
   card.classList.add(direction==='right'?'swipe-right':'swipe-left');
   setTimeout(()=>{
-    currentCard=(currentCard+1)%lenderCards.length;
+    currentCard=(currentCard+step+lenderCards.length)%lenderCards.length;
     renderDeck();
-  },85);
+    deckAnimating=false;
+  },145);
+}
+function nextCard(direction='left'){
+  moveCard(1,direction);
 }
 function prevCard(){
-  closeCriteria();
-  closeTfcFlow();
-  currentCard=(currentCard-1+lenderCards.length)%lenderCards.length;
-  renderDeck();
+  moveCard(-1,'right');
 }
 carouselNext.onclick=()=>nextCard('left');
 carouselPrev.onclick=()=>prevCard();
 
 lenderCarousel.addEventListener('pointerdown',e=>{
+  if(deckAnimating) return;
   const top=lenderCards[currentCard];
   if(!top.contains(e.target)) return;
   if(e.target.closest('.card-action')) return;
@@ -1454,7 +1462,7 @@ lenderCarousel.addEventListener('pointermove',e=>{
   dragVelocityX=(e.clientX-lastMoveX)/dt;
   lastMoveX=e.clientX;lastMoveTime=now;
   if(Math.abs(dragX)>5) suppressCardClick=true;
-  const rotation=Math.max(-9,Math.min(9,dragX/30));
+  const rotation=Math.max(-6,Math.min(6,dragX/38));
   const vertical=e.pointerType==='mouse'?dragY*.08:dragY*.18;
   dragCard.style.transform='translate3d('+dragX+'px,'+vertical+'px,0) rotate('+rotation+'deg)';
 });
@@ -1473,7 +1481,7 @@ function finishDrag(e){
     suppressCardClick=true;
     const direction=(Math.abs(dragX)>10?dragX:dragVelocityX)>0?'right':'left';
     nextCard(direction);
-    setTimeout(()=>{suppressCardClick=false},140);
+    setTimeout(()=>{suppressCardClick=false},180);
   }else{
     renderDeck();
   }
@@ -1588,6 +1596,7 @@ function lenderKey(card){
   return 'xuper';
 }
 function openCriteria(card){
+  closeApprovalFocus();
   const key=lenderKey(card);
   const data=lenderCriteria[key];
   criteriaCard.classList.toggle('journey-profile',key==='journey');
@@ -1656,6 +1665,7 @@ document.addEventListener('keydown',e=>{
 });
 
 function openApprovalFocus(){
+  closeCriteria();
   approvalSideSample.classList.add('focused');
   approvalFocusBackdrop.classList.add('show');
 }
