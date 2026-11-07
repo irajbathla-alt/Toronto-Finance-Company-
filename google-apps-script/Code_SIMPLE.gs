@@ -44,7 +44,7 @@ const DEFAULT_LENDERS = [
 ];
 const DEFAULT_LENDERS_SEEDED_KEY = 'tfc-default-lenders-seeded-v1';
 const ADMIN_TOKEN_TTL_SECONDS = 21600;
-const MAX_LENDER_PACKAGE_BYTES = 20 * 1024 * 1024;
+const MAX_LENDER_PACKAGE_BYTES = 17 * 1024 * 1024;
 
 function doGet(e) {
   try {
@@ -1165,10 +1165,50 @@ function adminSendLenderPackage(p) {
 
   const totalBytes = docs.reduce((sum,doc) => sum + Number(doc.size || 0),0);
   if (totalBytes > MAX_LENDER_PACKAGE_BYTES) {
-    throw new Error('Package is too large to email. Please deselect one or more documents and try again.');
+    throw new Error('Package is too large to email safely. Please keep lender packages under 17 MB and try again.');
   }
 
-  const attachments = docs.map(doc => DriveApp.getFileById(doc.id).getBlob().setName(doc.name));
+  const nameCounts = {};
+  const attachmentManifest = [];
+  const attachments = docs.map(doc => {
+    const file = DriveApp.getFileById(doc.id);
+    const blob = file.getBlob();
+    const blobBytes = blob.getBytes().length;
+
+    if (!blobBytes) {
+      throw new Error('Attachment is empty and cannot be sent: ' + String(doc.name || file.getName() || doc.id));
+    }
+
+    const originalName = String(doc.name || file.getName() || 'document').trim() || 'document';
+    const nameKey = originalName.toLowerCase();
+    nameCounts[nameKey] = (nameCounts[nameKey] || 0) + 1;
+
+    let outgoingName = originalName;
+    if (nameCounts[nameKey] > 1) {
+      const dot = originalName.lastIndexOf('.');
+      const suffix = ' (' + nameCounts[nameKey] + ')';
+      outgoingName = dot > 0
+        ? originalName.slice(0,dot) + suffix + originalName.slice(dot)
+        : originalName + suffix;
+    }
+
+    blob.setName(outgoingName);
+    attachmentManifest.push({
+      id:String(doc.id || ''),
+      originalName,
+      outgoingName,
+      type:String(doc.type || 'document'),
+      mimeType:String(blob.getContentType() || doc.mimeType || ''),
+      driveBytes:Number(doc.size || 0),
+      blobBytes
+    });
+    return blob;
+  });
+
+  const verifiedBlobBytes = attachmentManifest.reduce((sum,item) => sum + Number(item.blobBytes || 0),0);
+  if (verifiedBlobBytes > MAX_LENDER_PACKAGE_BYTES) {
+    throw new Error('Verified attachments are too large to email safely. Please keep lender packages under 17 MB and try again.');
+  }
   const from = String(CONFIG.CLIENT_NOTIFICATION_FROM || '').trim().toLowerCase();
   const aliases = GmailApp.getAliases().map(alias => String(alias || '').trim().toLowerCase());
   if (!from || !aliases.includes(from)) {
@@ -1188,9 +1228,13 @@ function adminSendLenderPackage(p) {
     const subject = subjectTemplate
       .replace(/\{Lender Name\}/gi,lenderName)
       .replace(/\{Company Name\}/gi,companyName);
-    const body = bodyTemplate
+    const bodyBase = bodyTemplate
       .replace(/\{Lender Name\}/gi,lenderName)
       .replace(/\{Company Name\}/gi,companyName);
+    const attachmentList = attachmentManifest
+      .map((item,index) => (index + 1) + '. ' + item.outgoingName)
+      .join('\n');
+    const body = bodyBase + '\n\nAttachments included:\n' + attachmentList;
 
     try {
       GmailApp.sendEmail(String(lender.email || '').trim(),subject,body,{
@@ -1218,8 +1262,9 @@ function adminSendLenderPackage(p) {
           lenderId:String(lender.lenderId || ''),
           lenderEmail:String(lender.email || ''),
           subject,
-          documents:docs.map(doc => doc.name),
-          totalBytes
+          documents:attachmentManifest,
+          totalBytes,
+          verifiedBlobBytes
         }
       });
     } catch (err) {
@@ -1252,8 +1297,10 @@ function adminSendLenderPackage(p) {
     ok:true,
     sent,
     failed,
-    documentCount:docs.length,
-    totalBytes
+    documentCount:attachments.length,
+    totalBytes,
+    verifiedBlobBytes,
+    attachments:attachmentManifest
   };
 }
 
