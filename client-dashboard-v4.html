@@ -1836,6 +1836,35 @@ button,input{font:inherit}
   }
 }
 
+
+/* Restore native swipe geometry for centered no-approval deck.
+   Center with left/right + auto margins, not translateX, so drag/swipe transforms stay normal. */
+@media(min-width:761px){
+  .funding-row.no-approval .route{
+    width:min(460px,100%);
+    max-width:460px;
+    left:0;
+    right:0;
+    margin-left:auto;
+    margin-right:auto;
+  }
+  .funding-row.no-approval .route[data-pos="0"]{
+    transform:translateY(0) scale(1);
+  }
+  .funding-row.no-approval .route[data-pos="1"]{
+    transform:translateY(10px) scale(.975);
+  }
+  .funding-row.no-approval .route[data-pos="2"]{
+    transform:translateY(18px) scale(.952);
+  }
+  .funding-row.no-approval .route[data-pos="3"]{
+    transform:translateY(25px) scale(.93);
+  }
+  .funding-row.no-approval .route[data-pos="hidden"]{
+    transform:translateY(38px) scale(.91);
+  }
+}
+
 </style>
 </head>
 <body>
