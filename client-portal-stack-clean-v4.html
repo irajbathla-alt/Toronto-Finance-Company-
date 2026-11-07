@@ -1388,6 +1388,7 @@ const chatInput=document.getElementById('chatInput');
 const chatSend=document.getElementById('chatSend');
 const chatHistory=document.getElementById('chatHistory');
 const requestedDocsList=document.getElementById('requestedDocsList');
+const SAMPLE_CHAT_KEY='tfc-v4-chat-thread-v1';
 let currentCard=0;
 let deckAnimating=false;
 let dragCard=null,dragStartX=0,dragStartY=0,dragX=0,dragY=0,suppressCardClick=false;
@@ -1712,16 +1713,58 @@ approvalMore.addEventListener('click',e=>{
     setTimeout(()=>chatInput.focus({preventScroll:true}),450);
   });
 });
+function readSampleChat(){
+  try{
+    const parsed=JSON.parse(localStorage.getItem(SAMPLE_CHAT_KEY)||'[]');
+    return Array.isArray(parsed)?parsed:[];
+  }catch(_){
+    return [];
+  }
+}
+function writeSampleChat(items){
+  localStorage.setItem(SAMPLE_CHAT_KEY,JSON.stringify(items.slice(-100)));
+}
+function makeSampleMessage(senderType,message,senderName){
+  return{
+    messageId:'SAMPLE-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),
+    timestamp:new Date().toISOString(),
+    applicationId:'TFC-V4-SAMPLE',
+    senderType,
+    senderName,
+    message
+  };
+}
+function renderSampleChat(){
+  let items=readSampleChat();
+  if(!items.length){
+    items=[makeSampleMessage(
+      'ADVISOR',
+      'Your approval is available above. If you have a question about the terms, send us a message here.',
+      'Toronto Finance Company'
+    )];
+    writeSampleChat(items);
+  }
+  chatHistory.replaceChildren();
+  items.forEach(item=>{
+    const bubble=document.createElement('div');
+    bubble.className='chat-bubble '+(item.senderType==='CLIENT'?'client':'advisor');
+    bubble.textContent=String(item.message||'');
+    bubble.dataset.messageId=String(item.messageId||'');
+    chatHistory.appendChild(bubble);
+  });
+}
 function sendSampleChat(){
   const message=chatInput.value.trim();
   if(!message) return;
-  const bubble=document.createElement('div');
-  bubble.className='chat-bubble client';
-  bubble.textContent=message;
-  chatHistory.appendChild(bubble);
+  const items=readSampleChat();
+  const item=makeSampleMessage('CLIENT',message,'Sample Client');
+  items.push(item);
+  writeSampleChat(items);
+  renderSampleChat();
   chatInput.value='';
-  bubble.scrollIntoView({behavior:'smooth',block:'nearest'});
+  chatHistory.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+renderSampleChat();
 chatSend.addEventListener('click',sendSampleChat);
 chatInput.addEventListener('keydown',e=>{
   if(e.key==='Enter'){
