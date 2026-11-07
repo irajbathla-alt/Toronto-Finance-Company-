@@ -2332,7 +2332,12 @@ document.querySelectorAll('.requested-doc-item').forEach(item=>{
     button.disabled=true;
     button.textContent='Uploading...';
     try{
-      await uploadCurrentClientFile(file,'document');
+      const requestedTitle=String(item.querySelector('.requested-doc-copy strong')?.textContent||'').toLowerCase();
+      let uploadType='document';
+      if(/bank|statement/.test(requestedTitle)) uploadType='statement';
+      else if(/identification|\bid\b|driver|passport/.test(requestedTitle)) uploadType='identification';
+      else if(/financial|income statement|balance sheet|tax return|t2\b/.test(requestedTitle)) uploadType='financial';
+      await uploadCurrentClientFile(file,uploadType);
       button.textContent='Uploaded ✓';
       button.classList.add('selected');
       setTimeout(()=>refreshCurrentClient(false).catch(()=>{}),1800);
@@ -2481,7 +2486,10 @@ statementUploadBtn.addEventListener('click',async()=>{
     statementUploadMsg.className='crm-action-msg';
     return;
   }
-  if(!crmIsTrue(crmClient.signatureConfirmed)&&!localStorage.getItem('tfc-signed-'+crmClient.applicationId)){
+  const signingSatisfied=crmIsTrue(crmClient.signatureConfirmed)||
+    localStorage.getItem('tfc-signed-'+crmClient.applicationId)==='yes'||
+    Number(crmClient.statements||0)>0;
+  if(!signingSatisfied){
     statementUploadMsg.textContent='Please complete and confirm Step 1 before uploading statements.';
     statementUploadMsg.className='crm-action-msg error';
     return;
