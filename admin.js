@@ -157,6 +157,7 @@
       const message = error?.message || 'Could not load applications.';
       if (/admin session expired/i.test(message)) {
         sessionStorage.removeItem('tfc-admin-token');
+        closeDrawer();
         $('#admin').classList.add('hidden');
         $('#login').classList.remove('hidden');
         $('#logoutBtn').classList.add('hidden');
