@@ -4,7 +4,7 @@ const CONFIG = {
   ADMIN_EMAIL: 'admin@torontofinance.ca',
   SIGNUP_NOTIFICATION_EMAIL: 'info@torontofinancecompany.com',
   ADMIN_PASSWORD: 'CHANGE_THIS_PASSWORD',
-  CLIENT_PORTAL_URL: 'https://torontofinancecompany.com/client-dashboard-v4.html',
+  CLIENT_PORTAL_URL: 'https://torontofinancecompany.com/client-dashboard.html',
   CLIENT_NOTIFICATION_FROM: 'info@torontofinancecompany.com',
   COMPANY_NAME: 'Toronto Finance Company',
   MIN_STATEMENTS: 6
