@@ -1301,15 +1301,13 @@ button,input{font:inherit}
 }
 
 
-@media(min-width:761px){
-  .approval-side.focused{
-    left:var(--approval-focus-left,50%);
-    top:var(--approval-focus-top,24px);
-    transform:translate(-50%,0) scale(1.015);
-  }
-  .approval-side.focused:hover{
-    transform:translate(-50%,0) scale(1.015);
-  }
+.approval-side.focused{
+  left:var(--approval-focus-left,50%);
+  top:var(--approval-focus-top,18px);
+  transform:translate(-50%,0) scale(1.015);
+}
+.approval-side.focused:hover{
+  transform:translate(-50%,0) scale(1.015);
 }
 
 </style>
@@ -2064,14 +2062,19 @@ document.addEventListener('keydown',e=>{
 function openApprovalFocus(){
   closeCriteria();
 
-  if(window.matchMedia('(min-width:761px)').matches){
-    const rect=approvalSideSample.getBoundingClientRect();
-    const scale=1.015;
-    const focusedHeight=rect.height*scale;
-    const safeTop=Math.max(18,Math.min(rect.top,window.innerHeight-focusedHeight-18));
-    approvalSideSample.style.setProperty('--approval-focus-top',safeTop+'px');
-    approvalSideSample.style.setProperty('--approval-focus-left',(rect.left+rect.width/2)+'px');
-  }
+  const rect=approvalSideSample.getBoundingClientRect();
+  const desktop=window.matchMedia('(min-width:761px)').matches;
+  const focusedHeight=desktop
+    ? Math.min(520,Math.max(rect.height,window.innerHeight*.72))
+    : Math.min(520,window.innerHeight*.84);
+  const edge=desktop?18:12;
+  const safeTop=Math.max(edge,Math.min(rect.top,window.innerHeight-focusedHeight-edge));
+
+  approvalSideSample.style.setProperty('--approval-focus-top',safeTop+'px');
+  approvalSideSample.style.setProperty(
+    '--approval-focus-left',
+    desktop?(rect.left+rect.width/2)+'px':'50%'
+  );
 
   approvalSideSample.classList.add('focused');
   approvalFocusBackdrop.classList.add('show');
