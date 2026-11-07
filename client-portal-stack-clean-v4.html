@@ -1264,6 +1264,42 @@ button,input{font:inherit}
   .task-grid .task strong{font-size:13px}
   .task-grid .task span{font-size:12px}
 }
+
+.crm-primary-action{
+  display:block;
+  width:min(280px,100%);
+  margin:14px auto 0;
+  border:0;
+  border-radius:999px;
+  padding:11px 16px;
+  background:#6F89A8;
+  color:#fff;
+  font-size:8px;
+  font-weight:600;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.crm-primary-action:disabled{opacity:.55;cursor:not-allowed}
+.crm-action-msg{
+  min-height:16px;
+  margin-top:8px;
+  text-align:center;
+  font-size:8px;
+  line-height:1.45;
+  color:#7a6d60;
+}
+.crm-action-msg.success{color:#2f855a}
+.crm-action-msg.error{color:#a13f33}
+@media(max-width:760px){
+  .crm-primary-action{
+    width:100%;
+    padding:10px 12px;
+    font-size:7px;
+  }
+  .crm-action-msg{font-size:7px}
+}
+
 </style>
 </head>
 <body>
@@ -1273,7 +1309,7 @@ button,input{font:inherit}
       <div class="brand">Toronto Finance Company</div>
       <div class="tag">Business Financing Solutions</div>
     </div>
-    <div class="sample">Client Portal Sample</div>
+    <div class="sample" id="portalModeBadge">Client Portal Preview</div>
   </header>
 
   <main class="content">
@@ -1368,7 +1404,7 @@ button,input{font:inherit}
     </aside>
     </div>
 
-    <p class="helper">Sample only. The existing Toronto Finance Company Client Portal, Admin Portal, Google Drive and lender-email workflow are not connected to this page.</p>
+    <p class="helper" id="portalModeHelper">Preview mode. If an authenticated Toronto Finance Company client session is available, this page will use the existing Apps Script, Google Sheets and Google Drive workflow automatically.</p>
 
     <section class="approval-workspace" id="approvalWorkspace">
       <div class="approval-workspace-head">
@@ -1445,6 +1481,8 @@ button,input{font:inherit}
             title="Toronto Finance Company Secure Electronic Signature"
             loading="lazy"></iframe>
         </div>
+        <button class="crm-primary-action" id="confirmSignatureBtn" type="button">I Have Finished Signing</button>
+        <div class="crm-action-msg" id="signatureActionMsg"></div>
       </section>
 
       <section class="panel" id="uploadPanel">
@@ -1454,10 +1492,12 @@ button,input{font:inherit}
           <strong id="fileCount">No statements selected</strong>
           <p>Select multiple PDF statements at once. In the live portal these would continue to Google Drive.</p>
           <input id="statements" type="file" accept="application/pdf,.pdf" multiple>
+          <button class="crm-primary-action" id="statementUploadBtn" type="button">Upload Selected Statements</button>
+          <div class="crm-action-msg" id="statementUploadMsg"></div>
           <div class="progress"><i id="progressBar"></i></div>
           <div class="file-list" id="fileList"></div>
         </div>
-        <div class="local-note">Sample behavior only: files selected here remain in your browser and are not uploaded or sent anywhere.</div>
+        <div class="local-note" id="statementModeNote">Preview mode: selected files remain in your browser unless this page detects your authenticated current client session.</div>
       </section>
     </section>
   </main>
@@ -1487,6 +1527,7 @@ button,input{font:inherit}
   </div>
 </div>
 
+<script src="crm-config.js?v=20260906-debug2"></script>
 <script>
 const openTfc=document.getElementById('openTfc');
 const tfcFlow=document.getElementById('tfcFlow');
@@ -1550,7 +1591,123 @@ const requestedDoc1Title=document.getElementById('requestedDoc1Title');
 const requestedDoc1Desc=document.getElementById('requestedDoc1Desc');
 const requestedDoc2Title=document.getElementById('requestedDoc2Title');
 const requestedDoc2Desc=document.getElementById('requestedDoc2Desc');
+const portalModeBadge=document.getElementById('portalModeBadge');
+const portalModeHelper=document.getElementById('portalModeHelper');
+const confirmSignatureBtn=document.getElementById('confirmSignatureBtn');
+const signatureActionMsg=document.getElementById('signatureActionMsg');
+const statementUploadBtn=document.getElementById('statementUploadBtn');
+const statementUploadMsg=document.getElementById('statementUploadMsg');
+const statementModeNote=document.getElementById('statementModeNote');
+
+const crmCfg=window.TFC_CONFIG||{};
+const CRM_SESSION_KEY='tfc-client-auth';
+const CRM_LEGACY_KEY='tfc-current-application';
+const CRM_REQUEST_TIMEOUT=Math.max(Number(crmCfg.requestTimeout||30000),30000);
 const SAMPLE_CHAT_KEY='tfc-v4-chat-thread-v1';
+let crmClient=null;
+let crmRefreshTimer=null;
+let pendingMoreInfo=false;
+function crmIsTrue(v){
+  return v===true||['true','1','yes'].includes(String(v||'').trim().toLowerCase());
+}
+function readCurrentClientSession(){
+  let auth={},stored={};
+  try{auth=JSON.parse(sessionStorage.getItem(CRM_SESSION_KEY)||'{}')}catch(_){}
+  try{stored=JSON.parse(localStorage.getItem(CRM_LEGACY_KEY)||'{}')}catch(_){}
+  if(!auth.applicationId||!stored.applicationId||String(auth.applicationId)!==String(stored.applicationId)) return null;
+  return {auth,stored};
+}
+function crmJsonp(action,payload={},mode='direct',timeout=CRM_REQUEST_TIMEOUT){
+  return new Promise((resolve,reject)=>{
+    if(!crmCfg.apiUrl) return reject(new Error('CRM service is not configured.'));
+    const callback='tfc_v4_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script');
+    const params=new URLSearchParams({action,callback,_:String(Date.now())});
+    if(mode==='payload') params.set('payload',JSON.stringify({action,...payload}));
+    else Object.entries(payload).forEach(([k,v])=>{
+      if(v!==undefined&&v!==null) params.set(k,String(v));
+    });
+    const timer=setTimeout(()=>{cleanup();reject(new Error('The CRM is taking longer than expected.'))},timeout);
+    function cleanup(){
+      clearTimeout(timer);
+      try{delete window[callback]}catch(_){window[callback]=undefined}
+      if(script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[callback]=data=>{cleanup();resolve(data)};
+    script.onerror=()=>{cleanup();reject(new Error('The CRM service could not be reached.'))};
+    script.src=crmCfg.apiUrl+'?'+params.toString();
+    document.head.appendChild(script);
+  });
+}
+async function crmApi(action,payload={}){
+  try{return await crmJsonp(action,payload,'direct')}
+  catch(first){
+    try{return await crmJsonp(action,payload,'payload')}
+    catch(_){throw first}
+  }
+}
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(String(reader.result).split(',')[1]||'');
+    reader.onerror=()=>reject(new Error('Could not read '+file.name));
+    reader.readAsDataURL(file);
+  });
+}
+function liveClientReady(){
+  return Boolean(crmClient?.applicationId&&crmClient?.email);
+}
+function saveCurrentClient(data){
+  crmClient=data||crmClient;
+  if(!crmClient) return;
+  localStorage.setItem(CRM_LEGACY_KEY,JSON.stringify(crmClient));
+}
+async function refreshCurrentClient(showError=false){
+  if(!liveClientReady()) return null;
+  try{
+    const result=await crmApi('getClient',{applicationId:crmClient.applicationId,email:crmClient.email});
+    if(!result?.ok) throw new Error(result?.error||'Could not refresh this application.');
+    crmClient={...crmClient,...result.data};
+    saveCurrentClient(crmClient);
+    renderPortalState(crmClient);
+    renderPortalConversation();
+    refreshTfcFlowState();
+    return crmClient;
+  }catch(error){
+    if(showError){
+      portalModeHelper.textContent='Current CRM session detected, but the latest client data could not be refreshed: '+(error.message||error);
+    }
+    throw error;
+  }
+}
+async function uploadCurrentClientFile(file,type='document'){
+  if(!liveClientReady()) throw new Error('Open V4 from an authenticated client session before uploading.');
+  if(file.size>20*1024*1024) throw new Error('Each file must be smaller than 20 MB.');
+  if(type==='statement' && file.type!=='application/pdf'&&!/\.pdf$/i.test(file.name)){
+    throw new Error('Bank statements must be PDF files.');
+  }
+  const base64=await fileToBase64(file);
+  await fetch(crmCfg.apiUrl,{
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'text/plain;charset=UTF-8'},
+    body:JSON.stringify({
+      action:'uploadDocument',
+      applicationId:crmClient.applicationId,
+      email:crmClient.email,
+      fileName:file.name,
+      mimeType:file.type||'application/octet-stream',
+      base64,
+      type
+    })
+  });
+}
+function startCurrentClientRefresh(){
+  if(crmRefreshTimer) clearInterval(crmRefreshTimer);
+  if(!liveClientReady()) return;
+  crmRefreshTimer=setInterval(()=>refreshCurrentClient(false).catch(()=>{}),45000);
+}
+
 let currentCard=0;
 let deckAnimating=false;
 let dragAxis=null;
@@ -1920,29 +2077,50 @@ approvalFocusClose.addEventListener('click',e=>{
   e.stopPropagation();
   closeApprovalFocus();
 });
-approvalProceed.addEventListener('click',e=>{
+approvalProceed.addEventListener('click',async e=>{
   e.preventDefault();
-  if(!approvalSideSample.classList.contains('visible')) return;
   e.stopPropagation();
-  approvalActionStatus.textContent='Proceed selected — your advisor would be notified.';
+  if(!approvalSideSample.classList.contains('visible')) return;
+  if(!liveClientReady()){
+    approvalActionStatus.textContent='Preview: Proceed selected.';
+    return;
+  }
+  approvalProceed.disabled=true;
+  approvalMore.disabled=true;
+  approvalActionStatus.textContent='Sending your response...';
+  try{
+    const result=await crmApi('clientDecision',{
+      applicationId:crmClient.applicationId,
+      email:crmClient.email,
+      decision:'Proceed',
+      note:''
+    });
+    if(!result?.ok) throw new Error(result?.error||'Your response could not be sent.');
+    crmClient={...crmClient,...(result.data||{})};
+    saveCurrentClient(crmClient);
+    renderPortalState(crmClient);
+    renderPortalConversation();
+    approvalActionStatus.textContent='Proceed sent to your advisor.';
+  }catch(error){
+    approvalActionStatus.textContent=error.message||'Your response could not be sent.';
+  }finally{
+    approvalProceed.disabled=false;
+    approvalMore.disabled=false;
+  }
 });
 approvalMore.addEventListener('click',e=>{
   e.preventDefault();
-  if(!approvalSideSample.classList.contains('visible')) return;
   e.stopPropagation();
-  approvalActionStatus.textContent='Opening advisor chat...';
+  if(!approvalSideSample.classList.contains('visible')) return;
+  pendingMoreInfo=true;
+  approvalActionStatus.textContent=liveClientReady()
+    ? 'Tell your advisor what you need below.'
+    : 'Preview: opening advisor message area.';
   closeApprovalFocus();
-  requestAnimationFrame(()=>{
-    advisorChat.scrollIntoView({behavior:'smooth',block:'nearest'});
-  });
+  chatInput.placeholder='Tell your advisor what information you need...';
+  requestAnimationFrame(()=>advisorChat.scrollIntoView({behavior:'smooth',block:'nearest'}));
 });
-/*
- * Approval visibility contract:
- * In production this will be populated from the EXISTING getClient/adminUpdate data
- * already returned by Code_SIMPLE.gs. No second backend is needed.
- *
- * V4 uses sample data only. Add ?approval=0 to the URL to preview the pre-approval state.
- */
+
 const sampleAdminState={
   status:new URLSearchParams(location.search).get('approval')==='0'?'Under Review':'Conditional Approval',
   approvedAmount:'75000',
@@ -1952,17 +2130,31 @@ const sampleAdminState={
   paymentAmount:'1825',
   totalRepayment:'94900',
   additionalDocsEnabled:true,
-  requestedDocuments:[
-    {title:'Updated Business Bank Statement',description:'Please provide the most recent statement requested by your advisor.'},
-    {title:'Additional Supporting Document',description:'Upload the supporting document listed in your advisor’s request.'}
-  ]
+  documentsRequested:'Updated Business Bank Statement, Additional Supporting Document',
+  messageTitle:'Your Approval Is Ready',
+  messageBody:'Your approval is available above. If you have a question about the terms, send us a message here.'
 };
 
 function formatSampleMoney(value){
-  const n=Number(value);
-  return Number.isFinite(n)&&n>0?'CA$'+n.toLocaleString('en-CA'):'—';
+  const n=Number(String(value||'').replace(/[^0-9.-]/g,''));
+  return Number.isFinite(n)&&n?'CA$'+n.toLocaleString('en-CA',{maximumFractionDigits:2}):(value||'—');
 }
-function renderSampleAdminState(data){
+function normalizeRequestedDocs(data){
+  if(Array.isArray(data.requestedDocuments)) return data.requestedDocuments.filter(Boolean);
+  const raw=String(data.documentsRequested||'').trim();
+  if(!raw) return [];
+  try{
+    const parsed=JSON.parse(raw);
+    if(Array.isArray(parsed)){
+      return parsed.map(item=>typeof item==='string'?{title:item,description:'Upload the requested document.'}:item).filter(Boolean);
+    }
+  }catch(_){}
+  return raw.split(/\n|,/).map(x=>x.trim()).filter(Boolean).map(title=>({
+    title,
+    description:'Upload the requested document requested by your advisor.'
+  }));
+}
+function renderPortalState(data){
   const status=String(data.status||'');
   const hasOffer=Boolean(data.approvedAmount||data.quote||data.term||data.paymentAmount||data.totalRepayment);
   const approved=['Conditional Approval','Approved'].includes(status)&&hasOffer;
@@ -1984,39 +2176,46 @@ function renderSampleAdminState(data){
   approvalFrequencyText.textContent=data.paymentFrequency||'—';
   approvalTotalText.textContent=formatSampleMoney(data.totalRepayment);
 
-  const docs=Array.isArray(data.requestedDocuments)?data.requestedDocuments.filter(Boolean):[];
-  const showDocs=Boolean(data.additionalDocsEnabled&&docs.length);
+  const docs=normalizeRequestedDocs(data);
+  const showDocs=Boolean(crmIsTrue(data.additionalDocsEnabled)&&docs.length);
   requestedDocsList.classList.toggle('visible',showDocs);
 
   if(showDocs){
     approvalDocsSummary.textContent=docs.length+' document'+(docs.length===1?'':'s')+' requested by your advisor.';
     requestedCount.textContent=docs.length+' Requested';
-    if(docs[0]){
-      requestedDoc1Title.textContent=docs[0].title||'Requested Document';
-      requestedDoc1Desc.textContent=docs[0].description||'Upload the requested document.';
-    }
-    if(docs[1]){
-      requestedDoc2Title.textContent=docs[1].title||'Requested Document';
-      requestedDoc2Desc.textContent=docs[1].description||'Upload the requested document.';
-    }
+    const slots=[
+      [requestedDoc1Title,requestedDoc1Desc,docs[0]],
+      [requestedDoc2Title,requestedDoc2Desc,docs[1]]
+    ];
+    slots.forEach(([titleEl,descEl,doc],index)=>{
+      const item=titleEl.closest('.requested-doc-item');
+      if(doc){
+        item.style.display='';
+        titleEl.textContent=doc.title||('Requested Document '+(index+1));
+        descEl.textContent=doc.description||'Upload the requested document.';
+      }else{
+        item.style.display='none';
+      }
+    });
   }else{
     approvalDocsSummary.textContent='No additional documents requested.';
+    requestedDocsList.querySelectorAll('.requested-doc-item').forEach(item=>item.style.display='');
+  }
+
+  if(liveClientReady()){
+    approvalActionStatus.textContent=data.clientDecision
+      ? 'Latest response: '+data.clientDecision
+      : '';
   }
 }
 
-renderSampleAdminState(sampleAdminState);
+renderPortalState(sampleAdminState);
 
 /*
- * Chat transport boundary:
- * - V4 sample uses local browser storage only.
- * - Final production hookup will keep this UI unchanged and replace these
- *   transport methods with calls to NEW actions added inside the EXISTING
- *   Code_SIMPLE.gs / current CRM deployment.
- * - No second Apps Script deployment is required.
- *
- * Planned current-backend actions:
- *   clientChatList  -> api('clientChatList',{applicationId,email})
- *   clientChatSend  -> api('clientChatSend',{applicationId,email,message})
+ * Current Apps Script compatibility:
+ * Code_SIMPLE.gs currently stores the latest advisor update in messageTitle/messageBody
+ * and the latest client response in clientDecision/clientDecisionNote.
+ * Retained two-way chat will plug into this UI later using actions added to this SAME backend.
  */
 const chatTransport={
   mode:'sample-local',
@@ -2024,13 +2223,9 @@ const chatTransport={
     try{
       const parsed=JSON.parse(localStorage.getItem(SAMPLE_CHAT_KEY)||'[]');
       return Array.isArray(parsed)?parsed:[];
-    }catch(_){
-      return [];
-    }
+    }catch(_){return []}
   },
-  save(items){
-    localStorage.setItem(SAMPLE_CHAT_KEY,JSON.stringify(items.slice(-100)));
-  },
+  save(items){localStorage.setItem(SAMPLE_CHAT_KEY,JSON.stringify(items.slice(-100)))},
   make(senderType,message,senderName){
     return{
       messageId:'SAMPLE-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),
@@ -2050,49 +2245,103 @@ const chatTransport={
   }
 };
 
-function renderSampleChat(){
+function addChatBubble(senderType,message){
+  if(!message) return;
+  const bubble=document.createElement('div');
+  bubble.className='chat-bubble '+(senderType==='CLIENT'?'client':'advisor');
+  bubble.textContent=String(message);
+  chatHistory.appendChild(bubble);
+}
+function renderPortalConversation(){
+  chatHistory.replaceChildren();
+  if(liveClientReady()){
+    const advisorMessage=crmClient.messageBody||crmClient.messageTitle||'Your Toronto Finance Company advisor will post updates here.';
+    addChatBubble('ADVISOR',advisorMessage);
+    if(crmClient.clientDecisionNote){
+      addChatBubble('CLIENT',crmClient.clientDecisionNote);
+    }
+    return;
+  }
+
   let items=chatTransport.list();
   if(!items.length){
     items=[chatTransport.make(
       'ADVISOR',
-      'Your approval is available above. If you have a question about the terms, send us a message here.',
+      sampleAdminState.messageBody,
       'Toronto Finance Company'
     )];
     chatTransport.save(items);
   }
-  chatHistory.replaceChildren();
-  items.forEach(item=>{
-    const bubble=document.createElement('div');
-    bubble.className='chat-bubble '+(item.senderType==='CLIENT'?'client':'advisor');
-    bubble.textContent=String(item.message||'');
-    bubble.dataset.messageId=String(item.messageId||'');
-    chatHistory.appendChild(bubble);
-  });
+  items.forEach(item=>addChatBubble(item.senderType,item.message));
 }
-function sendSampleChat(){
+async function sendPortalChat(){
   const message=chatInput.value.trim();
   if(!message) return;
-  chatTransport.sendClient(message);
-  renderSampleChat();
-  chatInput.value='';
-  chatHistory.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
+  chatSend.disabled=true;
+
+  try{
+    if(liveClientReady()){
+      const result=await crmApi('clientDecision',{
+        applicationId:crmClient.applicationId,
+        email:crmClient.email,
+        decision:'Request More Information',
+        note:message
+      });
+      if(!result?.ok) throw new Error(result?.error||'Your message could not be sent.');
+      crmClient={...crmClient,...(result.data||{})};
+      saveCurrentClient(crmClient);
+      pendingMoreInfo=false;
+      chatInput.value='';
+      chatInput.placeholder='Ask your advisor about this approval...';
+      renderPortalState(crmClient);
+      renderPortalConversation();
+    }else{
+      chatTransport.sendClient(message);
+      chatInput.value='';
+      renderPortalConversation();
+    }
+    chatHistory.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }catch(error){
+    addChatBubble('ADVISOR',error.message||'Your message could not be sent.');
+  }finally{
+    chatSend.disabled=false;
+  }
 }
-renderSampleChat();
-chatSend.addEventListener('click',sendSampleChat);
+renderPortalConversation();
+chatSend.addEventListener('click',sendPortalChat);
 chatInput.addEventListener('keydown',e=>{
   if(e.key==='Enter'){
     e.preventDefault();
-    sendSampleChat();
+    sendPortalChat();
   }
 });
 document.querySelectorAll('.requested-doc-item').forEach(item=>{
   const button=item.querySelector('.requested-doc-upload');
   const input=item.querySelector('.requested-file-input');
   button.addEventListener('click',()=>input.click());
-  input.addEventListener('change',()=>{
-    if(!input.files?.length) return;
-    button.textContent='Selected ✓';
-    button.classList.add('selected');
+  input.addEventListener('change',async()=>{
+    const file=input.files?.[0];
+    if(!file) return;
+
+    if(!liveClientReady()){
+      button.textContent='Selected ✓';
+      button.classList.add('selected');
+      return;
+    }
+
+    button.disabled=true;
+    button.textContent='Uploading...';
+    try{
+      await uploadCurrentClientFile(file,'document');
+      button.textContent='Uploaded ✓';
+      button.classList.add('selected');
+      setTimeout(()=>refreshCurrentClient(false).catch(()=>{}),1800);
+    }catch(error){
+      button.textContent='Try Again';
+      alert(error.message||'Upload failed.');
+    }finally{
+      button.disabled=false;
+    }
   });
 });
 
@@ -2147,7 +2396,51 @@ closeTfc.addEventListener('click',closeTfcFlow);
 taskSign.addEventListener('click',()=>showTask('sign'));
 taskUpload.addEventListener('click',()=>showTask('upload'));
 
-statements.addEventListener('change',()=>{
+function refreshTfcFlowState(){
+  if(!liveClientReady()){
+    confirmSignatureBtn.disabled=false;
+    confirmSignatureBtn.textContent='I Have Finished Signing';
+    signatureActionMsg.textContent='';
+    taskUpload.disabled=false;
+    return;
+  }
+  const signed=crmIsTrue(crmClient.signatureConfirmed)||Number(crmClient.statements||0)>0;
+  confirmSignatureBtn.disabled=signed;
+  confirmSignatureBtn.textContent=signed?'Signing Confirmed ✓':'I Have Finished Signing';
+  signatureActionMsg.textContent=signed?'Your signing step is confirmed in the current CRM.':'';
+  signatureActionMsg.className='crm-action-msg'+(signed?' success':'');
+  taskUpload.disabled=!signed;
+  if(!signed && uploadPanel.classList.contains('show')) showTask('sign');
+  statementModeNote.textContent='Connected to your current Toronto Finance Company CRM. Statement uploads go to the existing Google Drive client folder.';
+}
+confirmSignatureBtn.addEventListener('click',async()=>{
+  if(!liveClientReady()){
+    signatureActionMsg.textContent='Preview mode: no authenticated current client session was detected.';
+    return;
+  }
+  confirmSignatureBtn.disabled=true;
+  signatureActionMsg.className='crm-action-msg';
+  signatureActionMsg.textContent='Saving signature confirmation...';
+  try{
+    const result=await crmApi('clientConfirmSignature',{
+      applicationId:crmClient.applicationId,
+      email:crmClient.email
+    });
+    if(!result?.ok) throw new Error(result?.error||'Signature confirmation could not be saved.');
+    crmClient={...crmClient,...(result.data||{}),signatureConfirmed:true};
+    localStorage.setItem('tfc-signed-'+crmClient.applicationId,'yes');
+    saveCurrentClient(crmClient);
+    signatureActionMsg.textContent='Signature confirmation saved to your current client file.';
+    signatureActionMsg.className='crm-action-msg success';
+    refreshTfcFlowState();
+  }catch(error){
+    confirmSignatureBtn.disabled=false;
+    signatureActionMsg.textContent=error.message||'Signature confirmation could not be saved.';
+    signatureActionMsg.className='crm-action-msg error';
+  }
+});
+
+function renderSelectedStatements(){
   const files=[...statements.files];
   const pdfs=files.filter(file=>file.type==='application/pdf'||/\.pdf$/i.test(file.name));
   fileList.replaceChildren();
@@ -2155,11 +2448,12 @@ statements.addEventListener('change',()=>{
   if(!pdfs.length){
     fileCount.textContent='No statements selected';
     progressBar.style.width='0%';
-    return;
+    statementUploadMsg.textContent='';
+    return [];
   }
 
   fileCount.textContent=pdfs.length+' statement'+(pdfs.length===1?'':'s')+' selected';
-  progressBar.style.width=Math.min(100,(pdfs.length/6)*100)+'%';
+  progressBar.style.width=Math.min(100,(pdfs.length/Number(crmCfg.minimumStatements||6))*100)+'%';
 
   pdfs.forEach(file=>{
     const row=document.createElement('div');
@@ -2171,7 +2465,78 @@ statements.addEventListener('change',()=>{
     row.append(name,size);
     fileList.appendChild(row);
   });
+  return pdfs;
+}
+statements.addEventListener('change',renderSelectedStatements);
+
+statementUploadBtn.addEventListener('click',async()=>{
+  const pdfs=renderSelectedStatements();
+  if(!pdfs.length){
+    statementUploadMsg.textContent='Select PDF bank statements first.';
+    statementUploadMsg.className='crm-action-msg error';
+    return;
+  }
+  if(!liveClientReady()){
+    statementUploadMsg.textContent='Preview mode: sign in through the current Client Portal first to send these files to Apps Script / Google Drive.';
+    statementUploadMsg.className='crm-action-msg';
+    return;
+  }
+  if(!crmIsTrue(crmClient.signatureConfirmed)&&!localStorage.getItem('tfc-signed-'+crmClient.applicationId)){
+    statementUploadMsg.textContent='Please complete and confirm Step 1 before uploading statements.';
+    statementUploadMsg.className='crm-action-msg error';
+    return;
+  }
+
+  statementUploadBtn.disabled=true;
+  statementUploadMsg.className='crm-action-msg';
+  try{
+    for(let i=0;i<pdfs.length;i++){
+      statementUploadMsg.textContent='Uploading '+(i+1)+' of '+pdfs.length+'...';
+      await uploadCurrentClientFile(pdfs[i],'statement');
+    }
+    statementUploadMsg.textContent='Statements sent. Confirming the updated CRM count...';
+    await new Promise(r=>setTimeout(r,1800));
+    await refreshCurrentClient(false);
+    statements.value='';
+    fileList.replaceChildren();
+    fileCount.textContent=Number(crmClient.statements||0)+' statement'+(Number(crmClient.statements||0)===1?'':'s')+' received';
+    progressBar.style.width=Math.min(100,(Number(crmClient.statements||0)/Number(crmCfg.minimumStatements||6))*100)+'%';
+    statementUploadMsg.textContent='Upload complete. Current CRM statement count: '+Number(crmClient.statements||0)+'.';
+    statementUploadMsg.className='crm-action-msg success';
+  }catch(error){
+    statementUploadMsg.textContent=error.message||'Upload failed.';
+    statementUploadMsg.className='crm-action-msg error';
+  }finally{
+    statementUploadBtn.disabled=false;
+  }
 });
+
+async function initCurrentCrmBridge(){
+  const session=readCurrentClientSession();
+  if(!session){
+    portalModeBadge.textContent='Client Portal Preview';
+    portalModeHelper.textContent='Preview mode. Open this V4 page from an authenticated current Client Portal session to test it against the existing Apps Script, Google Sheets and Google Drive workflow.';
+    renderPortalState(sampleAdminState);
+    renderPortalConversation();
+    refreshTfcFlowState();
+    return;
+  }
+
+  crmClient={...session.stored,applicationId:session.auth.applicationId,email:session.auth.email||session.stored.email||''};
+  portalModeBadge.textContent='Current CRM Session';
+  portalModeHelper.textContent='Connected to the existing Toronto Finance Company Apps Script / Sheets / Drive workflow. No second backend is being used.';
+  statementModeNote.textContent='Connected to the current CRM. Uploaded statements are sent through the existing uploadDocument action to the client Google Drive folder.';
+
+  try{
+    await refreshCurrentClient(true);
+    startCurrentClientRefresh();
+  }catch(_){
+    renderPortalState(crmClient);
+    renderPortalConversation();
+    refreshTfcFlowState();
+  }
+}
+initCurrentCrmBridge();
 </script>
 </body>
 </html>
