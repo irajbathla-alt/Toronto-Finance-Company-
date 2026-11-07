@@ -362,10 +362,10 @@ button,input{font:inherit}
 .helper{margin:17px 2px 0;font-size:10px;line-height:1.6;color:#9b8d7d}
 .funding-row{
   display:grid;
-  grid-template-columns:minmax(560px,1fr) 300px;
-  gap:22px;
+  grid-template-columns:minmax(560px,1fr) minmax(460px,460px);
+  gap:24px;
   align-items:start;
-  max-width:940px;
+  max-width:1080px;
   margin:6px auto 0;
 }
 .funding-row .deck-wrap{
@@ -374,14 +374,27 @@ button,input{font:inherit}
   margin:0 auto;
 }
 .approval-side{
-  margin-top:16px;
-  border-radius:18px;
-  padding:21px;
-  background:linear-gradient(145deg,#17130f,#2a2119);
+  position:relative;
+  width:min(460px,82vw);
+  height:520px;
+  margin:20px auto 0;
+  border-radius:20px;
+  padding:24px 22px;
+  background:linear-gradient(145deg,#17130f,#241c16);
   color:#fff;
-  border:1px solid rgba(185,137,63,.30);
-  box-shadow:0 18px 44px rgba(23,19,15,.16);
-  min-height:420px;
+  border:1px solid rgba(185,137,63,.34);
+  box-shadow:0 18px 48px rgba(40,28,18,.12);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  cursor:pointer;
+  transition:transform .34s cubic-bezier(.22,.75,.24,1),box-shadow .28s ease,border-color .28s ease;
+  z-index:6;
+}
+.approval-side:hover{
+  transform:translateY(-3px);
+  box-shadow:0 24px 58px rgba(40,28,18,.18);
+  border-color:rgba(198,150,78,.52);
 }
 .approval-side .approval-kicker{
   font-size:7px;
@@ -393,6 +406,7 @@ button,input{font:inherit}
 .approval-side-status{
   display:inline-flex;
   align-items:center;
+  align-self:flex-start;
   margin-top:11px;
   padding:7px 10px;
   border-radius:999px;
@@ -404,19 +418,19 @@ button,input{font:inherit}
   letter-spacing:.1em;
 }
 .approval-side h3{
-  margin:15px 0 4px;
+  margin:20px 0 4px;
   font-family:"Cormorant Garamond",serif;
-  font-size:29px;
-  line-height:1;
+  font-size:36px;
+  line-height:.98;
   font-weight:400;
   text-transform:uppercase;
 }
 .approval-side-amount{
   font-family:"Cormorant Garamond",serif;
-  font-size:39px;
+  font-size:48px;
   line-height:1;
   color:#dec48a;
-  margin:5px 0 18px;
+  margin:6px 0 20px;
 }
 .approval-side-grid{
   display:grid;
@@ -424,12 +438,12 @@ button,input{font:inherit}
   gap:1px;
   background:rgba(255,255,255,.10);
   border:1px solid rgba(255,255,255,.10);
-  border-radius:11px;
+  border-radius:12px;
   overflow:hidden;
 }
 .approval-side-grid div{
-  padding:11px 10px;
-  background:rgba(255,255,255,.04);
+  padding:14px 12px;
+  background:rgba(255,255,255,.045);
 }
 .approval-side-grid small{
   display:block;
@@ -437,37 +451,115 @@ button,input{font:inherit}
   text-transform:uppercase;
   letter-spacing:.1em;
   color:#bdb2a5;
-  margin-bottom:4px;
+  margin-bottom:5px;
 }
 .approval-side-grid strong{
   display:block;
-  font-size:8.5px;
+  font-size:9px;
   line-height:1.35;
   font-weight:600;
 }
 .approval-doc-state{
-  margin-top:14px;
-  padding:12px;
-  border-radius:10px;
+  margin-top:15px;
+  padding:13px;
+  border-radius:11px;
   background:rgba(222,196,138,.10);
   border:1px solid rgba(222,196,138,.18);
   color:#eadbc4;
-  font-size:8.5px;
+  font-size:9px;
   line-height:1.5;
 }
 .approval-doc-state strong{
   display:block;
-  margin-bottom:4px;
+  margin-bottom:5px;
   color:#dec48a;
   font-size:6.5px;
   text-transform:uppercase;
   letter-spacing:.1em;
 }
+.approval-card-actions{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:9px;
+  margin-top:auto;
+  padding-top:16px;
+}
+.approval-card-actions button{
+  width:min(220px,78%);
+  border:0;
+  border-radius:999px;
+  padding:11px 18px;
+  font-size:8px;
+  line-height:1;
+  font-weight:600;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:0 4px 12px rgba(0,0,0,.10);
+}
+.approval-card-actions .approval-proceed{background:#6F89A8;color:#fff}
+.approval-card-actions .approval-more{background:#B08A57;color:#fff}
 .approval-side-note{
-  margin-top:14px;
+  margin-top:10px;
   font-size:7px;
-  line-height:1.5;
-  color:#a99b8e;
+  line-height:1.45;
+  color:#9c8e81;
+  text-align:center;
+}
+.approval-focus-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:490;
+  background:rgba(18,14,10,.48);
+  backdrop-filter:blur(5px);
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .22s ease,visibility .22s ease;
+}
+.approval-focus-backdrop.show{
+  opacity:1;
+  visibility:visible;
+}
+.approval-side.focused{
+  position:fixed;
+  left:50%;
+  top:50%;
+  margin:0;
+  transform:translate(-50%,-50%) scale(1.015);
+  z-index:500;
+  box-shadow:0 34px 90px rgba(0,0,0,.40);
+  border-color:rgba(222,196,138,.55);
+}
+.approval-side.focused:hover{
+  transform:translate(-50%,-50%) scale(1.015);
+}
+.approval-focus-close{
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  font-size:17px;
+  cursor:pointer;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .18s ease;
+}
+.approval-side.focused .approval-focus-close{
+  opacity:1;
+  pointer-events:auto;
+}
+.approval-action-status{
+  min-height:17px;
+  margin-top:8px;
+  text-align:center;
+  font-size:8px;
+  color:#dec48a;
 }
 .internal{display:none;margin-top:28px;border-top:1px solid rgba(23,19,15,.08);padding-top:30px}
 .internal.show{display:block;animation:fadeUp .28s ease both}
@@ -570,8 +662,19 @@ button,input{font:inherit}
   }
   .approval-side{
     width:min(78vw,360px);
-    min-height:0;
+    height:435px;
     margin:0 auto 8px;
+    padding:20px 18px;
+  }
+  .approval-side h3{font-size:31px;margin-top:15px}
+  .approval-side-amount{font-size:40px;margin-bottom:15px}
+  .approval-side-grid div{padding:10px 9px}
+  .approval-doc-state{padding:10px;margin-top:11px}
+  .approval-card-actions{gap:7px;padding-top:10px}
+  .approval-card-actions button{width:min(190px,78%);padding:9px 14px;font-size:7px}
+  .approval-side.focused{
+    width:min(88vw,390px);
+    height:min(86vh,520px);
   }
   .deck-wrap{
     max-width:100%;
@@ -753,7 +856,8 @@ button,input{font:inherit}
     <div class="deck-status" id="deckStatus">1 of 4</div>
     </div>
 
-    <aside class="approval-side" id="approvalSideSample">
+    <aside class="approval-side" id="approvalSideSample" role="button" tabindex="0" aria-label="Open approval details">
+      <button class="approval-focus-close" id="approvalFocusClose" type="button" aria-label="Close approval details">×</button>
       <div class="approval-kicker">Approval Snapshot</div>
       <div class="approval-side-status">Conditional Approval</div>
       <h3>Business Term Loan</h3>
@@ -768,7 +872,12 @@ button,input{font:inherit}
         <strong>Additional Documents</strong>
         2 documents requested by your advisor.
       </div>
-      <div class="approval-side-note">Sample approved state — this card would appear only after Admin sends financing details to the client.</div>
+      <div class="approval-card-actions">
+        <button class="approval-proceed" id="approvalProceed" type="button">Proceed</button>
+        <button class="approval-more" id="approvalMore" type="button">Request More Info</button>
+      </div>
+      <div class="approval-action-status" id="approvalActionStatus"></div>
+      <div class="approval-side-note">Tap this card to bring your approval details to the front.</div>
     </aside>
     </div>
 
@@ -820,6 +929,8 @@ button,input{font:inherit}
   </main>
 </div>
 
+
+<div class="approval-focus-backdrop" id="approvalFocusBackdrop"></div>
 
 <div class="criteria-modal" id="criteriaModal" aria-hidden="true">
   <div class="criteria-card" id="criteriaCard" role="dialog" aria-modal="true" aria-labelledby="criteriaTitle">
@@ -880,6 +991,12 @@ const criteriaProductsWrap=document.getElementById('criteriaProductsWrap');
 const criteriaProductsTitle=document.getElementById('criteriaProductsTitle');
 const criteriaProducts=document.getElementById('criteriaProducts');
 const criteriaNote=document.getElementById('criteriaNote');
+const approvalSideSample=document.getElementById('approvalSideSample');
+const approvalFocusBackdrop=document.getElementById('approvalFocusBackdrop');
+const approvalFocusClose=document.getElementById('approvalFocusClose');
+const approvalProceed=document.getElementById('approvalProceed');
+const approvalMore=document.getElementById('approvalMore');
+const approvalActionStatus=document.getElementById('approvalActionStatus');
 let currentCard=0;
 let dragCard=null,dragStartX=0,dragStartY=0,dragX=0,dragY=0,suppressCardClick=false;
 let dragStartTime=0,lastMoveX=0,lastMoveTime=0,dragVelocityX=0;
@@ -1147,6 +1264,38 @@ criteriaModal.addEventListener('click',e=>{
 });
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape') closeCriteria();
+});
+
+function openApprovalFocus(){
+  approvalSideSample.classList.add('focused');
+  approvalFocusBackdrop.classList.add('show');
+}
+function closeApprovalFocus(){
+  approvalSideSample.classList.remove('focused');
+  approvalFocusBackdrop.classList.remove('show');
+}
+approvalSideSample.addEventListener('click',e=>{
+  if(e.target.closest('button')) return;
+  openApprovalFocus();
+});
+approvalSideSample.addEventListener('keydown',e=>{
+  if((e.key==='Enter'||e.key===' ')&&!e.target.closest('button')){
+    e.preventDefault();
+    openApprovalFocus();
+  }
+});
+approvalFocusBackdrop.addEventListener('click',closeApprovalFocus);
+approvalFocusClose.addEventListener('click',e=>{e.stopPropagation();closeApprovalFocus()});
+approvalProceed.addEventListener('click',e=>{
+  e.stopPropagation();
+  approvalActionStatus.textContent='Proceed selected — your advisor would be notified.';
+});
+approvalMore.addEventListener('click',e=>{
+  e.stopPropagation();
+  approvalActionStatus.textContent='More information requested — your advisor would be notified.';
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&approvalSideSample.classList.contains('focused')) closeApprovalFocus();
 });
 
 lenderCards.forEach(card=>{
