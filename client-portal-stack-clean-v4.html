@@ -86,6 +86,12 @@ button,input{font:inherit}
 .route.tfc{background:linear-gradient(145deg,#fffaf2,#f3e5cf);border-color:rgba(185,137,63,.42)}
 
 .route.tfc .route-logo strong{color:#9b7137}
+@media(max-width:760px){
+  .funding-row .route.tfc .route-logo strong{
+    font-size:5.2px;
+    letter-spacing:.025em;
+  }
+}
 .card-actions{
   display:flex;
   flex-direction:column;
@@ -615,6 +621,8 @@ button,input{font:inherit}
   line-height:1.5;
 }
 .chat-bubble.advisor{
+  width:100%;
+  max-width:100%;
   background:#f4eadc;
   color:#4b4138;
   border-bottom-left-radius:4px;
@@ -857,19 +865,33 @@ button,input{font:inherit}
     max-width:100%;
   }
   .funding-row .route-logo{
-    gap:6px;
+    gap:8px;
     margin-bottom:8px;
+    min-width:0;
   }
-  .funding-row .route-logo img,
-  .funding-row .route-logo>div{
+  .funding-row .route-logo img{
     width:28px!important;
     height:28px!important;
     border-radius:8px!important;
     padding:4px!important;
-    font-size:16px!important;
+  }
+  .funding-row .route-logo>div{
+    width:31px!important;
+    height:31px!important;
+    min-width:31px!important;
+    flex:0 0 31px;
+    border-radius:9px!important;
+    padding:0!important;
+    font-size:12px!important;
+    line-height:1!important;
   }
   .funding-row .route-logo strong{
-    font-size:6px;
+    min-width:0;
+    font-size:5.6px;
+    line-height:1.2;
+    letter-spacing:.04em;
+    white-space:normal;
+    overflow-wrap:normal;
   }
   .funding-row .route .route-kicker{
     font-size:4.5px;
