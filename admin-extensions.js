@@ -90,7 +90,19 @@
     }
 
     try {
-      const result = await jsonp('adminChatSend', update);
+      let result = await jsonp('adminChatSend', update);
+
+      // Compatibility with the currently deployed backend until the updated
+      // Apps Script version containing adminChatSend is redeployed.
+      if (!result?.ok && /unknown action/i.test(String(result?.error || ''))) {
+        result = await jsonp('adminUpdate', {
+          applicationId:update.applicationId,
+          messageBody,
+          notifyClient:'true',
+          adminToken:update.adminToken
+        });
+      }
+
       if (!result?.ok) throw new Error(result?.error || 'The message could not be sent.');
 
       const notification = result.notification || {};
