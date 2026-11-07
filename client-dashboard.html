@@ -1356,20 +1356,80 @@ button,input{font:inherit}
 }
 
 
-.candidate-login{
+.candidate-login-screen{
+  position:fixed;
+  inset:0;
+  z-index:500;
+  min-height:100vh;
+  overflow:auto;
+  background:
+    radial-gradient(circle at 82% 10%,rgba(198,150,78,.10),transparent 26%),
+    linear-gradient(180deg,#f8f1e7 0%,#f4eadc 100%);
+  color:#17130f;
+}
+.candidate-login-top{
+  height:68px;
+  padding:0 5vw;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  border-bottom:1px solid rgba(23,19,15,.13);
+  background:rgba(248,241,231,.96);
+  backdrop-filter:blur(8px);
+}
+.candidate-login-brand{
+  font-family:"Cormorant Garamond",serif;
+  font-weight:300;
+  text-transform:uppercase;
+  font-size:24px;
+  line-height:1;
+}
+.candidate-login-tag{
+  margin-top:5px;
+  color:#9b763f;
+  font-size:7px;
+  font-weight:600;
+  letter-spacing:.20em;
+  text-transform:uppercase;
+}
+.candidate-login-secure{
+  padding:8px 12px;
+  border:1px solid rgba(23,19,15,.12);
+  border-radius:999px;
+  background:rgba(255,255,255,.48);
+  color:#786f65;
+  font-size:8px;
+  font-weight:600;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+}
+.candidate-login-stage{
   width:min(440px,92vw);
-  margin:72px auto;
+  margin:72px auto 48px;
+}
+.candidate-login{
   padding:30px;
-  border-radius:18px;
-  background:#fffaf2;
-  border:1px solid rgba(185,137,63,.18);
-  box-shadow:0 26px 80px rgba(0,0,0,.30);
+  border-radius:14px;
+  background:#fff;
+  border:1px solid rgba(23,19,15,.06);
+  box-shadow:0 22px 60px rgba(0,0,0,.12);
+}
+.candidate-login-eyebrow{
+  margin-bottom:9px;
+  color:#c6964e;
+  text-align:center;
+  font-size:8px;
+  font-weight:600;
+  letter-spacing:.17em;
+  text-transform:uppercase;
 }
 .candidate-login h1{
   margin:0 0 8px;
   text-align:center;
   font-family:"Cormorant Garamond",serif;
   font-size:38px;
+  line-height:1;
   font-weight:400;
   text-transform:uppercase;
 }
@@ -1377,50 +1437,62 @@ button,input{font:inherit}
   margin:0;
   text-align:center;
   color:#786f65;
-  font-size:12px;
+  font-size:13px;
   line-height:1.6;
 }
 .candidate-field{margin-top:16px}
 .candidate-field label{
   display:block;
   margin-bottom:7px;
-  font-size:8px;
-  font-weight:600;
-  letter-spacing:.12em;
+  font-size:10px;
+  letter-spacing:.11em;
   text-transform:uppercase;
 }
 .candidate-field input{
   width:100%;
   padding:13px;
-  border:1px solid rgba(23,19,15,.16);
-  border-radius:9px;
-  background:#fff;
+  border:1px solid #d4c8bb;
+  border-radius:7px;
+  background:#fbf7f0;
   color:#17130f;
+  outline:none;
+  transition:border-color .16s ease,box-shadow .16s ease,background .16s ease;
+}
+.candidate-field input:focus{
+  border-color:#c6964e;
+  background:#fff;
+  box-shadow:0 0 0 3px rgba(198,150,78,.10);
 }
 .candidate-login-button{
   width:100%;
   margin-top:20px;
   border:0;
   border-radius:999px;
-  padding:13px 16px;
+  padding:14px;
   background:#17130f;
   color:#fff;
-  font-size:9px;
-  font-weight:600;
-  letter-spacing:.10em;
   text-transform:uppercase;
+  font-size:10px;
+  letter-spacing:.12em;
   cursor:pointer;
 }
 .candidate-login-button:disabled{opacity:.55;cursor:not-allowed}
 .candidate-login-message{
   min-height:18px;
-  margin-top:11px;
+  margin-top:12px;
   color:#a13f33;
-  font-size:10px;
-  line-height:1.5;
+  font-size:12px;
+  line-height:1.6;
   text-align:center;
 }
 .candidate-login-message.success{color:#2f855a}
+.candidate-login-foot{
+  margin-top:16px;
+  text-align:center;
+  color:#8b8176;
+  font-size:9px;
+  line-height:1.6;
+}
 .candidate-top-actions{
   display:flex;
   align-items:center;
@@ -1441,7 +1513,12 @@ button,input{font:inherit}
 #candidateLogin[hidden],
 #portalShell[hidden]{display:none!important}
 @media(max-width:760px){
-  .candidate-login{margin:34px auto;padding:24px 20px}
+  .candidate-login-top{height:62px;padding:0 18px}
+  .candidate-login-brand{font-size:19px}
+  .candidate-login-tag{font-size:5.8px;letter-spacing:.16em}
+  .candidate-login-secure{font-size:6px;padding:7px 8px}
+  .candidate-login-stage{margin:34px auto 30px}
+  .candidate-login{padding:24px 20px}
   .candidate-login h1{font-size:31px}
   .candidate-top-actions{gap:6px}
   .candidate-logout{font-size:5.8px;padding:7px 8px}
@@ -1868,19 +1945,33 @@ button,input{font:inherit}
 </style>
 </head>
 <body>
-<section class="candidate-login" id="candidateLogin">
-  <h1>Client Login</h1>
-  <p>Use the same email address and password used to create your Toronto Finance Company account.</p>
-  <div class="candidate-field">
-    <label for="candidateEmail">Email Address</label>
-    <input id="candidateEmail" type="email" autocomplete="email">
+<section class="candidate-login-screen" id="candidateLogin">
+  <header class="candidate-login-top">
+    <div>
+      <div class="candidate-login-brand">Toronto Finance Company</div>
+      <div class="candidate-login-tag">Business Financing Solutions</div>
+    </div>
+    <div class="candidate-login-secure">Secure Client Portal</div>
+  </header>
+
+  <div class="candidate-login-stage">
+    <div class="candidate-login">
+      <div class="candidate-login-eyebrow">Welcome Back</div>
+      <h1>Client Login</h1>
+      <p>Use the same email address and password used to create your Toronto Finance Company account.</p>
+      <div class="candidate-field">
+        <label for="candidateEmail">Email Address</label>
+        <input id="candidateEmail" type="email" autocomplete="email">
+      </div>
+      <div class="candidate-field">
+        <label for="candidatePassword">Password</label>
+        <input id="candidatePassword" type="password" autocomplete="current-password">
+      </div>
+      <button class="candidate-login-button" id="candidateLoginBtn" type="button">Log In</button>
+      <div class="candidate-login-message" id="candidateLoginMsg"></div>
+    </div>
+    <div class="candidate-login-foot">Toronto Finance Company · Secure business financing client access</div>
   </div>
-  <div class="candidate-field">
-    <label for="candidatePassword">Password</label>
-    <input id="candidatePassword" type="password" autocomplete="current-password">
-  </div>
-  <button class="candidate-login-button" id="candidateLoginBtn" type="button">Log In</button>
-  <div class="candidate-login-message" id="candidateLoginMsg"></div>
 </section>
 
 <div class="shell" id="portalShell" hidden>
