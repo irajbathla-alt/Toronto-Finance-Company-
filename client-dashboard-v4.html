@@ -1781,6 +1781,7 @@ const crmCfg=window.TFC_CONFIG||{};
  * implementation can swap the UI without rewriting the Apps Script workflow.
  *
  * Existing supported actions:
+ * - health
  * - clientLogin
  * - getClient
  * - clientConfirmSignature
@@ -1792,6 +1793,7 @@ const crmCfg=window.TFC_CONFIG||{};
  * chatTransport below. Do not create a second Apps Script deployment.
  */
 const CURRENT_CRM_ACTIONS=Object.freeze({
+  health:'health',
   clientLogin:'clientLogin',
   getClient:'getClient',
   confirmSignature:'clientConfirmSignature',
@@ -1822,6 +1824,7 @@ const CRM_REQUEST_TIMEOUT=Math.max(Number(crmCfg.requestTimeout||30000),30000);
 const SAMPLE_CHAT_KEY='tfc-v4-chat-thread-v1';
 let crmClient=null;
 let crmRefreshTimer=null;
+let crmHealthReady=false;
 let pendingMoreInfo=false;
 function crmIsTrue(v){
   return v===true||['true','1','yes'].includes(String(v||'').trim().toLowerCase());
@@ -2795,6 +2798,10 @@ function showCandidatePortal(data){
   startCurrentClientRefresh();
 }
 async function candidateLoginSubmit(){
+  if(!crmHealthReady){
+    candidateLoginMsg.textContent='The CRM connection is not ready. Please refresh the page.';
+    return;
+  }
   const email=candidateEmail.value.trim().toLowerCase();
   const password=candidatePassword.value;
   if(!/^\S+@\S+\.\S+$/.test(email)){
@@ -2837,7 +2844,23 @@ candidateLogout.addEventListener('click',()=>{
   candidatePassword.value='';
 });
 
+async function verifyCurrentCrmHealth(){
+  if(!crmCfg.apiUrl) throw new Error('CRM service is not configured.');
+  const result=await crmApi(CURRENT_CRM_ACTIONS.health,{});
+  if(!result?.ok) throw new Error(result?.error||'CRM health check failed.');
+  crmHealthReady=true;
+  return result;
+}
+
 async function initCurrentCrmBridge(){
+  try{
+    await verifyCurrentCrmHealth();
+  }catch(error){
+    showCandidateLogin('The Toronto Finance Company CRM could not be reached. Please refresh and try again.');
+    candidateLoginBtn.disabled=true;
+    return;
+  }
+
   const session=readCurrentClientSession();
   if(!session){
     showCandidateLogin('');
