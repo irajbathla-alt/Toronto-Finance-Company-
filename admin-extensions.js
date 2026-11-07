@@ -59,8 +59,7 @@
     const messageBody = String(textarea?.value || '').trim();
     const update = {
       applicationId: applicationId(),
-      messageBody,
-      notifyClient: 'true',
+      message: messageBody,
       adminToken: String(sessionStorage.getItem('tfc-admin-token') || '').trim()
     };
 
@@ -91,18 +90,20 @@
     }
 
     try {
-      const result = await jsonp('adminUpdate', update);
+      const result = await jsonp('adminChatSend', update);
       if (!result?.ok) throw new Error(result?.error || 'The message could not be sent.');
 
       const notification = result.notification || {};
-      if (!notification.sent) {
-        throw new Error(notification.error || 'The message was saved, but the client email notification was not sent.');
-      }
-
       if (textarea) textarea.value = '';
+
       if (status) {
-        status.className = 'notice success';
-        status.textContent = 'Message sent successfully.';
+        if (notification.sent) {
+          status.className = 'notice success';
+          status.textContent = 'Message sent successfully.';
+        } else {
+          status.className = 'notice';
+          status.textContent = 'Message saved to the client portal. Email alert could not be sent.';
+        }
       }
 
       const refresh = $('#refresh');
