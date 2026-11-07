@@ -780,7 +780,8 @@ const lenderCriteria={
       'Signed business financing application required',
       '6–12 months of recent business bank statements',
       'Most industries can be considered',
-      'Credit scores as low as 590 may be considered, depending on the lender and program'
+      'Credit scores as low as 590 may be considered, depending on the lender and program',
+      'Select lender partners can consider more difficult files and 3rd-position financing'
     ],
     lenders:[
       'KM Capital',
@@ -795,9 +796,10 @@ const lenderCriteria={
       {name:'Term Loans',desc:'Structured business financing for a defined funding need, expansion, working capital or growth initiative.'},
       {name:'Lines of Credit',desc:'Revolving business credit for ongoing working-capital and cash-flow needs.'},
       {name:'Flex Funds',desc:'Flexible business funding designed for businesses that may prefer repayment tied more closely to cash flow.'},
-      {name:'Equipment Financing',desc:'Financing for eligible business equipment purchases or equipment-related capital needs.'}
+      {name:'Equipment Financing',desc:'Financing for eligible business equipment purchases or equipment-related capital needs.'},
+      {name:'Difficult & 3rd-Position Files',desc:'Select lender partners may consider more challenging credit profiles and financing behind existing obligations, including 3rd-position structures.'}
     ],
-    note:'Toronto Finance Company manually packages and submits applications to suitable lender partners. Final lender selection, approval, amount, pricing, documentation and terms are subject to each lender’s underwriting and due diligence.'
+    note:'Toronto Finance Company manually packages and submits applications to suitable lender partners. Select partners may consider difficult files and 3rd-position structures. Final lender selection, approval, amount, pricing, documentation and terms are subject to each lender’s underwriting and due diligence.'
   },
   journey:{
     title:'Journey Capital',
@@ -825,7 +827,7 @@ const lenderCriteria={
     title:'Merchant Growth',
     intro:'A Canadian alternative financing provider built to give small businesses fast access to capital based on real business performance and cash flow.',
     highlights:[
-      {value:'5 min',label:'Online application'},
+      {value:'15 min',label:'Online application'},
       {value:'Up to $1M',label:'Term financing'},
       {value:'Same day',label:'Approval available'}
     ],
@@ -842,16 +844,25 @@ const lenderCriteria={
   },
   xuper:{
     title:'Xuper Funding',
-    intro:'Xuper Funding focuses on revenue-based business funding and evaluates the strength of business sales and cash flow.',
-    items:[
-      'Typically $5,000+ in monthly business revenue to be considered.',
-      'Applications are accepted from Canadian and U.S. businesses.',
-      'Xuper says businesses with a range of credit profiles may apply.',
-      'Funding terms are based on factors including monthly revenue and business cash flow.'
+    intro:'A business-funding provider focused on fast working capital and flexible underwriting for businesses with established revenue.',
+    highlights:[
+      {value:'10 min',label:'Online application'},
+      {value:'Up to $750K',label:'Funding advertised'},
+      {value:'3rd pos.',label:'May be considered'}
     ],
-    note:'Xuper Funding states that final offers and funding are subject to review and approval.'
-  }
-};
+    eligibility:[
+      'Typically $5,000+ in monthly business revenue',
+      'Canadian and U.S. businesses may apply',
+      'A range of credit profiles may be considered',
+      'Approval is based heavily on business revenue and cash flow'
+    ],
+    products:[
+      {name:'Revenue-Based Funding',desc:'Working-capital financing structured around business revenue and cash flow.'},
+      {name:'3rd-Position Funding',desc:'Xuper may consider financing in 3rd position on select files, subject to existing obligations and underwriting.'},
+      {name:'Difficult Files',desc:'May consider files that do not fit traditional bank lending, depending on revenue strength, current debt and overall risk.'}
+    ],
+    note:'Xuper Funding advertises a 10-minute application and fast funding. 3rd-position and difficult-file approvals are case-by-case and remain subject to Xuper Funding underwriting, existing debt obligations and business cash flow.'
+  }};
 
 function lenderKey(card){
   if(card.classList.contains('tfc')) return 'tfc';
