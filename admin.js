@@ -199,11 +199,6 @@
     }
   }
 
-  function updatePreview() {
-    $('#previewTitle').textContent = $('#messageTitle').value || 'Welcome';
-    $('#previewBody').textContent = $('#messageBody').value || 'Your advisor message will appear here.';
-  }
-
   function updateDriveButton() {
     $('#drive').textContent = selected?.driveUrl ? 'Open Drive Folder' : 'Create & Open Drive Folder';
   }
@@ -308,10 +303,15 @@
       ['Updated', formatDate(selected.updated)]
     ].map(([key, value]) => `<div class="kv"><b>${escapeHtml(key)}</b><span>${escapeHtml(value || '—')}</span></div>`).join('');
 
-    ['status', 'advisor', 'messageTitle', 'messageBody', 'approvedAmount', 'quote', 'term', 'paymentFrequency', 'paymentAmount', 'numberPayments', 'totalRepayment', 'documentsRequested', 'notes'].forEach(key => {
+    ['status', 'advisor', 'approvedAmount', 'quote', 'term', 'paymentFrequency', 'paymentAmount', 'numberPayments', 'totalRepayment', 'documentsRequested', 'notes'].forEach(key => {
       const field = $('#' + key);
       if (field) field.value = selected[key] || '';
     });
+    if ($('#messageBody')) $('#messageBody').value = '';
+    if ($('#messageSendMsg')) {
+      $('#messageSendMsg').className = 'notice';
+      $('#messageSendMsg').textContent = '';
+    }
     const additionalDocsToggle = $('#additionalDocsEnabled');
     if (additionalDocsToggle) additionalDocsToggle.checked = isTrue(selected.additionalDocsEnabled);
 
@@ -324,7 +324,6 @@
         saveBusinessName();
       }
     });
-    updatePreview();
     renderAdminConversation(selected);
     renderClientResponse(selected);
     updateDriveButton();
@@ -396,7 +395,7 @@
   async function saveUpdate() {
     if (!selected) return;
     const update = { applicationId: selected.applicationId, adminToken:adminToken() };
-    ['business', 'status', 'advisor', 'messageTitle', 'messageBody', 'approvedAmount', 'quote', 'term', 'paymentFrequency', 'paymentAmount', 'numberPayments', 'totalRepayment', 'documentsRequested', 'notes'].forEach(key => {
+    ['business', 'status', 'advisor', 'approvedAmount', 'quote', 'term', 'paymentFrequency', 'paymentAmount', 'numberPayments', 'totalRepayment', 'documentsRequested', 'notes'].forEach(key => {
       const field = $('#' + key);
       if (field) update[key] = field.value;
     });
@@ -481,17 +480,13 @@
   $('#search').oninput = render;
   $('#filter').onchange = render;
   $('#clearFilters').onclick = () => { $('#search').value = ''; $('#filter').value = ''; render(); };
-  $('#messageTitle').oninput = updatePreview;
-  $('#messageBody').oninput = updatePreview;
   $('#copyId').onclick = () => selected?.applicationId && navigator.clipboard?.writeText(selected.applicationId).then(() => toast('Application ID copied'));
   document.querySelectorAll('[data-status]').forEach(button => button.onclick = () => {
     if (!selected) return;
     $('#status').value = button.dataset.status;
     const preset = PRESETS[button.dataset.status];
-    if (preset) {
-      $('#messageTitle').value = preset[0];
+    if (preset && $('#messageBody')) {
       $('#messageBody').value = preset[1];
-      updatePreview();
     }
     toast(`Stage set to ${button.dataset.status}`);
   });
