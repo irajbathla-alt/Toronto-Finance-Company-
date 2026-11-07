@@ -3184,6 +3184,14 @@ async function initCurrentCrmBridge(){
     return;
   }
 
+  const forceFresh=new URLSearchParams(window.location.search).get('login')==='1';
+  if(forceFresh){
+    clearCurrentClientSession();
+    history.replaceState({},'', 'client-dashboard-v4.html');
+    showCandidateLogin('');
+    return;
+  }
+
   const session=readCurrentClientSession();
   if(!session){
     showCandidateLogin('');
