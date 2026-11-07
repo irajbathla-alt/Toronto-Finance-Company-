@@ -140,67 +140,6 @@
 (() => {
   'use strict';
 
-  const SESSION_KEY = 'tfc-admin-session';
-  const SESSION_TTL = 6 * 60 * 60 * 1000;
-  const $ = selector => document.querySelector(selector);
-
-  function readSession() {
-    try {
-      const session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || '{}');
-      const token = String(sessionStorage.getItem('tfc-admin-token') || '').trim();
-      if (!session.authenticatedAt || !token) return null;
-      if (Date.now() - Number(session.authenticatedAt) > SESSION_TTL) {
-        sessionStorage.removeItem(SESSION_KEY);
-        return null;
-      }
-      return session;
-    } catch (_) {
-      sessionStorage.removeItem(SESSION_KEY);
-      return null;
-    }
-  }
-
-  function saveSession() {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ authenticatedAt: Date.now() }));
-  }
-
-  function clearSession() {
-    sessionStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem('tfc-admin-token');
-  }
-
-  const admin = $('#admin');
-  const login = $('#login');
-  const logout = $('#logoutBtn');
-
-  if (admin) {
-    const observer = new MutationObserver(() => {
-      if (!admin.classList.contains('hidden')) saveSession();
-    });
-    observer.observe(admin, { attributes: true, attributeFilter: ['class'] });
-  }
-
-  if (logout) {
-    logout.onclick = () => {
-      clearSession();
-      location.reload();
-    };
-  }
-
-  if (readSession()) {
-    login?.classList.add('hidden');
-    admin?.classList.remove('hidden');
-    logout?.classList.remove('hidden');
-    requestAnimationFrame(() => {
-      const refresh = $('#refresh');
-      if (refresh && !refresh.disabled) refresh.click();
-    });
-  }
-})();
-
-(() => {
-  'use strict';
-
   const cfg = window.TFC_CONFIG || {};
   const REFRESH_MS = 25000;
   let currentApplicationId = '';
