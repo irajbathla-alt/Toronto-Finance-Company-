@@ -15,7 +15,7 @@ const REQUIRED_HEADERS = [
   'address','city','province','postal','industry','revenue','requested','years','purpose',
   'status','statements','signatureConfirmed','signatureConfirmedAt','advisor','messageTitle','messageBody','approvedAmount','quote',
   'term','paymentFrequency','paymentAmount','numberPayments','totalRepayment','documentsRequested','additionalDocsEnabled',
-  'clientDecision','clientDecisionNote','clientDecisionAt','notes',
+  'clientDecision','clientDecisionNote','clientDecisionAt','chatHistory','notes',
   'driveFolderId','driveUrl','lastNotificationStatus','lastNotificationAt','lastNotificationError'
 ];
 
@@ -23,12 +23,12 @@ const CLIENT_SAFE_FIELDS = [
   'applicationId','created','updated','name','email','phone','business','status','statements',
   'signatureConfirmed','signatureConfirmedAt','advisor','messageTitle','messageBody','approvedAmount',
   'quote','term','paymentFrequency','paymentAmount','numberPayments','totalRepayment','documentsRequested','additionalDocsEnabled',
-  'clientDecision','clientDecisionNote','clientDecisionAt','documents'
+  'clientDecision','clientDecisionNote','clientDecisionAt','chatHistory','documents'
 ];
 
 const EARLY_STATUSES = ['Account Created','Statements Required','Ready for Review'];
 const APPROVAL_STATUSES = ['Conditional Approval','Approved'];
-const SCHEMA_CACHE_KEY = 'tfc-schema-20261029-additional-docs-v1';
+const SCHEMA_CACHE_KEY = 'tfc-schema-20261107-chat-history-v2';
 const AUDIT_SHEET_NAME = 'Audit Log';
 const AUDIT_HEADERS = [
   'auditId','timestamp','applicationId','actorType','actorId',
@@ -57,6 +57,7 @@ function doGet(e) {
       getClient,
       clientConfirmSignature,
       clientDecision,
+      clientChatSend,
       adminLogin,
       adminList,
       adminUpdate,
@@ -86,6 +87,7 @@ function doPost(e) {
       getClient,
       clientConfirmSignature,
       clientDecision,
+      clientChatSend,
       sendSignupNotification,
       uploadDocument,
       adminLogin,
@@ -264,6 +266,42 @@ function requireClientEmail(record, emailValue) {
   const recordEmail = String(record.email || '').trim().toLowerCase();
   if (!email || email !== recordEmail) throw new Error('Account verification failed');
   return email;
+}
+
+function parseChatHistory(value) {
+  if (Array.isArray(value)) return value;
+  const raw = String(value || '').trim();
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function appendChatMessage(applicationId, sender, message) {
+  const text = String(message || '').trim().slice(0,4000);
+  if (!text) return findApplication(applicationId);
+
+  const record = findApplication(applicationId);
+  const history = parseChatHistory(record.chatHistory);
+  history.push({
+    id:Utilities.getUuid(),
+    sender:String(sender || '').toUpperCase() === 'CLIENT' ? 'CLIENT' : 'ADVISOR',
+    message:text,
+    at:new Date().toISOString()
+  });
+
+  while (history.length > 60) history.shift();
+  let serialized = JSON.stringify(history);
+  while (serialized.length > 45000 && history.length > 1) {
+    history.shift();
+    serialized = JSON.stringify(history);
+  }
+
+  updateRecord(applicationId,{ chatHistory:serialized });
+  return findApplication(applicationId);
 }
 
 function hash(value) {
@@ -526,6 +564,12 @@ function createAccount(p) {
       clientDecision:'',
       clientDecisionNote:'',
       clientDecisionAt:'',
+      chatHistory:JSON.stringify([{
+        id:Utilities.getUuid(),
+        sender:'ADVISOR',
+        message:'Your account has been created. Please complete your application and upload six recent bank statements.',
+        at:now.toISOString()
+      }]),
       notes:'',
       driveFolderId:'',
       driveUrl:'',
@@ -630,7 +674,31 @@ function clientDecision(p) {
     newValue:decision,
     summary:'Client response: ' + decision
   });
-  sendClientDecisionEmail(fresh);
+  if (decision === 'Request More Information' && String(p.note || '').trim()) {
+    appendChatMessage(record.applicationId,'CLIENT',String(p.note || '').trim());
+  }
+  const withChat = findApplication(record.applicationId);
+  sendClientDecisionEmail(withChat);
+  return { ok:true, data:safeClient({ ...withChat, documents:[] }) };
+}
+
+function clientChatSend(p) {
+  const record = findApplication(p.applicationId);
+  const clientEmail = requireClientEmail(record,p.email);
+  const message = String(p.message || '').trim();
+  if (!message) throw new Error('Message is required');
+
+  const fresh = appendChatMessage(record.applicationId,'CLIENT',message);
+  appendAuditEvent({
+    applicationId:record.applicationId,
+    actorType:'CLIENT',
+    actorId:clientEmail,
+    action:'CLIENT_CHAT_MESSAGE',
+    field:'chatHistory',
+    summary:'Client sent a portal message',
+    metadata:{ length:message.length }
+  });
+
   return { ok:true, data:safeClient({ ...fresh, documents:[] }) };
 }
 
@@ -866,6 +934,15 @@ function adminUpdate(p) {
 
   updateRecord(p.applicationId,patch);
   let saved = findApplication(p.applicationId);
+
+  const messageWasUpdated =
+    (Object.prototype.hasOwnProperty.call(patch,'messageBody') && String(patch.messageBody || '').trim() !== String(before.messageBody || '').trim()) ||
+    (Object.prototype.hasOwnProperty.call(patch,'messageTitle') && String(patch.messageTitle || '').trim() !== String(before.messageTitle || '').trim());
+
+  if (messageWasUpdated) {
+    const advisorMessage = String(patch.messageBody || saved.messageBody || patch.messageTitle || saved.messageTitle || '').trim();
+    if (advisorMessage) saved = appendChatMessage(p.applicationId,'ADVISOR',advisorMessage);
+  }
 
   Object.keys(patch).forEach(field => {
     auditAdminChange(p.applicationId,field,before[field],saved[field]);
