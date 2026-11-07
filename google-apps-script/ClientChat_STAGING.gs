@@ -36,6 +36,10 @@ function chatMessagesSheet_() {
     }
     sh.getRange(1,1,1,CHAT_HEADERS.length).setValues([CHAT_HEADERS]);
     sh.setFrozenRows(1);
+    const messageColumn = CHAT_HEADERS.indexOf('message') + 1;
+    if (messageColumn > 0) {
+      sh.getRange(1,messageColumn,sh.getMaxRows(),1).setNumberFormat('@');
+    }
     return sh;
   }
 
@@ -51,6 +55,11 @@ function chatMessagesSheet_() {
   }
   if (merged.length !== width) {
     sh.getRange(1,1,1,merged.length).setValues([merged]);
+  }
+
+  const messageColumn = merged.indexOf('message') + 1;
+  if (messageColumn > 0) {
+    sh.getRange(1,messageColumn,sh.getMaxRows(),1).setNumberFormat('@');
   }
 
   return sh;
@@ -193,8 +202,8 @@ function chatMarkRead_(applicationId, readerType) {
 function chatClientList(p) {
   const record = findApplication(p.applicationId);
   requireClientEmail(record,p.email);
-  const data = chatList_(record.applicationId,p.limit);
   chatMarkRead_(record.applicationId,'CLIENT');
+  const data = chatList_(record.applicationId,p.limit);
   return { ok:true, data };
 }
 
@@ -214,8 +223,8 @@ function chatClientSend(p) {
 function chatAdminList(p) {
   requireAdminToken(p);
   const record = findApplication(p.applicationId);
-  const data = chatList_(record.applicationId,p.limit);
   chatMarkRead_(record.applicationId,'ADVISOR');
+  const data = chatList_(record.applicationId,p.limit);
   return { ok:true, data };
 }
 
