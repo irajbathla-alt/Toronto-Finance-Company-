@@ -2136,6 +2136,56 @@ button,input{font:inherit}
   }
 }
 
+/* Seamless Tinder-style lender swipe.
+   The next card is perfectly aligned underneath the active card, with no visible stack. */
+.funding-row .route{
+  transition:transform .18s cubic-bezier(.2,.78,.25,1),opacity .14s ease,box-shadow .18s ease!important;
+  transform-origin:50% 86%!important;
+}
+.funding-row .route[data-pos="0"]{
+  z-index:5!important;
+  transform:translate3d(0,0,0) scale(1)!important;
+  opacity:1!important;
+  visibility:visible!important;
+}
+.funding-row .route[data-pos="1"]{
+  z-index:4!important;
+  transform:translate3d(0,0,0) scale(1)!important;
+  opacity:1!important;
+  visibility:visible!important;
+  box-shadow:0 20px 50px rgba(40,28,18,.10)!important;
+}
+.funding-row .route[data-pos="2"],
+.funding-row .route[data-pos="3"],
+.funding-row .route[data-pos="hidden"]{
+  z-index:1!important;
+  transform:translate3d(0,0,0) scale(1)!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+.funding-row .route.dragging{
+  transition:none!important;
+}
+.funding-row .route.swipe-left{
+  transform:translate3d(-118%,0,0) rotate(-4deg)!important;
+  opacity:.98!important;
+  visibility:visible!important;
+}
+.funding-row .route.swipe-right{
+  transform:translate3d(118%,0,0) rotate(4deg)!important;
+  opacity:.98!important;
+  visibility:visible!important;
+}
+@media(max-width:760px){
+  .funding-row .route.swipe-left{
+    transform:translate3d(-125%,0,0) rotate(-4deg)!important;
+  }
+  .funding-row .route.swipe-right{
+    transform:translate3d(125%,0,0) rotate(4deg)!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2711,7 +2761,7 @@ lenderCards.forEach((_,i)=>{
 function renderDeck(){
   lenderCards.forEach((card,index)=>{
     const distance=(index-currentCard+lenderCards.length)%lenderCards.length;
-    card.dataset.pos=distance<=3?String(distance):'hidden';
+    card.dataset.pos=distance===0?'0':distance===1?'1':'hidden';
     card.style.pointerEvents=distance===0?'auto':'none';
     card.classList.remove('swipe-left','swipe-right','dragging');
     card.style.transform='';
@@ -2731,13 +2781,27 @@ function moveCard(step,direction){
   closeCriteria();
   closeTfcFlow();
   deckAnimating=true;
+
   const card=lenderCards[currentCard];
-  card.classList.add(direction==='right'?'swipe-right':'swipe-left');
-  setTimeout(()=>{
+  let finished=false;
+
+  const complete=()=>{
+    if(finished) return;
+    finished=true;
+    card.removeEventListener('transitionend',onTransitionEnd);
     currentCard=(currentCard+step+lenderCards.length)%lenderCards.length;
     renderDeck();
     deckAnimating=false;
-  },55);
+  };
+  const onTransitionEnd=event=>{
+    if(event.target===card && event.propertyName==='transform') complete();
+  };
+
+  card.addEventListener('transitionend',onTransitionEnd);
+  requestAnimationFrame(()=>{
+    card.classList.add(direction==='right'?'swipe-right':'swipe-left');
+  });
+  setTimeout(complete,240);
 }
 function nextCard(direction='left'){
   moveCard(1,direction);
@@ -2812,9 +2876,8 @@ lenderCarousel.addEventListener('pointermove',e=>{
   lastMoveTime=now;
   if(absX>5) suppressCardClick=true;
 
-  const rotation=Math.max(-6,Math.min(6,dragX/38));
-  const vertical=e.pointerType==='mouse'?dragY*.08:0;
-  dragCard.style.transform='translate3d('+dragX+'px,'+vertical+'px,0) rotate('+rotation+'deg)';
+  const rotation=Math.max(-4,Math.min(4,dragX/52));
+  dragCard.style.transform='translate3d('+dragX+'px,0,0) rotate('+rotation+'deg)';
 });
 
 function finishDrag(e){
@@ -2839,8 +2902,8 @@ function finishDrag(e){
   }
 
   const desktop=e.pointerType==='mouse';
-  const distanceThreshold=desktop?52:70;
-  const velocityThreshold=desktop?.45:.55;
+  const distanceThreshold=desktop?52:56;
+  const velocityThreshold=desktop?.45:.42;
   const shouldSwipe=Math.abs(dragX)>distanceThreshold || Math.abs(dragVelocityX)>velocityThreshold;
 
   if(shouldSwipe){
