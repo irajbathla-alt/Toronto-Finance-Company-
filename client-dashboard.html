@@ -2752,15 +2752,16 @@ async function refreshCurrentClient(showError=false){
   crmRefreshApplicationId=requestApplicationId;
   return requestPromise;
 }
-async function uploadCurrentClientFile(file,type='document'){
-  if(!liveClientReady()) throw new Error('Please sign in to your client portal before uploading.');
+async function uploadCurrentClientFile(file,type='document',clientContext=null){
+  if(!liveClientReady() && !clientContext) throw new Error('Please sign in to your client portal before uploading.');
   if(file.size>20*1024*1024) throw new Error('Each file must be smaller than 20 MB.');
   if(type==='statement' && file.type!=='application/pdf'&&!/\.pdf$/i.test(file.name)){
     throw new Error('Bank statements must be PDF files.');
   }
 
-  const applicationId=String(crmClient.applicationId||'');
-  const email=String(crmClient.email||'');
+  const applicationId=String(clientContext?.applicationId||crmClient?.applicationId||'');
+  const email=String(clientContext?.email||crmClient?.email||'');
+  if(!applicationId||!email) throw new Error('Please sign in to your client portal before uploading.');
   const base64=await fileToBase64(file);
   const uploadKey=[
     applicationId,
@@ -3273,17 +3274,20 @@ approvalProceed.addEventListener('click',async e=>{
   e.preventDefault();
   e.stopPropagation();
   if(!approvalSideSample.classList.contains('visible')) return;
+  const requestApplicationId=String(crmClient?.applicationId||'');
+  const requestEmail=String(crmClient?.email||'');
   approvalProceed.disabled=true;
   approvalMore.disabled=true;
   approvalActionStatus.textContent='Sending your response...';
   try{
     const result=await crmApi(CURRENT_CRM_ACTIONS.clientDecision,{
-      applicationId:crmClient.applicationId,
-      email:crmClient.email,
+      applicationId:requestApplicationId,
+      email:requestEmail,
       decision:'Proceed',
       note:''
     });
     if(!result?.ok) throw new Error(result?.error||'Your response could not be sent.');
+    if(!liveClientReady()||String(crmClient.applicationId||'')!==requestApplicationId) return;
     crmClient={...crmClient,...(result.data||{})};
     saveCurrentClient(crmClient);
     renderPortalState(crmClient);
@@ -3427,25 +3431,28 @@ function renderPortalConversation(){
 async function sendPortalChat(){
   const message=chatInput.value.trim();
   if(!message||!liveClientReady()) return;
+  const requestApplicationId=String(crmClient.applicationId||'');
+  const requestEmail=String(crmClient.email||'');
   chatSend.disabled=true;
 
   try{
     let result=await crmApi(CURRENT_CRM_ACTIONS.clientChatSend,{
-      applicationId:crmClient.applicationId,
-      email:crmClient.email,
+      applicationId:requestApplicationId,
+      email:requestEmail,
       message
     });
 
     if(!result?.ok && /unknown action/i.test(String(result?.error||''))){
       result=await crmApi(CURRENT_CRM_ACTIONS.clientDecision,{
-        applicationId:crmClient.applicationId,
-        email:crmClient.email,
+        applicationId:requestApplicationId,
+        email:requestEmail,
         decision:'Request More Information',
         note:message
       });
     }
 
     if(!result?.ok) throw new Error(result?.error||'Your message could not be sent.');
+    if(!liveClientReady()||String(crmClient.applicationId||'')!==requestApplicationId) return;
     crmClient={...crmClient,...(result.data||{})};
     saveCurrentClient(crmClient);
     pendingMoreInfo=false;
@@ -3484,12 +3491,19 @@ requestedUpload.addEventListener('click',async()=>{
     return;
   }
 
+  const uploadContext={
+    applicationId:String(crmClient.applicationId||''),
+    email:String(crmClient.email||'')
+  };
   requestedUpload.disabled=true;
   requestedMsg.textContent='Uploading '+files.length+' document'+(files.length===1?'':'s')+'...';
 
   try{
     for(const file of files){
-      await uploadCurrentClientFile(file,category);
+      if(!liveClientReady()||String(crmClient.applicationId||'')!==uploadContext.applicationId){
+        throw new Error('Your client session changed during the upload. Please reopen the file before continuing.');
+      }
+      await uploadCurrentClientFile(file,category,uploadContext);
     }
     requestedFiles.value='';
     requestedMsg.textContent='Documents sent. Your advisor will see them in your file.';
@@ -3574,16 +3588,19 @@ function refreshTfcFlowState(){
 }
 confirmSignatureBtn.addEventListener('click',async()=>{
   if(!liveClientReady()) return;
+  const requestApplicationId=String(crmClient.applicationId||'');
+  const requestEmail=String(crmClient.email||'');
   confirmSignatureBtn.disabled=true;
   confirmSignatureBtn.textContent='Confirming...';
   signatureActionMsg.className='crm-action-msg';
   signatureActionMsg.textContent='Confirming your submission...';
   try{
     const result=await crmApi(CURRENT_CRM_ACTIONS.confirmSignature,{
-      applicationId:crmClient.applicationId,
-      email:crmClient.email
+      applicationId:requestApplicationId,
+      email:requestEmail
     });
     if(!result?.ok) throw new Error(result?.error||'Signature confirmation could not be saved.');
+    if(!liveClientReady()||String(crmClient.applicationId||'')!==requestApplicationId) return;
     crmClient={...crmClient,...(result.data||{}),signatureConfirmed:true};
     localStorage.setItem('tfc-signed-'+crmClient.applicationId,'yes');
     saveCurrentClient(crmClient);
@@ -3648,14 +3665,21 @@ statementUploadBtn.addEventListener('click',async()=>{
     return;
   }
 
+  const uploadContext={
+    applicationId:String(crmClient.applicationId||''),
+    email:String(crmClient.email||'')
+  };
   const previousStatementCount=Number(crmClient.statements||0);
   const expectedStatementCount=previousStatementCount+pdfs.length;
   statementUploadBtn.disabled=true;
   statementUploadMsg.className='crm-action-msg';
   try{
     for(let i=0;i<pdfs.length;i++){
+      if(!liveClientReady()||String(crmClient.applicationId||'')!==uploadContext.applicationId){
+        throw new Error('Your client session changed during the upload. Please reopen the file before continuing.');
+      }
       statementUploadMsg.textContent='Uploading '+(i+1)+' of '+pdfs.length+'...';
-      await uploadCurrentClientFile(pdfs[i],'statement');
+      await uploadCurrentClientFile(pdfs[i],'statement',uploadContext);
     }
 
     statementUploadMsg.textContent='Finishing upload...';
