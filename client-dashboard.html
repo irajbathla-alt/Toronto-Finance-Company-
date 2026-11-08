@@ -2184,6 +2184,18 @@ button,input{font:inherit}
   .funding-row .route.swipe-right{
     transform:translate3d(114%,0,0) rotate(2.5deg)!important;
   }
+
+  /* Mobile pre-approval only: slightly taller card while staying within the first viewport. */
+  .funding-row.no-approval{
+    --preapproval-card-height:clamp(318px,41dvh,342px);
+  }
+  .funding-row.no-approval .route{
+    height:var(--preapproval-card-height)!important;
+    padding:16px 13px!important;
+  }
+  .funding-row.no-approval .route-grid{
+    height:calc(var(--preapproval-card-height) + 18px)!important;
+  }
 }
 
 </style>
