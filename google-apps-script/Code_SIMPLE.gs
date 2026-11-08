@@ -47,6 +47,7 @@ const ADMIN_TOKEN_TTL_SECONDS = 21600;
 const MAX_LENDER_PACKAGE_BYTES = 17 * 1024 * 1024;
 const DOCUMENT_INDEX_CACHE_SECONDS = 20;
 const UPLOAD_IDEMPOTENCY_SECONDS = 21600;
+const AUDIT_CACHE_SECONDS = 15;
 
 function doGet(e) {
   try {
@@ -435,6 +436,10 @@ function auditValue(value) {
   return String(value).slice(0,10000);
 }
 
+function auditCacheKey(applicationId) {
+  return 'tfc-audit-' + hash(String(applicationId || '')).slice(0,40);
+}
+
 function appendAuditEvent(event) {
   try {
     const sh = auditSheet();
@@ -455,6 +460,9 @@ function appendAuditEvent(event) {
     };
     const row = headers.map(header => Object.prototype.hasOwnProperty.call(record,header) ? record[header] : '');
     sh.appendRow(row);
+    if (record.applicationId) {
+      CacheService.getScriptCache().remove(auditCacheKey(record.applicationId));
+    }
   } catch (error) {
     Logger.log('Audit event could not be written: ' + (error && error.message ? error.message : error));
   }
@@ -520,6 +528,16 @@ function adminGetAudit(p) {
   if (!applicationId) throw new Error('Application ID is required');
   findApplication(applicationId);
 
+  const cache = CacheService.getScriptCache();
+  const cacheKey = auditCacheKey(applicationId);
+  const cached = cache.get(cacheKey);
+  if (cached) {
+    try {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed)) return { ok:true, data:parsed, cached:true };
+    } catch (_) {}
+  }
+
   const sh = auditSheet();
   if (sh.getLastRow() < 2) return { ok:true, data:[] };
 
@@ -532,6 +550,10 @@ function adminGetAudit(p) {
     .filter(record => String(record.applicationId || '') === applicationId)
     .sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     .slice(0,250);
+
+  try {
+    cache.put(cacheKey,JSON.stringify(data),AUDIT_CACHE_SECONDS);
+  } catch (_) {}
 
   return { ok:true, data };
 }
