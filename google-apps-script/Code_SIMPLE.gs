@@ -284,18 +284,24 @@ function parseChatHistory(value) {
   }
 }
 
-function appendChatMessage(applicationId, sender, message) {
+function appendChatMessage(applicationId, sender, message, messageId) {
   const text = String(message || '').trim().slice(0,4000);
   if (!text) return findApplication(applicationId);
 
+  const requestedId = String(messageId || '').trim().slice(0,120);
   const lock = LockService.getScriptLock();
-  lock.waitLock(10000);
+  lock.waitLock(20000);
 
   try {
     const record = findApplication(applicationId);
     const history = parseChatHistory(record.chatHistory);
+
+    if (requestedId && history.some(entry => String(entry && entry.id || '') === requestedId)) {
+      return record;
+    }
+
     history.push({
-      id:Utilities.getUuid(),
+      id:requestedId || Utilities.getUuid(),
       sender:String(sender || '').toUpperCase() === 'CLIENT' ? 'CLIENT' : 'ADVISOR',
       message:text,
       at:new Date().toISOString()
@@ -678,9 +684,18 @@ function clientDecision(p) {
     throw new Error('Please choose Proceed or Request More Information');
   }
 
+  const note = String(p.note || '').trim();
+  const sameDecision =
+    String(record.clientDecision || '') === decision &&
+    String(record.clientDecisionNote || '') === note;
+
+  if (sameDecision) {
+    return { ok:true, data:safeClient({ ...record, documents:[] }), deduplicated:true };
+  }
+
   updateRecord(record.applicationId,{
     clientDecision:decision,
-    clientDecisionNote:String(p.note || '').trim(),
+    clientDecisionNote:note,
     clientDecisionAt:new Date()
   });
 
@@ -695,8 +710,8 @@ function clientDecision(p) {
     newValue:decision,
     summary:'Client response: ' + decision
   });
-  if (decision === 'Request More Information' && String(p.note || '').trim()) {
-    appendChatMessage(record.applicationId,'CLIENT',String(p.note || '').trim());
+  if (decision === 'Request More Information' && note) {
+    appendChatMessage(record.applicationId,'CLIENT',note,p.messageId);
   }
   const withChat = findApplication(record.applicationId);
   sendClientDecisionEmail(withChat);
@@ -709,7 +724,7 @@ function clientChatSend(p) {
   const message = String(p.message || '').trim();
   if (!message) throw new Error('Message is required');
 
-  const fresh = appendChatMessage(record.applicationId,'CLIENT',message);
+  const fresh = appendChatMessage(record.applicationId,'CLIENT',message,p.messageId);
   appendAuditEvent({
     applicationId:record.applicationId,
     actorType:'CLIENT',
@@ -999,7 +1014,7 @@ function adminChatSend(p) {
   if (!message) throw new Error('Message is required');
 
   updateRecord(record.applicationId,{ messageBody:message });
-  const saved = appendChatMessage(record.applicationId,'ADVISOR',message);
+  const saved = appendChatMessage(record.applicationId,'ADVISOR',message,p.messageId);
 
   appendAuditEvent({
     applicationId:record.applicationId,
