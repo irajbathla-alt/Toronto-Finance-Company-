@@ -284,9 +284,9 @@ function parseChatHistory(value) {
   }
 }
 
-function appendChatMessage(applicationId, sender, message, messageId) {
+function appendChatMessageResult(applicationId, sender, message, messageId) {
   const text = String(message || '').trim().slice(0,4000);
-  if (!text) return findApplication(applicationId);
+  if (!text) return { record:findApplication(applicationId), deduplicated:true };
 
   const requestedId = String(messageId || '').trim().slice(0,120);
   const lock = LockService.getScriptLock();
@@ -297,7 +297,7 @@ function appendChatMessage(applicationId, sender, message, messageId) {
     const history = parseChatHistory(record.chatHistory);
 
     if (requestedId && history.some(entry => String(entry && entry.id || '') === requestedId)) {
-      return record;
+      return { record, deduplicated:true };
     }
 
     history.push({
@@ -315,10 +315,14 @@ function appendChatMessage(applicationId, sender, message, messageId) {
     }
 
     updateRecordUnlocked(applicationId,{ chatHistory:serialized });
-    return findApplication(applicationId);
+    return { record:findApplication(applicationId), deduplicated:false };
   } finally {
     lock.releaseLock();
   }
+}
+
+function appendChatMessage(applicationId, sender, message, messageId) {
+  return appendChatMessageResult(applicationId,sender,message,messageId).record;
 }
 
 function hash(value) {
@@ -977,7 +981,7 @@ function adminUpdate(p) {
 
   if (messageWasUpdated) {
     const advisorMessage = String(patch.messageBody || saved.messageBody || patch.messageTitle || saved.messageTitle || '').trim();
-    if (advisorMessage) saved = appendChatMessage(p.applicationId,'ADVISOR',advisorMessage);
+    if (advisorMessage) saved = appendChatMessage(p.applicationId,'ADVISOR',advisorMessage,p.messageId);
   }
 
   Object.keys(patch).forEach(field => {
@@ -988,20 +992,28 @@ function adminUpdate(p) {
   const shouldNotify = ['true','1','yes'].includes(String(p.notifyClient || '').toLowerCase());
 
   if (shouldNotify) {
-    notification = sendClientUpdateEmail(saved);
-    appendAuditEvent({
-      applicationId:p.applicationId,
-      actorType:'ADMIN',
-      actorId:CONFIG.ADMIN_EMAIL,
-      action:notification.sent ? 'CLIENT_NOTIFICATION_SENT' : 'CLIENT_NOTIFICATION_FAILED',
-      summary:notification.sent
-        ? 'Client update notification sent'
-        : 'Client update notification could not be sent',
-      metadata:notification.sent
-        ? { sender:notification.sender || CONFIG.CLIENT_NOTIFICATION_FROM }
-        : { error:notification.error || 'Unknown notification error' }
-    });
-    saved = findApplication(p.applicationId);
+    const messageFieldsProvided =
+      Object.prototype.hasOwnProperty.call(patch,'messageBody') ||
+      Object.prototype.hasOwnProperty.call(patch,'messageTitle');
+
+    if (messageFieldsProvided && !messageWasUpdated) {
+      notification = { attempted:false, sent:true, deduplicated:true };
+    } else {
+      notification = sendClientUpdateEmail(saved);
+      appendAuditEvent({
+        applicationId:p.applicationId,
+        actorType:'ADMIN',
+        actorId:CONFIG.ADMIN_EMAIL,
+        action:notification.sent ? 'CLIENT_NOTIFICATION_SENT' : 'CLIENT_NOTIFICATION_FAILED',
+        summary:notification.sent
+          ? 'Client update notification sent'
+          : 'Client update notification could not be sent',
+        metadata:notification.sent
+          ? { sender:notification.sender || CONFIG.CLIENT_NOTIFICATION_FROM }
+          : { error:notification.error || 'Unknown notification error' }
+      });
+      saved = findApplication(p.applicationId);
+    }
   }
 
   return { ok:true, data:safe(saved), notification };
@@ -1014,7 +1026,17 @@ function adminChatSend(p) {
   if (!message) throw new Error('Message is required');
 
   updateRecord(record.applicationId,{ messageBody:message });
-  const saved = appendChatMessage(record.applicationId,'ADVISOR',message,p.messageId);
+  const chatResult = appendChatMessageResult(record.applicationId,'ADVISOR',message,p.messageId);
+  const saved = chatResult.record;
+
+  if (chatResult.deduplicated) {
+    return {
+      ok:true,
+      data:safe(findApplication(record.applicationId)),
+      notification:{ attempted:false, sent:true, deduplicated:true },
+      deduplicated:true
+    };
+  }
 
   appendAuditEvent({
     applicationId:record.applicationId,
