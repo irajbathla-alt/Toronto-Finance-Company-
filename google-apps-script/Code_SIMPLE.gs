@@ -306,7 +306,7 @@ function appendChatMessage(applicationId, sender, message) {
       serialized = JSON.stringify(history);
     }
 
-    updateRecord(applicationId,{ chatHistory:serialized });
+    updateRecordUnlocked(applicationId,{ chatHistory:serialized });
     return findApplication(applicationId);
   } finally {
     lock.releaseLock();
@@ -356,7 +356,7 @@ function appendRecord(record) {
   appendRecordToSheet(sh, headers, record);
 }
 
-function updateRecord(applicationId, patch) {
+function updateRecordUnlocked(applicationId, patch) {
   const found = findRow('applicationId',String(applicationId));
   if (!found) throw new Error('Application not found');
 
@@ -373,6 +373,16 @@ function updateRecord(applicationId, patch) {
   if (updatedIndex >= 0) row[updatedIndex] = new Date();
 
   found.sh.getRange(found.rowNumber,1,1,width).setValues([row.slice(0,width)]);
+}
+
+function updateRecord(applicationId, patch) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    return updateRecordUnlocked(applicationId,patch);
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function auditSheet() {
@@ -1148,7 +1158,7 @@ function ensureDriveFolder(record) {
     ['Bank Statements','Identification','Financial Statements','Other Documents']
       .forEach(name => folder.createFolder(name));
 
-    updateRecord(fresh.applicationId,{
+    updateRecordUnlocked(fresh.applicationId,{
       driveFolderId:folder.getId(),
       driveUrl:folder.getUrl()
     });
