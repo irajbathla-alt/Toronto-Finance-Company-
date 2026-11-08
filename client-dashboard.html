@@ -2628,6 +2628,7 @@ let crmClient=null;
 let crmRefreshTimer=null;
 let crmRefreshInFlight=null;
 let crmRefreshApplicationId='';
+let crmRefreshFailures=0;
 let crmHealthReady=false;
 let portalConversationSignature='';
 let pendingMoreInfo=false;
@@ -2801,11 +2802,37 @@ async function uploadCurrentClientFile(file,type='document',clientContext=null){
   }
 }
 function startCurrentClientRefresh(){
-  if(crmRefreshTimer) clearInterval(crmRefreshTimer);
+  if(crmRefreshTimer) clearTimeout(crmRefreshTimer);
+  crmRefreshTimer=null;
+  crmRefreshFailures=0;
   if(!liveClientReady()) return;
-  crmRefreshTimer=setInterval(()=>{
-    if(document.visibilityState==='visible') refreshCurrentClient(false).catch(()=>{});
-  },12000);
+
+  const schedule=()=>{
+    if(!liveClientReady()) return;
+    const delay=crmRefreshFailures
+      ? Math.min(60000,18000*Math.pow(2,Math.min(crmRefreshFailures,2)))
+      : 18000;
+
+    crmRefreshTimer=setTimeout(async()=>{
+      if(!liveClientReady()) return;
+
+      if(document.visibilityState!=='visible'){
+        schedule();
+        return;
+      }
+
+      try{
+        await refreshCurrentClient(false);
+        crmRefreshFailures=0;
+      }catch(_){
+        crmRefreshFailures=Math.min(crmRefreshFailures+1,3);
+      }finally{
+        if(liveClientReady()) schedule();
+      }
+    },delay);
+  };
+
+  schedule();
 }
 
 let currentCard=0;
@@ -3735,8 +3762,9 @@ function writeCurrentClientSession(data){
 function showCandidateLogin(message=''){
   portalBoot.hidden=true;
   if(crmRefreshTimer){
-    clearInterval(crmRefreshTimer);
+    clearTimeout(crmRefreshTimer);
     crmRefreshTimer=null;
+    crmRefreshFailures=0;
   }
   crmClient=null;
   portalConversationSignature='';
