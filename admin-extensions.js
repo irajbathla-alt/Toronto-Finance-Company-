@@ -57,9 +57,14 @@
     const textarea = $('#messageBody');
     const status = $('#messageSendMsg');
     const messageBody = String(textarea?.value || '').trim();
+    const messageId = textarea?.dataset.messageId ||
+      (crypto.randomUUID ? crypto.randomUUID() : 'MSG-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+    if (textarea) textarea.dataset.messageId = messageId;
+
     const update = {
       applicationId: applicationId(),
       message: messageBody,
+      messageId,
       adminToken: String(sessionStorage.getItem('tfc-admin-token') || '').trim()
     };
 
@@ -98,6 +103,7 @@
         result = await jsonp('adminUpdate', {
           applicationId:update.applicationId,
           messageBody,
+          messageId,
           notifyClient:'true',
           adminToken:update.adminToken
         });
@@ -106,7 +112,10 @@
       if (!result?.ok) throw new Error(result?.error || 'The message could not be sent.');
 
       const notification = result.notification || {};
-      if (textarea) textarea.value = '';
+      if (textarea) {
+        textarea.value = '';
+        delete textarea.dataset.messageId;
+      }
 
       if (status) {
         if (notification.sent) {
@@ -135,6 +144,10 @@
 
   const notifyButton = $('#saveNotify');
   if (notifyButton) notifyButton.onclick = sendClientMessage;
+  const messageTextarea = $('#messageBody');
+  if (messageTextarea) messageTextarea.addEventListener('input',() => {
+    delete messageTextarea.dataset.messageId;
+  });
 })();
 
 (() => {
