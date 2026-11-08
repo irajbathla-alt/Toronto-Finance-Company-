@@ -2178,15 +2178,19 @@ button,input{font:inherit}
   visibility:visible!important;
 }
 
-/* Slightly fuller Apply / Know More pills without changing width or layout. */
+/* Slightly thicker Apply / Know More pills — preserve their existing width. */
 .funding-row .card-action{
-  padding-top:11px!important;
-  padding-bottom:11px!important;
+  box-sizing:border-box;
+  min-height:34px;
+  padding-top:9px!important;
+  padding-bottom:9px!important;
+  font-weight:700;
 }
 @media(max-width:760px){
   .funding-row .card-action{
-    padding-top:10px!important;
-    padding-bottom:10px!important;
+    min-height:32px;
+    padding-top:8px!important;
+    padding-bottom:8px!important;
   }
   .funding-row .route.swipe-left{
     transform:translate3d(-114%,0,0) rotate(-2.5deg)!important;
