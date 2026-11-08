@@ -2139,7 +2139,7 @@ button,input{font:inherit}
 /* Seamless Tinder-style lender swipe.
    The next card is perfectly aligned underneath the active card, with no visible stack. */
 .funding-row .route{
-  transition:transform .18s cubic-bezier(.2,.78,.25,1),opacity .14s ease,box-shadow .18s ease!important;
+  transition:transform .28s cubic-bezier(.22,.72,.24,1),opacity .22s ease,box-shadow .22s ease!important;
   transform-origin:50% 86%!important;
 }
 .funding-row .route[data-pos="0"]{
@@ -2168,21 +2168,21 @@ button,input{font:inherit}
   transition:none!important;
 }
 .funding-row .route.swipe-left{
-  transform:translate3d(-118%,0,0) rotate(-4deg)!important;
+  transform:translate3d(-112%,0,0) rotate(-2.5deg)!important;
   opacity:.98!important;
   visibility:visible!important;
 }
 .funding-row .route.swipe-right{
-  transform:translate3d(118%,0,0) rotate(4deg)!important;
+  transform:translate3d(112%,0,0) rotate(2.5deg)!important;
   opacity:.98!important;
   visibility:visible!important;
 }
 @media(max-width:760px){
   .funding-row .route.swipe-left{
-    transform:translate3d(-125%,0,0) rotate(-4deg)!important;
+    transform:translate3d(-114%,0,0) rotate(-2.5deg)!important;
   }
   .funding-row .route.swipe-right{
-    transform:translate3d(125%,0,0) rotate(4deg)!important;
+    transform:translate3d(114%,0,0) rotate(2.5deg)!important;
   }
 }
 
@@ -2776,7 +2776,7 @@ function setCard(index){
   currentCard=(index+lenderCards.length)%lenderCards.length;
   renderDeck();
 }
-function moveCard(step,direction){
+function moveCard(step,direction,startX=0,startRotation=0){
   if(deckAnimating) return;
   closeCriteria();
   closeTfcFlow();
@@ -2792,12 +2792,31 @@ function moveCard(step,direction){
     candidate.style.pointerEvents='none';
   });
 
-  let finished=false;
+  card.classList.remove('dragging','swipe-left','swipe-right');
 
+  // Continue from the exact release position instead of snapping back first.
+  if(startX){
+    card.style.setProperty(
+      'transform',
+      'translate3d('+startX+'px,0,0) rotate('+startRotation+'deg)',
+      'important'
+    );
+  }
+
+  const exitDistance=Math.max(card.getBoundingClientRect().width*1.22,420);
+  const exitX=direction==='right'?exitDistance:-exitDistance;
+  const exitRotation=direction==='right'?2.5:-2.5;
+
+  let finished=false;
+  const cleanup=()=>{
+    card.style.removeProperty('transition');
+    card.style.removeProperty('transform');
+  };
   const complete=()=>{
     if(finished) return;
     finished=true;
     card.removeEventListener('transitionend',onTransitionEnd);
+    cleanup();
     currentCard=targetIndex;
     renderDeck();
     deckAnimating=false;
@@ -2807,10 +2826,23 @@ function moveCard(step,direction){
   };
 
   card.addEventListener('transitionend',onTransitionEnd);
+  card.style.setProperty(
+    'transition',
+    'transform .29s cubic-bezier(.22,.72,.24,1), opacity .22s ease',
+    'important'
+  );
+
+  // Force the browser to register the current position before animating out.
+  void card.offsetWidth;
   requestAnimationFrame(()=>{
-    card.classList.add(direction==='right'?'swipe-right':'swipe-left');
+    card.style.setProperty(
+      'transform',
+      'translate3d('+exitX+'px,0,0) rotate('+exitRotation+'deg)',
+      'important'
+    );
   });
-  setTimeout(complete,240);
+
+  setTimeout(complete,360);
 }
 function nextCard(direction='left'){
   moveCard(1,direction);
@@ -2885,8 +2917,12 @@ lenderCarousel.addEventListener('pointermove',e=>{
   lastMoveTime=now;
   if(absX>5) suppressCardClick=true;
 
-  const rotation=Math.max(-4,Math.min(4,dragX/52));
-  dragCard.style.transform='translate3d('+dragX+'px,0,0) rotate('+rotation+'deg)';
+  const rotation=Math.max(-2.5,Math.min(2.5,dragX/92));
+  dragCard.style.setProperty(
+    'transform',
+    'translate3d('+dragX+'px,0,0) rotate('+rotation+'deg)',
+    'important'
+  );
 });
 
 function finishDrag(e){
@@ -2902,26 +2938,45 @@ function finishDrag(e){
 
   try{card.releasePointerCapture(e.pointerId)}catch(_){}
   card.classList.remove('dragging');
-  card.style.transform='';
 
   if(dragAxis!=='horizontal'){
+    card.style.removeProperty('transform');
     dragAxis=null;
     renderDeck();
     return;
   }
 
   const desktop=e.pointerType==='mouse';
-  const distanceThreshold=desktop?52:56;
-  const velocityThreshold=desktop?.45:.42;
+  const distanceThreshold=desktop?58:62;
+  const velocityThreshold=desktop?.48:.46;
   const shouldSwipe=Math.abs(dragX)>distanceThreshold || Math.abs(dragVelocityX)>velocityThreshold;
+  const releaseRotation=Math.max(-2.5,Math.min(2.5,dragX/92));
 
   if(shouldSwipe){
     suppressCardClick=true;
     const direction=(Math.abs(dragX)>10?dragX:dragVelocityX)>0?'right':'left';
-    nextCard(direction);
-    setTimeout(()=>{suppressCardClick=false},180);
+    moveCard(1,direction,dragX,releaseRotation);
+    setTimeout(()=>{suppressCardClick=false},320);
   }else{
-    renderDeck();
+    // Softly settle back to centre if the gesture was not committed.
+    card.style.setProperty(
+      'transition',
+      'transform .24s cubic-bezier(.22,.72,.24,1)',
+      'important'
+    );
+    card.style.setProperty(
+      'transform',
+      'translate3d(0,0,0) rotate(0deg)',
+      'important'
+    );
+    const settle=()=>{
+      card.removeEventListener('transitionend',settle);
+      card.style.removeProperty('transition');
+      card.style.removeProperty('transform');
+      renderDeck();
+    };
+    card.addEventListener('transitionend',settle);
+    setTimeout(settle,300);
   }
 
   dragAxis=null;
