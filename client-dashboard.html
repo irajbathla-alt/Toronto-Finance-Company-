@@ -2663,12 +2663,29 @@ function crmJsonp(action,payload={},mode='direct',timeout=CRM_REQUEST_TIMEOUT){
     document.head.appendChild(script);
   });
 }
+const CRM_RETRYABLE_READ_ACTIONS=new Set([
+  CURRENT_CRM_ACTIONS.health,
+  CURRENT_CRM_ACTIONS.getClient
+]);
+
 async function crmApi(action,payload={}){
-  try{return await crmJsonp(action,payload,'direct')}
-  catch(first){
-    try{return await crmJsonp(action,payload,'payload')}
-    catch(_){throw first}
+  const retryable=CRM_RETRYABLE_READ_ACTIONS.has(action);
+  const attempts=retryable?2:1;
+  let lastError;
+
+  for(let attempt=0;attempt<attempts;attempt++){
+    if(attempt) await new Promise(resolve=>setTimeout(resolve,700*attempt));
+
+    for(const mode of retryable?['direct','payload']:['direct']){
+      try{
+        return await crmJsonp(action,payload,mode);
+      }catch(error){
+        lastError=error;
+      }
+    }
   }
+
+  throw lastError||new Error('The CRM service could not be reached.');
 }
 function fileToBase64(file){
   return new Promise((resolve,reject)=>{
@@ -2741,21 +2758,46 @@ async function uploadCurrentClientFile(file,type='document'){
   if(type==='statement' && file.type!=='application/pdf'&&!/\.pdf$/i.test(file.name)){
     throw new Error('Bank statements must be PDF files.');
   }
+
+  const applicationId=String(crmClient.applicationId||'');
+  const email=String(crmClient.email||'');
   const base64=await fileToBase64(file);
-  await fetch(crmCfg.apiUrl,{
-    method:'POST',
-    mode:'no-cors',
-    headers:{'Content-Type':'text/plain;charset=UTF-8'},
-    body:JSON.stringify({
-      action:CURRENT_CRM_ACTIONS.uploadDocument,
-      applicationId:crmClient.applicationId,
-      email:crmClient.email,
-      fileName:file.name,
-      mimeType:file.type||'application/octet-stream',
-      base64,
-      type
-    })
-  });
+  const uploadKey=[
+    applicationId,
+    type,
+    file.name,
+    file.size,
+    file.lastModified||0
+  ].join('|');
+
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),60000);
+
+  try{
+    await fetch(crmCfg.apiUrl,{
+      method:'POST',
+      mode:'no-cors',
+      signal:controller.signal,
+      headers:{'Content-Type':'text/plain;charset=UTF-8'},
+      body:JSON.stringify({
+        action:CURRENT_CRM_ACTIONS.uploadDocument,
+        applicationId,
+        email,
+        fileName:file.name,
+        mimeType:file.type||'application/octet-stream',
+        base64,
+        type,
+        uploadKey
+      })
+    });
+  }catch(error){
+    if(error?.name==='AbortError'){
+      throw new Error('The upload is taking longer than expected. Please check your portal before trying the same file again.');
+    }
+    throw error;
+  }finally{
+    clearTimeout(timer);
+  }
 }
 function startCurrentClientRefresh(){
   if(crmRefreshTimer) clearInterval(crmRefreshTimer);
@@ -3618,8 +3660,9 @@ statementUploadBtn.addEventListener('click',async()=>{
 
     statementUploadMsg.textContent='Finishing upload...';
     let confirmed=false;
-    for(let attempt=0;attempt<4;attempt++){
-      if(attempt) await new Promise(r=>setTimeout(r,650));
+    const confirmationDelays=[0,500,900,1400,2000,2800,3800];
+    for(const delay of confirmationDelays){
+      if(delay) await new Promise(resolve=>setTimeout(resolve,delay));
       await refreshCurrentClient(false);
       if(Number(crmClient.statements||0)>=expectedStatementCount){
         confirmed=true;
