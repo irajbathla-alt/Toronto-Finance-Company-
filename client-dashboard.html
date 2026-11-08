@@ -2178,9 +2178,10 @@ button,input{font:inherit}
   visibility:visible!important;
 }
 
-/* Slightly thicker Apply / Know More pills — preserve their existing width. */
+/* Short, thicker Apply / Know More pills. */
 .funding-row .card-action{
   box-sizing:border-box;
+  width:min(154px,68%)!important;
   min-height:34px;
   padding-top:9px!important;
   padding-bottom:9px!important;
@@ -2188,6 +2189,7 @@ button,input{font:inherit}
 }
 @media(max-width:760px){
   .funding-row .card-action{
+    width:min(142px,70%)!important;
     min-height:32px;
     padding-top:8px!important;
     padding-bottom:8px!important;
