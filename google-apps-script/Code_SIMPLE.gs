@@ -45,6 +45,8 @@ const DEFAULT_LENDERS = [
 const DEFAULT_LENDERS_SEEDED_KEY = 'tfc-default-lenders-seeded-v1';
 const ADMIN_TOKEN_TTL_SECONDS = 21600;
 const MAX_LENDER_PACKAGE_BYTES = 17 * 1024 * 1024;
+const DOCUMENT_INDEX_CACHE_SECONDS = 20;
+const UPLOAD_IDEMPOTENCY_SECONDS = 21600;
 
 function doGet(e) {
   try {
@@ -1089,7 +1091,33 @@ function uploadDocument(p) {
     fileName
   );
 
-  targetFolder.createFile(blob);
+  const uploadKey = String(p.uploadKey || '').trim().slice(0,500);
+  const uploadCacheKey = uploadKey
+    ? 'tfc-upload-' + hash(record.applicationId + '|' + uploadKey).slice(0,48)
+    : '';
+  const uploadCache = CacheService.getScriptCache();
+
+  if (uploadCacheKey) {
+    const uploadLock = LockService.getScriptLock();
+    uploadLock.waitLock(20000);
+    try {
+      if (uploadCache.get(uploadCacheKey)) {
+        return { ok:true, deduplicated:true };
+      }
+      uploadCache.put(uploadCacheKey,'processing',600);
+    } finally {
+      uploadLock.releaseLock();
+    }
+  }
+
+  try {
+    targetFolder.createFile(blob);
+    if (uploadCacheKey) uploadCache.put(uploadCacheKey,'done',UPLOAD_IDEMPOTENCY_SECONDS);
+    clearDocumentIndexCache(record.applicationId);
+  } catch (error) {
+    if (uploadCacheKey) uploadCache.remove(uploadCacheKey);
+    throw error;
+  }
 
   appendAuditEvent({
     applicationId:record.applicationId,
@@ -1162,6 +1190,7 @@ function ensureDriveFolder(record) {
       driveFolderId:folder.getId(),
       driveUrl:folder.getUrl()
     });
+    clearDocumentIndexCache(fresh.applicationId);
 
     return folder;
   } finally {
@@ -1180,13 +1209,39 @@ function adminGetSubmissionDocuments(p) {
   return { ok:true, data:listSubmissionDocuments(record) };
 }
 
+function documentIndexCacheKey(applicationId) {
+  return 'tfc-doc-index-' + hash(String(applicationId || '')).slice(0,40);
+}
+
+function clearDocumentIndexCache(applicationId) {
+  if (!applicationId) return;
+  CacheService.getScriptCache().remove(documentIndexCacheKey(applicationId));
+}
+
 function listSubmissionDocuments(record) {
   if (!record.driveFolderId) return [];
+
+  const cache = CacheService.getScriptCache();
+  const cacheKey = documentIndexCacheKey(record.applicationId);
+  const cached = cache.get(cacheKey);
+
+  if (cached) {
+    try {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (_) {}
+  }
+
   const out = [];
   try {
     walkSubmissionFolder(DriveApp.getFolderById(record.driveFolderId),out);
   } catch (_) {}
-  return out.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const sorted = out.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  try {
+    cache.put(cacheKey,JSON.stringify(sorted),DOCUMENT_INDEX_CACHE_SECONDS);
+  } catch (_) {}
+  return sorted;
 }
 
 function walkSubmissionFolder(folder,out) {
@@ -1204,7 +1259,8 @@ function walkSubmissionFolder(folder,out) {
       date:file.getDateCreated(),
       type,
       size:file.getSize(),
-      mimeType:file.getMimeType()
+      mimeType:file.getMimeType(),
+      url:file.getUrl()
     });
   }
 
@@ -1215,14 +1271,12 @@ function walkSubmissionFolder(folder,out) {
 }
 
 function listDocuments(record) {
-  if (!record.driveFolderId) return [];
-
-  const out = [];
-  try {
-    walkFolder(DriveApp.getFolderById(record.driveFolderId),out);
-  } catch (_) {}
-
-  return out;
+  return listSubmissionDocuments(record).map(doc => ({
+    name:doc.name,
+    date:doc.date,
+    url:doc.url || '',
+    type:doc.type
+  }));
 }
 
 function walkFolder(folder,out) {
