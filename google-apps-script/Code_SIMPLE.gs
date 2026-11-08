@@ -1413,6 +1413,40 @@ function adminSendLenderPackage(p) {
     throw new Error('Business name is required before sending a lender package.');
   }
 
+  // Prevent an identical package from being sent twice when the browser
+  // times out after Gmail has already accepted the first request.
+  const packageCache = CacheService.getScriptCache();
+  const packageFingerprint = hash(JSON.stringify({
+    applicationId,
+    lenderIds:[...lenderIds].sort(),
+    fileIds:[...fileIds].sort(),
+    subjectTemplate,
+    bodyTemplate,
+    companyName
+  })).slice(0,48);
+  const packageCacheKey = 'tfc-lender-package-' + packageFingerprint;
+
+  const packageLock = LockService.getScriptLock();
+  packageLock.waitLock(20000);
+  try {
+    const cachedPackage = packageCache.get(packageCacheKey);
+    if (cachedPackage) {
+      if (cachedPackage === 'processing') {
+        return {
+          ok:false,
+          error:'This exact lender package is already being sent. Please wait a moment before trying again.'
+        };
+      }
+      try {
+        const previousResult = JSON.parse(cachedPackage);
+        return { ...previousResult, deduplicated:true };
+      } catch (_) {}
+    }
+    packageCache.put(packageCacheKey,'processing',600);
+  } finally {
+    packageLock.releaseLock();
+  }
+
   lenders.forEach(lender => {
     const lenderName = String(lender.name || 'Lender').trim();
     const subject = subjectTemplate
@@ -1483,7 +1517,7 @@ function adminSendLenderPackage(p) {
     }
   });
 
-  return {
+  const result = {
     ok:true,
     sent,
     failed,
@@ -1492,6 +1526,12 @@ function adminSendLenderPackage(p) {
     verifiedBlobBytes,
     attachments:attachmentManifest
   };
+
+  try {
+    packageCache.put(packageCacheKey,JSON.stringify(result),1800);
+  } catch (_) {}
+
+  return result;
 }
 
 function sendClientUpdateEmail(record) {
