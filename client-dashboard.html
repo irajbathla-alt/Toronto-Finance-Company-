@@ -3433,13 +3433,17 @@ async function sendPortalChat(){
   if(!message||!liveClientReady()) return;
   const requestApplicationId=String(crmClient.applicationId||'');
   const requestEmail=String(crmClient.email||'');
+  const messageId=chatInput.dataset.messageId||
+    (crypto.randomUUID?crypto.randomUUID():'MSG-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+  chatInput.dataset.messageId=messageId;
   chatSend.disabled=true;
 
   try{
     let result=await crmApi(CURRENT_CRM_ACTIONS.clientChatSend,{
       applicationId:requestApplicationId,
       email:requestEmail,
-      message
+      message,
+      messageId
     });
 
     if(!result?.ok && /unknown action/i.test(String(result?.error||''))){
@@ -3447,7 +3451,8 @@ async function sendPortalChat(){
         applicationId:requestApplicationId,
         email:requestEmail,
         decision:'Request More Information',
-        note:message
+        note:message,
+        messageId
       });
     }
 
@@ -3457,6 +3462,7 @@ async function sendPortalChat(){
     saveCurrentClient(crmClient);
     pendingMoreInfo=false;
     chatInput.value='';
+    delete chatInput.dataset.messageId;
     chatInput.placeholder='Send a message to your advisor...';
     renderPortalState(crmClient);
     renderPortalConversation();
@@ -3470,6 +3476,7 @@ async function sendPortalChat(){
   }
 }
 chatSend.addEventListener('click',sendPortalChat);
+chatInput.addEventListener('input',()=>{ delete chatInput.dataset.messageId; });
 chatInput.addEventListener('keydown',e=>{
   if(e.key==='Enter'){
     e.preventDefault();
