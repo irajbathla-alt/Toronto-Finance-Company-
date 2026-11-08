@@ -145,6 +145,7 @@
   let currentApplicationId = '';
   let refreshTimer = null;
   let requestRunning = false;
+  let refreshPending = false;
 
   const $ = selector => document.querySelector(selector);
 
@@ -254,25 +255,44 @@
 
   async function refreshDocuments(showFeedback = false) {
     ensureUi();
-    if (!currentApplicationId || requestRunning) return;
+    if (!currentApplicationId) return;
+
+    if (requestRunning) {
+      refreshPending = true;
+      return;
+    }
+
+    const requestApplicationId = currentApplicationId;
     requestRunning = true;
     const button = $('#docActivityRefresh');
+
     if (button) {
       button.disabled = true;
       button.textContent = 'Checking…';
     }
     if (showFeedback && $('#docActivitySync')) $('#docActivitySync').textContent = 'Checking the client’s Google Drive folders…';
+
     try {
-      const result = await jsonp('getDocuments', { applicationId: currentApplicationId, adminToken:String(sessionStorage.getItem('tfc-admin-token') || '').trim() });
+      const result = await jsonp('getDocuments', {
+        applicationId:requestApplicationId,
+        adminToken:String(sessionStorage.getItem('tfc-admin-token') || '').trim()
+      });
       if (!result?.ok) throw new Error(result?.error || 'Drive documents could not be loaded.');
+      if (currentApplicationId !== requestApplicationId) return;
       renderDocuments(result.data || []);
     } catch (error) {
-      if ($('#docActivitySync')) $('#docActivitySync').textContent = error.message || 'Drive check could not be completed.';
+      if (currentApplicationId === requestApplicationId && $('#docActivitySync')) {
+        $('#docActivitySync').textContent = error.message || 'Drive check could not be completed.';
+      }
     } finally {
       requestRunning = false;
       if (button) {
         button.disabled = false;
         button.textContent = 'Check Drive';
+      }
+      if (refreshPending) {
+        refreshPending = false;
+        setTimeout(() => refreshDocuments(false),0);
       }
     }
   }
@@ -328,6 +348,7 @@
   let currentApplicationId = '';
   let events = [];
   let loading = false;
+  let auditPending = false;
 
   function jsonp(action, payload = {}, timeout = 30000) {
     return new Promise((resolve, reject) => {
@@ -495,7 +516,14 @@
   }
 
   async function loadAudit(showLoading = true) {
-    if (!currentApplicationId || loading) return;
+    if (!currentApplicationId) return;
+
+    if (loading) {
+      auditPending = true;
+      return;
+    }
+
+    const requestApplicationId = currentApplicationId;
     loading = true;
 
     const trail = $('#auditTrail');
@@ -509,11 +537,16 @@
     }
 
     try {
-      const result = await jsonp('adminGetAudit', { applicationId:currentApplicationId, adminToken:String(sessionStorage.getItem('tfc-admin-token') || '').trim() });
+      const result = await jsonp('adminGetAudit', {
+        applicationId:requestApplicationId,
+        adminToken:String(sessionStorage.getItem('tfc-admin-token') || '').trim()
+      });
       if (!result?.ok) throw new Error(result?.error || 'Audit history could not be loaded.');
+      if (currentApplicationId !== requestApplicationId) return;
       events = Array.isArray(result.data) ? result.data : [];
       render();
     } catch (error) {
+      if (currentApplicationId !== requestApplicationId) return;
       events = [];
       if (trail) {
         trail.replaceChildren();
@@ -530,6 +563,10 @@
       if (refresh) {
         refresh.disabled = false;
         refresh.textContent = 'Refresh Activity';
+      }
+      if (auditPending) {
+        auditPending = false;
+        setTimeout(() => loadAudit(false),0);
       }
     }
   }
@@ -612,6 +649,9 @@
   let lenders = [];
   let documents = [];
   let editingLenderId = '';
+  let documentLoadSequence = 0;
+  let lendersLoadedAt = 0;
+  let lendersLoadInFlight = null;
 
   function adminToken() {
     return String(sessionStorage.getItem('tfc-admin-token') || '').trim();
@@ -1048,7 +1088,7 @@
     ].join('\n');
   }
 
-  async function loadLenders() {
+  async function loadLenders(force = false) {
     ensureUi();
     const token = adminToken();
     if (!token) {
@@ -1058,20 +1098,33 @@
       return;
     }
 
-    try {
-      const result = await jsonp('adminListLenders',{ adminToken:token },30000);
-      if (!result?.ok) throw new Error(result?.error || 'Lenders could not be loaded.');
-      lenders = Array.isArray(result.data) ? result.data : [];
+    if (!force && lenders.length && Date.now() - lendersLoadedAt < 30000) {
       renderLenders();
-      setStatus('#lenderSendStatus','');
-    } catch (error) {
-      lenders = [];
-      renderLenders();
-      const message = /Unknown action/i.test(error.message || '')
-        ? 'Deploy the updated Code_SIMPLE.gs Apps Script version to activate lender submissions.'
-        : (error.message || 'Lenders could not be loaded.');
-      setStatus('#lenderSendStatus',message,'error');
+      return;
     }
+
+    if (lendersLoadInFlight) return lendersLoadInFlight;
+
+    lendersLoadInFlight = (async () => {
+      try {
+        const result = await jsonp('adminListLenders',{ adminToken:token },30000);
+        if (!result?.ok) throw new Error(result?.error || 'Lenders could not be loaded.');
+        lenders = Array.isArray(result.data) ? result.data : [];
+        lendersLoadedAt = Date.now();
+        renderLenders();
+        setStatus('#lenderSendStatus','');
+      } catch (error) {
+        if (!lenders.length) renderLenders();
+        const message = /Unknown action/i.test(error.message || '')
+          ? 'Deploy the updated Code_SIMPLE.gs Apps Script version to activate lender submissions.'
+          : (error.message || 'Lenders could not be loaded.');
+        setStatus('#lenderSendStatus',message,'error');
+      } finally {
+        lendersLoadInFlight = null;
+      }
+    })();
+
+    return lendersLoadInFlight;
   }
 
   async function loadDocuments() {
@@ -1080,16 +1133,21 @@
     const token = adminToken();
     if (!token) return;
 
+    const requestApplicationId = currentApplicationId;
+    const requestSequence = ++documentLoadSequence;
     $('#lenderDocs').innerHTML = '<div class="lender-empty">Loading client documents from Drive…</div>';
+
     try {
       const result = await jsonp('adminGetSubmissionDocuments',{
         adminToken:token,
-        applicationId:currentApplicationId
+        applicationId:requestApplicationId
       },30000);
       if (!result?.ok) throw new Error(result?.error || 'Client documents could not be loaded.');
+      if (requestSequence !== documentLoadSequence || currentApplicationId !== requestApplicationId) return;
       documents = Array.isArray(result.data) ? result.data : [];
       renderDocuments();
     } catch (error) {
+      if (requestSequence !== documentLoadSequence || currentApplicationId !== requestApplicationId) return;
       documents = [];
       renderDocuments();
       setStatus('#lenderSendStatus',error.message || 'Client documents could not be loaded.','error');
@@ -1123,7 +1181,7 @@
       },30000);
       if (!result?.ok) throw new Error(result?.error || 'Lender could not be saved.');
       resetLenderForm();
-      await loadLenders();
+      await loadLenders(true);
       $('#lenderManagePanel').classList.remove('hidden');
       setStatus('#lenderManageStatus','Lender saved.','success');
     } catch (error) {
@@ -1145,7 +1203,7 @@
       },30000);
       if (!result?.ok) throw new Error(result?.error || 'Lender could not be removed.');
       if (editingLenderId === id) resetLenderForm();
-      await loadLenders();
+      await loadLenders(true);
       setStatus('#lenderManageStatus','Lender removed.','success');
     } catch (error) {
       setStatus('#lenderManageStatus',error.message || 'Lender could not be removed.','error');
