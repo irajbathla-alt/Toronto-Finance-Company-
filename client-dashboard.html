@@ -2783,13 +2783,22 @@ function moveCard(step,direction){
   deckAnimating=true;
 
   const card=lenderCards[currentCard];
+  const targetIndex=(currentCard+step+lenderCards.length)%lenderCards.length;
+
+  // Keep exactly one target card aligned underneath the outgoing card.
+  lenderCards.forEach((candidate,index)=>{
+    if(index===currentCard) return;
+    candidate.dataset.pos=index===targetIndex?'1':'hidden';
+    candidate.style.pointerEvents='none';
+  });
+
   let finished=false;
 
   const complete=()=>{
     if(finished) return;
     finished=true;
     card.removeEventListener('transitionend',onTransitionEnd);
-    currentCard=(currentCard+step+lenderCards.length)%lenderCards.length;
+    currentCard=targetIndex;
     renderDeck();
     deckAnimating=false;
   };
