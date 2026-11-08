@@ -10,6 +10,7 @@
   const adminToken = () => String(sessionStorage.getItem('tfc-admin-token') || '').trim();
   let applications = [];
   let selected = null;
+  let loadInFlight = null;
 
   function toast(message) {
     const el = $('#toast');
@@ -60,11 +61,24 @@
     });
   }
 
+  const RETRYABLE_READ_ACTIONS = new Set([
+    'adminList',
+    'getDocuments',
+    'adminGetAudit',
+    'adminListLenders',
+    'adminGetSubmissionDocuments',
+    'health'
+  ]);
+
   async function readApi(action, payload = {}, timeout = DEFAULT_TIMEOUT) {
+    const retryable = RETRYABLE_READ_ACTIONS.has(action);
+    const attempts = retryable ? 2 : 1;
     let lastError;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      if (attempt) await sleep(1200);
-      for (const mode of ['direct', 'payload']) {
+
+    for (let attempt = 0; attempt < attempts; attempt++) {
+      if (attempt) await sleep(900 * attempt);
+
+      for (const mode of retryable ? ['direct', 'payload'] : ['direct']) {
         try {
           const result = await jsonp(action, payload, mode, timeout);
           if (result) return result;
@@ -73,6 +87,7 @@
         }
       }
     }
+
     throw lastError || new Error('CRM endpoint could not be reached.');
   }
 
@@ -135,10 +150,14 @@
   }
 
   async function load(showToast = false) {
+    if (loadInFlight) return loadInFlight;
+
     const selectedId = selected?.applicationId || '';
     const drawerWasOpen = $('#drawer')?.classList.contains('show');
-    $('#refresh').disabled = true;
-    try {
+
+    loadInFlight = (async () => {
+      $('#refresh').disabled = true;
+      try {
       const result = await readApi('adminList', { adminToken:adminToken() });
       if (!result?.ok) throw new Error(result?.error || 'Could not load applications.');
       applications = result.data || [];
@@ -166,10 +185,14 @@
       } else {
         toast(message);
       }
-      return false;
-    } finally {
-      $('#refresh').disabled = false;
-    }
+        return false;
+      } finally {
+        $('#refresh').disabled = false;
+        loadInFlight = null;
+      }
+    })();
+
+    return loadInFlight;
   }
 
   function renderDocs(docs = []) {
@@ -180,12 +203,15 @@
   }
 
   async function loadDocuments(applicationId) {
+    const requestApplicationId = String(applicationId || '');
     $('#documentCount').textContent = 'Loading…';
+
     try {
-      const result = await readApi('getDocuments', { applicationId, adminToken:adminToken() });
+      const result = await readApi('getDocuments', { applicationId:requestApplicationId, adminToken:adminToken() });
+      if (String(selected?.applicationId || '') !== requestApplicationId) return;
       renderDocs(result?.ok ? result.data || [] : []);
     } catch (_) {
-      renderDocs([]);
+      if (String(selected?.applicationId || '') === requestApplicationId) renderDocs([]);
     }
   }
 
