@@ -728,18 +728,26 @@ function clientChatSend(p) {
   const message = String(p.message || '').trim();
   if (!message) throw new Error('Message is required');
 
-  const fresh = appendChatMessage(record.applicationId,'CLIENT',message,p.messageId);
-  appendAuditEvent({
-    applicationId:record.applicationId,
-    actorType:'CLIENT',
-    actorId:clientEmail,
-    action:'CLIENT_CHAT_MESSAGE',
-    field:'chatHistory',
-    summary:'Client sent a portal message',
-    metadata:{ length:message.length }
-  });
+  const chatResult = appendChatMessageResult(record.applicationId,'CLIENT',message,p.messageId);
+  const fresh = chatResult.record;
 
-  return { ok:true, data:safeClient({ ...fresh, documents:[] }) };
+  if (!chatResult.deduplicated) {
+    appendAuditEvent({
+      applicationId:record.applicationId,
+      actorType:'CLIENT',
+      actorId:clientEmail,
+      action:'CLIENT_CHAT_MESSAGE',
+      field:'chatHistory',
+      summary:'Client sent a portal message',
+      metadata:{ length:message.length }
+    });
+  }
+
+  return {
+    ok:true,
+    data:safeClient({ ...fresh, documents:[] }),
+    deduplicated:chatResult.deduplicated
+  };
 }
 
 function sendSignupNotification(p) {
