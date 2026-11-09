@@ -94,6 +94,8 @@ button,input{font:inherit}
 .route.merchant .route-logo strong{color:#0873a7}
 .route.xuper{background:linear-gradient(145deg,#fff8f3,#fff0e8);border-color:rgba(227,67,47,.2)}
 .route.xuper .route-logo strong{color:#d9402d}
+.route.driven{background:linear-gradient(145deg,#f5fbf8,#edf7f3);border-color:rgba(32,116,88,.20)}
+.route.driven .route-logo strong{color:#246b56}
 .route.tfc{background:linear-gradient(145deg,#fffaf2,#f3e5cf);border-color:rgba(185,137,63,.42)}
 
 .route.tfc .route-logo strong{color:#9b7137}
@@ -2315,6 +2317,18 @@ button,input{font:inherit}
         <p>Continue directly to Xuper Funding's customer application.</p>
         <div class="arrow">↗</div>
       </article>
+
+      <article class="route driven" data-url="https://id.app.driven.ca/users/sign_up?partner=p_Ch8kqu61g67pjJUD">
+        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=driven.ca&sz=128" alt=""><strong>Driven</strong></div>
+        <div class="route-kicker">Direct Application</div>
+        <h2>Driven</h2>
+        <div class="card-actions">
+          <button class="card-action apply" type="button" data-action="apply">Apply Now</button>
+          <button class="card-action more" type="button" data-action="more">Know More</button>
+        </div>
+        <p>Continue directly to Driven's secure small-business financing application.</p>
+        <div class="arrow">↗</div>
+      </article>
     </section>
     <div class="carousel-controls">
       <button class="carousel-arrow" id="carouselPrev" type="button" aria-label="Previous lender">←</button>
@@ -2322,7 +2336,7 @@ button,input{font:inherit}
       <button class="carousel-arrow" id="carouselNext" type="button" aria-label="Next lender">→</button>
     </div>
     <div class="swipe-hint">Swipe left or right to explore funding partners</div>
-    <div class="deck-status" id="deckStatus">1 of 4</div>
+    <div class="deck-status" id="deckStatus">1 of 5</div>
     </div>
 
     <aside class="approval-side" id="approvalSideSample">
@@ -3176,12 +3190,35 @@ const lenderCriteria={
       {name:'Difficult Files',desc:'May consider files that do not fit traditional bank lending, depending on revenue strength, current debt and overall risk.'}
     ],
     note:'Xuper Funding advertises a 10-minute application and fast funding. 3rd-position and difficult-file approvals are case-by-case and remain subject to Xuper Funding underwriting, existing debt obligations and business cash flow.'
+  },
+  driven:{
+    title:'Driven',
+    intro:'A Canadian direct small-business lender offering fast, digital access to working capital for established businesses.',
+    highlights:[
+      {value:'<10 min',label:'Digital application'},
+      {value:'Up to $500K',label:'Funding advertised'},
+      {value:'24 hrs',label:'Funds can be as fast as'}
+    ],
+    eligibility:[
+      '6+ months in business',
+      '600+ personal credit score',
+      '$120,000+ annual business revenue',
+      'Business operating in Canada',
+      'Dedicated business bank account',
+      'Validly existing corporate entity'
+    ],
+    products:[
+      {name:'Small Business Loan',desc:'Term-style financing for working capital, inventory, equipment, renovations, marketing and other business needs.'},
+      {name:'Flexible Draws',desc:'Approved businesses may access capital based on their available borrowing limit and select the amount needed.'}
+    ],
+    note:'Driven states its digital application can typically be completed in under 10 minutes, with funding available in as little as 24 hours for qualifying businesses. Final approval, amount, pricing and terms remain subject to Driven underwriting.'
   }};
 
 function lenderKey(card){
   if(card.classList.contains('tfc')) return 'tfc';
   if(card.classList.contains('journey')) return 'journey';
   if(card.classList.contains('merchant')) return 'merchant';
+  if(card.classList.contains('driven')) return 'driven';
   return 'xuper';
 }
 function openCriteria(card){
