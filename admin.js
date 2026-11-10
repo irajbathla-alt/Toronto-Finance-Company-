@@ -215,29 +215,16 @@
     }
   }
 
-  function setClientActionContent(button, kicker, label, detail) {
-    if (!button) return;
-    button.innerHTML =
-      '<span class="action-kicker"></span><strong></strong><small></small>';
-    button.querySelector('.action-kicker').textContent = kicker;
-    button.querySelector('strong').textContent = label;
-    button.querySelector('small').textContent = detail;
-  }
-
   function restoreClientUpdateActions() {
-    setClientActionContent($('#save'), 'Update File', 'Save Client Update', 'No email sent');
-    setClientActionContent($('#saveEmailUpdate'), 'Update & Notify', 'Save & Send Email Update', 'Email client after saving');
+    const save = $('#save');
+    const email = $('#saveEmailUpdate');
+    if (save) save.textContent = 'Save Client Update';
+    if (email) email.textContent = 'Save & Send Email Update';
     updateDriveButton();
   }
 
   function updateDriveButton() {
-    const hasFolder = Boolean(selected?.driveUrl);
-    setClientActionContent(
-      $('#drive'),
-      'Documents',
-      hasFolder ? 'Open Drive Folder' : 'Create & Open Drive',
-      hasFolder ? 'Client file storage' : 'Create client file storage'
-    );
+    $('#drive').textContent = selected?.driveUrl ? 'Open Drive Folder' : 'Create & Open Drive Folder';
   }
 
   function parseChatHistoryValue(value) {
@@ -454,10 +441,10 @@
     if (emailButton) emailButton.disabled = true;
 
     if (notifyClient) {
-      setClientActionContent(emailButton, 'Update & Notify', 'Saving & Sending…', 'Preparing client email');
+      if (emailButton) emailButton.textContent = 'Saving & Sending…';
       $('#saveMsg').textContent = 'Saving the client update and sending an email notification…';
     } else {
-      setClientActionContent(saveButton, 'Update File', 'Saving…', 'No email will be sent');
+      if (saveButton) saveButton.textContent = 'Saving…';
       $('#saveMsg').textContent = 'Saving the client update without sending an email…';
     }
     $('#saveMsg').className = 'notice client-update-save-msg';
@@ -507,7 +494,7 @@
     if (!selected) return;
     if (selected.driveUrl) return window.open(selected.driveUrl, '_blank', 'noopener');
     $('#drive').disabled = true;
-    setClientActionContent($('#drive'), 'Documents', 'Creating Folder…', 'Preparing client file storage');
+    $('#drive').textContent = 'Creating Folder…';
     try {
       const result = await readApi('adminEnsureDrive', { applicationId: selected.applicationId, adminToken:adminToken() }, 35000);
       if (!result?.ok || !result.data?.driveUrl) throw new Error(result?.error || 'Drive folder could not be created.');
