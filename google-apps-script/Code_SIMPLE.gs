@@ -2143,6 +2143,37 @@ function safe(record) {
 }
 
 /*
+ * RUN THIS ONCE MANUALLY AFTER ADDING FIREBASE AUTH:
+ * Select authorizeFirebaseExternalRequest in the Apps Script function dropdown
+ * and click Run. Approve the requested external-request permission.
+ *
+ * A 400/INVALID_ID_TOKEN response is EXPECTED here; the purpose of this
+ * function is only to force Apps Script to request UrlFetchApp authorization.
+ */
+function authorizeFirebaseExternalRequest() {
+  const response = UrlFetchApp.fetch(
+    'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' + encodeURIComponent(FIREBASE_TEST_API_KEY),
+    {
+      method:'post',
+      contentType:'application/json',
+      payload:JSON.stringify({ idToken:'authorization-check-only' }),
+      muteHttpExceptions:true
+    }
+  );
+
+  const code = response.getResponseCode();
+  const body = response.getContentText();
+  Logger.log('Firebase external request authorization check HTTP ' + code);
+  Logger.log(body);
+
+  return {
+    authorized:true,
+    httpStatus:code,
+    note:'External request permission is authorized. An invalid-token response is expected for this test.'
+  };
+}
+
+/*
  * RUN THIS ONCE MANUALLY AFTER PASTING THE FILE:
  * Select authorizeGmailAlias in the Apps Script function dropdown and click Run.
  * Approve the requested Gmail permissions.
