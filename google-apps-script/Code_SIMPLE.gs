@@ -57,6 +57,8 @@ function doGet(e) {
     const actions = {
       createAccount,
       clientLogin,
+      createAccountFirebaseTest,
+      clientLoginFirebaseTest,
       getClient,
       clientConfirmSignature,
       clientDecision,
@@ -72,7 +74,8 @@ function doGet(e) {
       adminDeleteLender,
       adminGetSubmissionDocuments,
       adminSendLenderPackage,
-      getDocuments
+      getDocuments,
+      firebaseTestRequestStatus
     };
 
     if (!actions[p.action]) throw new Error('Unknown action');
@@ -665,6 +668,304 @@ function clientLogin(p) {
   });
 
   return { ok:true, data:safeClient({ ...record, documents:[] }) };
+}
+
+
+/**
+ * Firebase authentication test bridge.
+ *
+ * TEST ONLY:
+ * - The live Apply and Client Login pages do not call these actions.
+ * - Uses the existing Applications sheet and existing notification/email logic.
+ * - Firebase UID mapping is kept in Script Properties, not in a new sheet/tab.
+ * - Test applications use a TFC-FB-* ID so they cannot affect live TFC-###### numbering.
+ */
+const FIREBASE_TEST_API_KEY = 'AIzaSyAXIObBDa-i8W_wAUtt43FXracH7ezPhlA';
+const FIREBASE_TEST_REQUEST_TTL_SECONDS = 300;
+const FIREBASE_TEST_MAPPING_PREFIX = 'tfc-firebase-test-map-';
+
+function firebaseTestRequestCacheKey(requestId) {
+  const id = String(requestId || '').trim();
+  if (!/^[a-zA-Z0-9_-]{20,120}$/.test(id)) throw new Error('Invalid Firebase test request ID');
+  return 'tfc-firebase-test-request-' + id;
+}
+
+function cacheFirebaseTestResult(requestId,result) {
+  if (!requestId) return;
+  try {
+    CacheService.getScriptCache().put(
+      firebaseTestRequestCacheKey(requestId),
+      JSON.stringify(result),
+      FIREBASE_TEST_REQUEST_TTL_SECONDS
+    );
+  } catch (_) {}
+}
+
+function firebaseTestRequestStatus(p) {
+  const raw = CacheService.getScriptCache().get(firebaseTestRequestCacheKey(p.requestId));
+  if (!raw) return { ok:true, pending:true };
+
+  try {
+    return { ok:true, pending:false, result:JSON.parse(raw) };
+  } catch (_) {
+    return { ok:false, pending:false, error:'Firebase test request result could not be read' };
+  }
+}
+
+function firebaseTestVerifyIdToken(idToken) {
+  const token = String(idToken || '').trim();
+  if (token.length < 100 || token.length > 10000) {
+    throw new Error('Firebase session token is missing or invalid');
+  }
+
+  const response = UrlFetchApp.fetch(
+    'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' + encodeURIComponent(FIREBASE_TEST_API_KEY),
+    {
+      method:'post',
+      contentType:'application/json',
+      payload:JSON.stringify({ idToken:token }),
+      muteHttpExceptions:true
+    }
+  );
+
+  let body = {};
+  try { body = JSON.parse(response.getContentText() || '{}'); } catch (_) {}
+
+  if (response.getResponseCode() !== 200 || !body.users || !body.users[0]) {
+    throw new Error('Firebase session could not be verified');
+  }
+
+  const user = body.users[0];
+  const uid = String(user.localId || '').trim();
+  const email = String(user.email || '').trim().toLowerCase();
+  const providers = (user.providerUserInfo || [])
+    .map(item => String(item.providerId || '').trim())
+    .filter(Boolean);
+
+  if (!uid || !/^\S+@\S+\.\S+$/.test(email)) {
+    throw new Error('Firebase account is missing a valid email address');
+  }
+  if (user.emailVerified !== true) {
+    throw new Error('Please verify your email address before continuing');
+  }
+
+  return {
+    uid,
+    email,
+    provider:providers.includes('google.com') ? 'google.com' : (providers[0] || 'firebase')
+  };
+}
+
+function firebaseTestMappingKey(uid) {
+  return FIREBASE_TEST_MAPPING_PREFIX + String(uid || '').trim();
+}
+
+function firebaseTestGetMapping(uid) {
+  const raw = PropertiesService.getScriptProperties().getProperty(firebaseTestMappingKey(uid));
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw);
+  } catch (_) {
+    throw new Error('Firebase test mapping could not be read');
+  }
+}
+
+function firebaseTestSaveMapping(firebase,applicationId) {
+  PropertiesService.getScriptProperties().setProperty(
+    firebaseTestMappingKey(firebase.uid),
+    JSON.stringify({
+      firebaseUid:firebase.uid,
+      email:firebase.email,
+      provider:firebase.provider,
+      applicationId:String(applicationId || ''),
+      updated:new Date().toISOString()
+    })
+  );
+}
+
+function firebaseTestApplicationId(firebaseUid) {
+  const stamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone() || 'America/Vancouver', 'yyyyMMdd-HHmmss');
+  const suffix = String(firebaseUid || '').replace(/[^a-zA-Z0-9]/g,'').slice(-6).toUpperCase() || 'TEST';
+  let candidate = 'TFC-FB-' + stamp + '-' + suffix;
+  let counter = 1;
+
+  while (findRow('applicationId',candidate)) {
+    counter += 1;
+    candidate = 'TFC-FB-' + stamp + '-' + suffix + '-' + counter;
+  }
+  return candidate;
+}
+
+function createAccountFirebaseTest(p) {
+  const requestId = String(p.requestId || '').trim();
+  let result;
+
+  try {
+    const firebase = firebaseTestVerifyIdToken(p.firebaseIdToken);
+    const name = String(p.name || '').trim();
+    const phone = String(p.phone || '').trim();
+
+    if (!name) throw new Error('Name is required');
+    if (phone.replace(/\D/g,'').length < 7) throw new Error('A valid phone number is required');
+
+    const lock = LockService.getScriptLock();
+    lock.waitLock(20000);
+
+    let record;
+    let deduplicated = false;
+
+    try {
+      const mapped = firebaseTestGetMapping(firebase.uid);
+
+      if (mapped) {
+        if (String(mapped.email || '').trim().toLowerCase() !== firebase.email) {
+          throw new Error('Firebase test mapping email mismatch');
+        }
+
+        record = findApplication(mapped.applicationId);
+        if (String(record.email || '').trim().toLowerCase() !== firebase.email) {
+          throw new Error('Applications sheet email does not match the Firebase test account');
+        }
+        deduplicated = true;
+      } else {
+        if (findRow('email',firebase.email)) {
+          throw new Error('This email already exists in the Applications sheet. Use a new test email so no existing client is changed.');
+        }
+
+        const now = new Date();
+        record = {
+          applicationId:firebaseTestApplicationId(firebase.uid),
+          created:now,
+          updated:now,
+          name,
+          email:firebase.email,
+          passwordHash:'',
+          phone,
+          business:p.business || '',
+          address:p.address || '',
+          city:p.city || '',
+          province:p.province || '',
+          postal:p.postal || '',
+          industry:p.industry || '',
+          revenue:p.revenue || '',
+          requested:p.requested || '',
+          years:p.years || '',
+          purpose:p.purpose || '',
+          status:'Account Created',
+          statements:0,
+          signatureConfirmed:false,
+          signatureConfirmedAt:'',
+          advisor:'',
+          messageTitle:'Welcome',
+          messageBody:'Your account has been created. Please complete your application and upload six recent bank statements.',
+          approvedAmount:'',
+          quote:'',
+          term:'',
+          paymentFrequency:'',
+          paymentAmount:'',
+          numberPayments:'',
+          totalRepayment:'',
+          documentsRequested:'',
+          clientDecision:'',
+          clientDecisionNote:'',
+          clientDecisionAt:'',
+          chatHistory:JSON.stringify([{
+            id:Utilities.getUuid(),
+            sender:'ADVISOR',
+            message:'Your account has been created. Please complete your application and upload six recent bank statements.',
+            at:now.toISOString()
+          }]),
+          notes:'FIREBASE AUTH TEST ONLY — do not treat as a production client.',
+          driveFolderId:'',
+          driveUrl:'',
+          lastNotificationStatus:'',
+          lastNotificationAt:'',
+          lastNotificationError:''
+        };
+
+        const sh = applicationsSheet();
+        const headers = getHeaders(sh);
+        appendRecordToSheet(sh,headers,record);
+        firebaseTestSaveMapping(firebase,record.applicationId);
+
+        appendAuditEvent({
+          applicationId:record.applicationId,
+          actorType:'CLIENT',
+          actorId:record.email,
+          action:'ACCOUNT_CREATED',
+          summary:'Firebase test client account created',
+          metadata:{ testOnly:true, authProvider:firebase.provider }
+        });
+      }
+    } finally {
+      lock.releaseLock();
+    }
+
+    const notification = deduplicated
+      ? { ok:true, sent:true, alreadySent:true }
+      : sendSignupNotification({
+          applicationId:record.applicationId,
+          email:record.email
+        });
+
+    result = {
+      ok:true,
+      testOnly:true,
+      data:safeClient({ ...record, documents:[] }),
+      firebase:{ provider:firebase.provider, email:firebase.email },
+      notification,
+      deduplicated
+    };
+  } catch (err) {
+    result = { ok:false, testOnly:true, error:err.message || String(err) };
+  }
+
+  cacheFirebaseTestResult(requestId,result);
+  return result;
+}
+
+function clientLoginFirebaseTest(p) {
+  const requestId = String(p.requestId || '').trim();
+  let result;
+
+  try {
+    const firebase = firebaseTestVerifyIdToken(p.firebaseIdToken);
+    const mapped = firebaseTestGetMapping(firebase.uid);
+
+    if (!mapped) {
+      throw new Error('No Firebase test application is linked to this account yet');
+    }
+    if (String(mapped.email || '').trim().toLowerCase() !== firebase.email) {
+      throw new Error('Firebase test account verification failed');
+    }
+
+    const record = findApplication(mapped.applicationId);
+    if (String(record.email || '').trim().toLowerCase() !== firebase.email) {
+      throw new Error('Applications sheet email does not match Firebase');
+    }
+
+    appendAuditEvent({
+      applicationId:record.applicationId,
+      actorType:'CLIENT',
+      actorId:record.email,
+      action:'CLIENT_LOGIN',
+      summary:'Client signed in through Firebase test authentication',
+      metadata:{ testOnly:true, authProvider:firebase.provider }
+    });
+
+    result = {
+      ok:true,
+      testOnly:true,
+      data:safeClient({ ...record, documents:[] }),
+      firebase:{ provider:firebase.provider, email:firebase.email }
+    };
+  } catch (err) {
+    result = { ok:false, testOnly:true, error:err.message || String(err) };
+  }
+
+  cacheFirebaseTestResult(requestId,result);
+  return result;
 }
 
 function getClient(p) {
