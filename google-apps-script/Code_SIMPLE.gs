@@ -91,6 +91,8 @@ function doPost(e) {
     const actions = {
       createAccount,
       clientLogin,
+      createAccountFirebaseTest,
+      clientLoginFirebaseTest,
       getClient,
       clientConfirmSignature,
       clientDecision,
