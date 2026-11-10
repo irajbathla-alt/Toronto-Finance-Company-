@@ -130,7 +130,7 @@
   </section>
 </main>
 
-<script src="../crm-config.js?v=20261109-firebase-bridge1"></script>
+<script src="firebase-test-config.js?v=20261109-test2"></script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
 import {
@@ -164,7 +164,7 @@ auth.useDeviceLanguage();
 const googleProvider=new GoogleAuthProvider();
 googleProvider.setCustomParameters({prompt:"select_account"});
 
-const API_URL=String(window.TFC_CONFIG?.apiUrl||"").trim();
+const API_URL=String(window.TFC_FIREBASE_TEST_CONFIG?.apiUrl||"").trim();
 const PENDING_KEY="tfc-firebase-test-pending-profile";
 const $=s=>document.querySelector(s);
 const statusBox=$("#status");
@@ -260,7 +260,7 @@ async function bridge(action,payload){
 
   for(let attempt=0;attempt<30;attempt++){
     if(attempt) await new Promise(resolve=>setTimeout(resolve,500));
-    const status=await jsonp("firebaseRequestStatus",{requestId:id});
+    const status=await jsonp("firebaseTestRequestStatus",{requestId:id});
     if(status?.ok&&status.pending===false){
       const result=status.result||{};
       if(!result.ok) throw new Error(result.error||"The Apps Sheet bridge rejected this signup.");
@@ -275,7 +275,7 @@ async function finishSheetSignup(user,profile){
   if(!current) throw new Error("Firebase session ended. Sign in again.");
   if(!current.emailVerified) throw new Error("Please click the verification link in your email first, then press Finish Signup.");
   const token=await current.getIdToken(true);
-  return bridge("createAccountFirebase",{
+  return bridge("createAccountFirebaseTest",{
     firebaseIdToken:token,
     name:profile.name,
     phone:profile.phone
@@ -358,7 +358,7 @@ googleButton.addEventListener("click",async()=>{
     $("#email").value=googleEmail;
 
     const token=await user.getIdToken(true);
-    const synced=await bridge("createAccountFirebase",{
+    const synced=await bridge("createAccountFirebaseTest",{
       firebaseIdToken:token,
       name:profile.name,
       phone:profile.phone
