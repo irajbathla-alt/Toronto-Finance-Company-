@@ -215,8 +215,29 @@
     }
   }
 
+  function setClientActionContent(button, kicker, label, detail) {
+    if (!button) return;
+    button.innerHTML =
+      '<span class="action-kicker"></span><strong></strong><small></small>';
+    button.querySelector('.action-kicker').textContent = kicker;
+    button.querySelector('strong').textContent = label;
+    button.querySelector('small').textContent = detail;
+  }
+
+  function restoreClientUpdateActions() {
+    setClientActionContent($('#save'), 'Update File', 'Save Client Update', 'No email sent');
+    setClientActionContent($('#saveEmailUpdate'), 'Update & Notify', 'Save & Send Email', 'Email client after saving');
+    updateDriveButton();
+  }
+
   function updateDriveButton() {
-    $('#drive').textContent = selected?.driveUrl ? 'Open Drive Folder' : 'Create & Open Drive Folder';
+    const hasFolder = Boolean(selected?.driveUrl);
+    setClientActionContent(
+      $('#drive'),
+      'Documents',
+      hasFolder ? 'Open Drive Folder' : 'Create & Open Drive',
+      hasFolder ? 'Client file storage' : 'Create client file storage'
+    );
   }
 
   function parseChatHistoryValue(value) {
@@ -412,39 +433,73 @@
     }
   }
 
-  async function saveUpdate() {
+  async function saveUpdate(notifyClient = false) {
     if (!selected) return;
-    const update = { applicationId: selected.applicationId, adminToken:adminToken() };
+
+    const update = {
+      applicationId:selected.applicationId,
+      adminToken:adminToken(),
+      notifyClient:notifyClient ? 'true' : 'false'
+    };
+
     ['business', 'status', 'advisor', 'approvedAmount', 'quote', 'term', 'paymentFrequency', 'paymentAmount', 'numberPayments', 'totalRepayment', 'documentsRequested', 'notes'].forEach(key => {
       const field = $('#' + key);
       if (field) update[key] = field.value;
     });
     update.additionalDocsEnabled = $('#additionalDocsEnabled')?.checked ? 'true' : 'false';
 
-    $('#save').disabled = true;
-    $('#save').textContent = 'Saving…';
-    $('#saveMsg').className = 'notice';
-    $('#saveMsg').textContent = 'Saving directly to CRM…';
+    const saveButton = $('#save');
+    const emailButton = $('#saveEmailUpdate');
+    if (saveButton) saveButton.disabled = true;
+    if (emailButton) emailButton.disabled = true;
+
+    if (notifyClient) {
+      setClientActionContent(emailButton, 'Update & Notify', 'Saving & Sending…', 'Preparing client email');
+      $('#saveMsg').textContent = 'Saving the client update and sending an email notification…';
+    } else {
+      setClientActionContent(saveButton, 'Update File', 'Saving…', 'No email will be sent');
+      $('#saveMsg').textContent = 'Saving the client update without sending an email…';
+    }
+    $('#saveMsg').className = 'notice client-update-save-msg';
 
     try {
       const result = await readApi('adminUpdate', update, 35000);
       if (!result?.ok) throw new Error(result?.error || 'The client update could not be saved.');
-      selected = result.data || { ...selected, ...update, updated: new Date().toISOString() };
+
+      selected = result.data || { ...selected, ...update, updated:new Date().toISOString() };
       const index = applications.findIndex(app => String(app.applicationId) === String(selected.applicationId));
       if (index >= 0) applications[index] = selected;
+
       render();
       openFile(selected.applicationId);
-      $('#saveMsg').className = 'notice success';
-      $('#saveMsg').textContent = result.notification?.attempted && !result.notification?.sent
-        ? `Saved successfully. Email alert could not be sent: ${result.notification.error || 'email service unavailable.'}`
-        : 'Saved successfully. The client portal has been updated.';
-      toast('Client update saved');
+
+      if (notifyClient) {
+        if (result.notification?.sent) {
+          $('#saveMsg').className = 'notice success client-update-save-msg';
+          $('#saveMsg').textContent = 'Saved successfully. Email update sent to the client.';
+          toast('Client update saved & emailed');
+        } else if (result.notification?.attempted) {
+          $('#saveMsg').className = 'notice error client-update-save-msg';
+          $('#saveMsg').textContent = 'Saved successfully, but the email could not be sent: ' +
+            (result.notification.error || 'email service unavailable.');
+          toast('Saved — email could not be sent');
+        } else {
+          $('#saveMsg').className = 'notice error client-update-save-msg';
+          $('#saveMsg').textContent = 'Saved successfully, but no email was sent. Please try Save & Send Email again.';
+          toast('Saved — email not sent');
+        }
+      } else {
+        $('#saveMsg').className = 'notice success client-update-save-msg';
+        $('#saveMsg').textContent = 'Saved successfully. No email was sent.';
+        toast('Client update saved');
+      }
     } catch (error) {
-      $('#saveMsg').className = 'notice error';
+      $('#saveMsg').className = 'notice error client-update-save-msg';
       $('#saveMsg').textContent = error.message || 'Could not save the client update.';
     } finally {
-      $('#save').disabled = false;
-      $('#save').textContent = 'Save Client Update';
+      if (saveButton) saveButton.disabled = false;
+      if (emailButton) emailButton.disabled = false;
+      restoreClientUpdateActions();
     }
   }
 
@@ -452,7 +507,7 @@
     if (!selected) return;
     if (selected.driveUrl) return window.open(selected.driveUrl, '_blank', 'noopener');
     $('#drive').disabled = true;
-    $('#drive').textContent = 'Creating Folder…';
+    setClientActionContent($('#drive'), 'Documents', 'Creating Folder…', 'Preparing client file storage');
     try {
       const result = await readApi('adminEnsureDrive', { applicationId: selected.applicationId, adminToken:adminToken() }, 35000);
       if (!result?.ok || !result.data?.driveUrl) throw new Error(result?.error || 'Drive folder could not be created.');
@@ -494,7 +549,8 @@
 
   $('#adminLogin').onclick = login;
   $('#adminPassword').addEventListener('keydown', event => { if (event.key === 'Enter') login(); });
-  $('#save').onclick = saveUpdate;
+  $('#save').onclick = () => saveUpdate(false);
+  $('#saveEmailUpdate').onclick = () => saveUpdate(true);
   $('#drive').onclick = openDrive;
   $('#refresh').onclick = () => load(true);
   $('#search').oninput = render;
