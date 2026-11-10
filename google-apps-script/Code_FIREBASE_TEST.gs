@@ -177,14 +177,14 @@ function firebaseTestAppendApplication(record) {
   const sh = firebaseTestApplicationsSheet();
   const headers = firebaseTestHeaders(sh);
   const row = headers.map(header => record[header] ?? '');
-  sh.getRange(sh.getLastRow()+1,1,1,headers.length).setValues([row]);
+  sh.appendRow(row);
 }
 
 function firebaseTestAppendMapping(record) {
   const sh = firebaseTestMappingSheet();
   const headers = firebaseTestHeaders(sh);
   const row = headers.map(header => record[header] ?? '');
-  sh.getRange(sh.getLastRow()+1,1,1,headers.length).setValues([row]);
+  sh.appendRow(row);
 }
 
 function firebaseTestMappingByUid(uid) {
