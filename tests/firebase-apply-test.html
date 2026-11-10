@@ -76,7 +76,8 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
 import {
   getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup,
-  sendEmailVerification, reload, signOut, updateProfile, onAuthStateChanged
+  sendEmailVerification, reload, signOut, updateProfile, setPersistence,
+  browserSessionPersistence, onAuthStateChanged
 } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
 
 const firebaseConfig={
@@ -89,6 +90,7 @@ const firebaseConfig={
 };
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
+await setPersistence(auth,browserSessionPersistence);
 auth.useDeviceLanguage();
 const googleProvider=new GoogleAuthProvider();
 googleProvider.setCustomParameters({prompt:"select_account"});
@@ -128,7 +130,8 @@ $("#createEmail").onclick=async()=>{
     const result=await createUserWithEmailAndPassword(auth,d.email,d.password);
     await updateProfile(result.user,{displayName:d.name});
     await sendEmailVerification(result.user);
-    show("Account Created","Verification email sent. Verify the email, return here, then click Refresh Verification.","good");
+    await signOut(auth);
+    show("Account Created","Verification email sent. Verify the email, then use the Firebase login test page to sign in.","good");
   }catch(e){show("Account Creation Failed",e?.message||String(e),"bad")}
   finally{busy(false)}
 };
