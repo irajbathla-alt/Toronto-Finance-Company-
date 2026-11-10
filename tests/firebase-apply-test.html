@@ -178,6 +178,8 @@ googleProvider.setCustomParameters({prompt:"select_account"});
 
 const API_URL=String(window.TFC_CONFIG?.apiUrl||"").trim();
 const PENDING_KEY="tfc-firebase-test-pending-profile";
+const SESSION_KEY="tfc-client-auth";
+const LEGACY_KEY="tfc-current-application";
 const $=s=>document.querySelector(s);
 const statusBox=$("#status");
 const createButton=$("#createEmail");
@@ -229,6 +231,18 @@ function readPending(){
 }
 function clearPending(){
   sessionStorage.removeItem(PENDING_KEY);
+}
+function savePortalSession(data){
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({
+    applicationId:data.applicationId,
+    email:data.email||"",
+    authenticatedAt:new Date().toISOString(),
+    authMode:"firebase-test"
+  }));
+  localStorage.setItem(LEGACY_KEY,JSON.stringify(data));
+}
+function openClientDashboard(){
+  window.location.replace("../client-dashboard.html");
 }
 function requestId(){
   if(globalThis.crypto?.randomUUID) return crypto.randomUUID().replace(/-/g,"");
@@ -316,10 +330,12 @@ createButton.addEventListener("click",async()=>{
     try{
       const result=await finishSheetSignup(current,pending);
       const email=current.email||"this account";
+      savePortalSession(result.data);
       clearPending();
       await signOut(auth);
       $("#password").value="";
-      show("Signup Complete",successMessage(result,email),"good");
+      show("Signup Complete","Account created successfully. Opening your client dashboard...","good");
+      openClientDashboard();
     }catch(error){
       show("Finish Signup",friendlyError(error),"bad");
     }finally{
@@ -384,9 +400,11 @@ googleButton.addEventListener("click",async()=>{
       phone:profile.phone
     });
 
+    savePortalSession(synced.data);
     await signOut(auth);
     $("#password").value="";
-    show("Account Created",successMessage(synced,googleEmail),"good");
+    show("Account Created","Account created successfully. Opening your client dashboard...","good");
+    openClientDashboard();
   }catch(error){
     show("Google Signup Failed",friendlyError(error),"bad");
   }finally{
