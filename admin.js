@@ -450,7 +450,8 @@
     $('#saveMsg').className = 'notice client-update-save-msg';
 
     try {
-      const result = await readApi('adminUpdate', update, 35000);
+      const action = notifyClient ? 'adminUpdateAndNotify' : 'adminUpdate';
+      const result = await readApi(action, update, 35000);
       if (!result?.ok) throw new Error(result?.error || 'The client update could not be saved.');
 
       selected = result.data || { ...selected, ...update, updated:new Date().toISOString() };
