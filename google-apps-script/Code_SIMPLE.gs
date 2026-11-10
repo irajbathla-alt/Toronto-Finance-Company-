@@ -67,6 +67,7 @@ function doGet(e) {
       adminLogin,
       adminList,
       adminUpdate,
+      adminUpdateAndNotify,
       adminChatSend,
       adminEnsureDrive,
       adminGetAudit,
@@ -104,6 +105,7 @@ function doPost(e) {
       adminLogin,
       adminList,
       adminUpdate,
+      adminUpdateAndNotify,
       adminChatSend,
       adminEnsureDrive,
       adminGetAudit,
@@ -1378,6 +1380,44 @@ function adminUpdate(p) {
   }
 
   return { ok:true, data:safe(saved), notification };
+}
+
+
+function adminUpdateAndNotify(p) {
+  requireAdminToken(p);
+
+  // Save through the same existing update path, but keep notification explicit.
+  const saveResult = adminUpdate({ ...p, notifyClient:'false' });
+  if (!saveResult || !saveResult.ok) {
+    throw new Error((saveResult && saveResult.error) || 'The client update could not be saved.');
+  }
+
+  const saved = findApplication(p.applicationId);
+  const notification = sendClientUpdateEmail(saved);
+
+  appendAuditEvent({
+    applicationId:p.applicationId,
+    actorType:'ADMIN',
+    actorId:CONFIG.ADMIN_EMAIL,
+    action:notification.sent ? 'CLIENT_NOTIFICATION_SENT' : 'CLIENT_NOTIFICATION_FAILED',
+    summary:notification.sent
+      ? 'Client update saved and email notification sent'
+      : 'Client update saved but email notification could not be sent',
+    metadata:notification.sent
+      ? { sender:notification.sender || CONFIG.CLIENT_NOTIFICATION_FROM }
+      : { error:notification.error || 'Unknown notification error' }
+  });
+
+  const refreshed = findApplication(p.applicationId);
+
+  return {
+    ok:true,
+    data:safe(refreshed),
+    notification:{
+      ...notification,
+      attempted:true
+    }
+  };
 }
 
 function adminChatSend(p) {
