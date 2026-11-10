@@ -162,20 +162,21 @@
 
 <script src="../crm-config.js?v=20261109-firebase-test-existing-backend"></script>
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js';
 import {
   getAuth,
   createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   sendEmailVerification,
-  reload,
   signOut,
   updateProfile,
   setPersistence,
-  browserSessionPersistence,
-  onAuthStateChanged
-} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
+  browserSessionPersistence
+} from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
 
 const firebaseConfig={
   apiKey:"AIzaSyAXIObBDa-i8W_wAUtt43FXracH7ezPhlA",
@@ -186,6 +187,10 @@ const firebaseConfig={
   appId:"1:494379883061:web:54acfe2bc5b27f8fa36f7c"
 };
 
+const EXPECTED_BUILD="20261109-fb-debug-v4";
+const API_URL=String(window.TFC_CONFIG?.apiUrl||"").trim();
+const GOOGLE_PENDING_KEY="tfc-google-signup-profile";
+
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 await setPersistence(auth,browserSessionPersistence);
@@ -194,8 +199,6 @@ auth.useDeviceLanguage();
 const googleProvider=new GoogleAuthProvider();
 googleProvider.setCustomParameters({prompt:"select_account"});
 
-const API_URL=String(window.TFC_CONFIG?.apiUrl||"").trim();
-const PENDING_KEY="tfc-firebase-test-pending-profile";
 const $=s=>document.querySelector(s);
 const statusBox=$("#status");
 const createButton=$("#createEmail");
@@ -211,19 +214,32 @@ function show(title,message,type=""){
   statusBox.querySelector("h2").textContent=title;
   statusBox.querySelector("p").textContent=message;
 }
+function clearFieldError(id){
+  const field=document.getElementById(id+"Field");
+  if(field) field.classList.remove("invalid");
+}
+function markFieldError(id){
+  const field=document.getElementById(id+"Field");
+  if(field) field.classList.add("invalid");
+}
+["name","phone","email","password"].forEach(id=>{
+  const el=$("#"+id);
+  if(el) el.addEventListener("input",()=>clearFieldError(id));
+});
 function friendlyError(error){
   const code=String(error?.code||"");
   const known={
-    "auth/email-already-in-use":"An account already exists for this email. Please use Log In instead.",
+    "auth/email-already-in-use":"An account already exists for this email. Use the same password to continue or use Log In.",
     "auth/invalid-email":"Please enter a valid email address.",
-    "auth/weak-password":"Please use a stronger password with at least 8 characters.",
-    "auth/operation-not-allowed":"This sign-in method is temporarily unavailable.",
+    "auth/invalid-credential":"The email or password is incorrect.",
+    "auth/weak-password":"Please use at least 8 characters.",
+    "auth/operation-not-allowed":"This sign-in method is not enabled yet.",
     "auth/popup-closed-by-user":"Google sign-in was closed before it finished.",
-    "auth/popup-blocked":"Your browser blocked the Google sign-in popup. Allow popups and try again.",
-    "auth/unauthorized-domain":"Google sign-in is not available on this domain yet.",
-    "auth/network-request-failed":"The secure account service could not be reached. Check your connection and try again."
+    "auth/popup-blocked":"Your browser blocked the Google popup. Redirecting to Google sign-in.",
+    "auth/unauthorized-domain":"This domain is not authorized for Google sign-in in Firebase.",
+    "auth/network-request-failed":"The secure account service could not be reached."
   };
-  return known[code]||error?.message||String(error)||"The secure signup could not be completed.";
+  return known[code]||error?.message||String(error)||"Account creation could not be completed.";
 }
 function details(){
   return {
@@ -233,247 +249,210 @@ function details(){
     password:$("#password").value
   };
 }
-function clearFieldError(id){
-  const field=document.getElementById(id+"Field");
-  if(field) field.classList.remove("invalid");
-}
-function markFieldError(id){
-  const field=document.getElementById(id+"Field");
-  if(field) field.classList.add("invalid");
-}
-$("#name").addEventListener("input",()=>clearFieldError("name"));
-$("#phone").addEventListener("input",()=>clearFieldError("phone"));
-$("#email").addEventListener("input",()=>clearFieldError("email"));
-$("#password").addEventListener("input",()=>clearFieldError("password"));
-
-function profileOnly(requireName=true){
+function validateProfile(){
   const d=details();
   let valid=true;
-
-  if(requireName&&!d.name){
-    markFieldError("name");
-    valid=false;
-  }else{
-    clearFieldError("name");
-  }
-
-  if(d.phone.replace(/\D/g,"").length<7){
-    markFieldError("phone");
-    valid=false;
-  }else{
-    clearFieldError("phone");
-  }
-
+  if(!d.name){markFieldError("name");valid=false}else clearFieldError("name");
+  if(d.phone.replace(/\D/g,"").length<7){markFieldError("phone");valid=false}else clearFieldError("phone");
   if(!valid){
     const first=document.querySelector(".field.invalid input");
     if(first) first.focus();
     show("Missing Information","Complete the highlighted field"+(document.querySelectorAll(".field.invalid").length>1?"s":"")+" to continue.","bad");
     return null;
   }
-
   return {name:d.name,phone:d.phone};
-}
-function savePending(profile){
-  sessionStorage.setItem(PENDING_KEY,JSON.stringify(profile));
-}
-function readPending(){
-  try{return JSON.parse(sessionStorage.getItem(PENDING_KEY)||"null")}catch(_){return null}
-}
-function clearPending(){
-  sessionStorage.removeItem(PENDING_KEY);
 }
 function requestId(){
   if(globalThis.crypto?.randomUUID) return crypto.randomUUID().replace(/-/g,"");
   const bytes=new Uint8Array(24);
   crypto.getRandomValues(bytes);
-  return [...bytes].map(value=>value.toString(16).padStart(2,"0")).join("");
+  return [...bytes].map(v=>v.toString(16).padStart(2,"0")).join("");
 }
 function jsonp(action,payload={},timeout=15000){
   return new Promise((resolve,reject)=>{
-    if(!API_URL) return reject(new Error("The secure application service is not configured."));
+    if(!API_URL) return reject(new Error("Secure application service is not configured."));
     const callback="tfc_fb_"+Date.now()+"_"+Math.random().toString(36).slice(2);
     const script=document.createElement("script");
     const params=new URLSearchParams({action,callback,_:String(Date.now())});
     Object.entries(payload).forEach(([key,value])=>{
       if(value!==undefined&&value!==null) params.set(key,String(value));
     });
-    const timer=setTimeout(()=>{cleanup();reject(new Error("The secure application service timed out."))},timeout);
+    const timer=setTimeout(()=>{cleanup();reject(new Error("Secure application service timed out."))},timeout);
     function cleanup(){
       clearTimeout(timer);
       try{delete window[callback]}catch(_){window[callback]=undefined}
       script.remove();
     }
     window[callback]=data=>{cleanup();resolve(data)};
-    script.onerror=()=>{cleanup();reject(new Error("The secure application service could not be reached."))};
+    script.onerror=()=>{cleanup();reject(new Error("Secure application service could not be reached."))};
     script.src=API_URL+"?"+params.toString();
     document.head.appendChild(script);
   });
 }
+async function preflight(){
+  const health=await jsonp("firebaseTestHealth",{},15000);
+  if(!health?.ok) throw new Error(health?.error||"Secure application service is unavailable.");
+  if(health.build!==EXPECTED_BUILD){
+    throw new Error("The Apps Script deployment is not the latest Firebase test build. Redeploy the existing Apps Script, then try again.");
+  }
+  if(!health.applicationsReady){
+    throw new Error("The existing Applications sheet could not be reached by Apps Script.");
+  }
+  return health;
+}
 async function bridge(action,payload){
-  if(!API_URL) throw new Error("The secure application service is not configured.");
   const id=requestId();
   try{
     await fetch(API_URL,{
       method:"POST",
       mode:"no-cors",
-      keepalive:false,
       headers:{"Content-Type":"text/plain;charset=UTF-8"},
       body:JSON.stringify({action,requestId:id,...payload})
     });
   }catch(_){}
 
-  for(let attempt=0;attempt<30;attempt++){
+  for(let attempt=0;attempt<36;attempt++){
     if(attempt) await new Promise(resolve=>setTimeout(resolve,500));
     const status=await jsonp("firebaseTestRequestStatus",{requestId:id});
-    if(status?.ok===false){
-      throw new Error(status.error==="Unknown action"
-        ? "The secure application service has not been updated yet."
-        : (status.error||"The secure application service returned an error."));
-    }
+    if(status?.ok===false) throw new Error(status.error||"Secure application service returned an error.");
     if(status?.ok&&status.pending===false){
       const result=status.result||{};
-      if(!result.ok) throw new Error(result.error||"The secure application service could not complete signup.");
+      if(!result.ok) throw new Error(result.error||"Account sync could not be completed.");
       return result;
     }
   }
-  throw new Error("Your identity was verified, but account creation could not be confirmed. Please contact Toronto Finance Company before trying again.");
+  throw new Error("Firebase sign-in succeeded, but the Applications sheet update could not be confirmed.");
 }
-async function finishSheetSignup(user,profile){
-  await reload(user);
-  const current=auth.currentUser;
-  if(!current) throw new Error("Your secure session ended. Please sign in again.");
-  if(!current.emailVerified) throw new Error("Please click the verification link in your email first, then press Finish Signup.");
-  const token=await current.getIdToken(true);
+async function syncUser(user,profile){
+  const token=await user.getIdToken(true);
   return bridge("createAccountFirebaseTest",{
     firebaseIdToken:token,
     name:profile.name,
     phone:profile.phone
   });
 }
-function successMessage(result,email){
-  const notification=result?.notification;
-  const notified=notification?.sent===true;
-  return "Your Toronto Finance Company account is ready for "+email+
-    ". Application "+(result?.data?.applicationId||"created")+
-    (notified?". Your account has been created successfully.":". Your account has been created successfully.");
+function successText(result,email){
+  const id=result?.data?.applicationId||"";
+  return "Account created successfully"+(id?" · "+id:"")+". "+email+" has been added to your Toronto Finance Company file.";
 }
 
 createButton.addEventListener("click",async()=>{
-  const current=auth.currentUser;
-  const pending=readPending();
-
-  if(current&&pending){
-    busy(true);
-    createButton.textContent="Finishing Signup...";
-    try{
-      const result=await finishSheetSignup(current,pending);
-      const email=current.email||"this account";
-      clearPending();
-      await signOut(auth);
-      $("#password").value="";
-      show("Signup Complete",successMessage(result,email),"good");
-    }catch(error){
-      show("Finish Signup",friendlyError(error),"bad");
-    }finally{
-      busy(false);
-      createButton.textContent=auth.currentUser?"Finish Signup":"Create Account";
-    }
-    return;
-  }
-
   const d=details();
-  const profile=profileOnly(true);
+  const profile=validateProfile();
   let valid=Boolean(profile);
 
-  if(!/^\S+@\S+\.\S+$/.test(d.email)){
-    markFieldError("email");
-    valid=false;
-  }else{
-    clearFieldError("email");
-  }
-
-  if(d.password.length<8){
-    markFieldError("password");
-    valid=false;
-  }else{
-    clearFieldError("password");
-  }
+  if(!/^\S+@\S+\.\S+$/.test(d.email)){markFieldError("email");valid=false}else clearFieldError("email");
+  if(d.password.length<8){markFieldError("password");valid=false}else clearFieldError("password");
 
   if(!valid){
     const first=document.querySelector(".field.invalid input");
     if(first) first.focus();
-    show("Missing Information","Complete the highlighted field"+(document.querySelectorAll(".field.invalid").length>1?"s":"")+" to continue.","bad");
+    show("Missing Information","Complete the highlighted fields to continue.","bad");
     return;
   }
 
   busy(true);
   createButton.textContent="Creating Account...";
+  show("Creating Account","Connecting securely...");
+
   try{
-    const result=await createUserWithEmailAndPassword(auth,d.email,d.password);
-    await updateProfile(result.user,{displayName:d.name});
-    savePending({name:d.name,phone:d.phone});
-    await sendEmailVerification(result.user);
-    createButton.textContent="Finish Signup";
+    await preflight();
+
+    let credential;
+    try{
+      credential=await createUserWithEmailAndPassword(auth,d.email,d.password);
+    }catch(error){
+      if(String(error?.code||"")==="auth/email-already-in-use"){
+        credential=await signInWithEmailAndPassword(auth,d.email,d.password);
+      }else{
+        throw error;
+      }
+    }
+
+    if(!credential.user.displayName) await updateProfile(credential.user,{displayName:d.name});
+
+    const synced=await syncUser(credential.user,profile);
+
+    if(!credential.user.emailVerified){
+      try{await sendEmailVerification(credential.user)}catch(_){}
+    }
+
+    const accountEmail=credential.user.email||d.email;
+    await signOut(auth);
+    $("#password").value="";
     show(
-      "Verify Your Email",
-      "Your account has been created. Check "+d.email+", click the verification link, return to this page, then press Finish Signup. Once verified, return here and finish creating your account.",
+      "Account Created",
+      successText(synced,accountEmail)+" Please verify your email before using email/password login.",
       "good"
     );
   }catch(error){
     show("Account Creation Failed",friendlyError(error),"bad");
   }finally{
     busy(false);
-    if(auth.currentUser&&readPending()) createButton.textContent="Finish Signup";
-    else createButton.textContent="Create Account";
+    createButton.textContent="Create Account";
   }
 });
 
+async function completeGoogleCredential(credential,profile){
+  const user=credential.user;
+  const googleEmail=String(user.email||"").trim().toLowerCase();
+  if(!googleEmail) throw new Error("Google did not return an email address.");
+
+  if(!user.displayName&&profile.name) await updateProfile(user,{displayName:profile.name});
+  $("#email").value=googleEmail;
+
+  const synced=await syncUser(user,profile);
+  await signOut(auth);
+  show("Account Created",successText(synced,googleEmail),"good");
+}
+
 googleButton.addEventListener("click",async()=>{
-  const profile=profileOnly(true);
+  const profile=validateProfile();
   if(!profile)return;
 
   busy(true);
+  show("Google Sign-In","Opening Google securely...");
+
   try{
-    if(auth.currentUser) await signOut(auth);
-    clearPending();
+    await preflight();
+    sessionStorage.setItem(GOOGLE_PENDING_KEY,JSON.stringify(profile));
 
-    const result=await signInWithPopup(auth,googleProvider);
-    const user=result.user;
-    const googleEmail=String(user.email||"").trim().toLowerCase();
-    if(!googleEmail) throw new Error("Google did not return an email address.");
-
-    const accountName=profile.name||String(user.displayName||"").trim();
-    if(!accountName) throw new Error("We could not read your name from Google. Please enter your full name and try again.");
-    if(!user.displayName&&accountName) await updateProfile(user,{displayName:accountName});
-    $("#name").value=accountName;
-    $("#email").value=googleEmail;
-
-    const token=await user.getIdToken(true);
-    const synced=await bridge("createAccountFirebaseTest",{
-      firebaseIdToken:token,
-      name:accountName,
-      phone:profile.phone
-    });
-
-    await signOut(auth);
-    $("#password").value="";
-    show("Account Created",successMessage(synced,googleEmail),"good");
+    try{
+      const credential=await signInWithPopup(auth,googleProvider);
+      sessionStorage.removeItem(GOOGLE_PENDING_KEY);
+      await completeGoogleCredential(credential,profile);
+    }catch(error){
+      const code=String(error?.code||"");
+      if(code==="auth/popup-blocked"||code==="auth/operation-not-supported-in-this-environment"){
+        await signInWithRedirect(auth,googleProvider);
+        return;
+      }
+      throw error;
+    }
   }catch(error){
-    show("Google Signup Failed",friendlyError(error),"bad");
+    sessionStorage.removeItem(GOOGLE_PENDING_KEY);
+    show("Google Sign-In Failed",friendlyError(error),"bad");
   }finally{
     busy(false);
   }
 });
 
-onAuthStateChanged(auth,async user=>{
-  const pending=readPending();
-  if(user&&pending){
-    $("#email").value=user.email||$("#email").value;
-    createButton.textContent="Finish Signup";
-  }else if(!user){
-    createButton.textContent="Create Account";
+try{
+  const redirected=await getRedirectResult(auth);
+  if(redirected){
+    const profile=JSON.parse(sessionStorage.getItem(GOOGLE_PENDING_KEY)||"null");
+    sessionStorage.removeItem(GOOGLE_PENDING_KEY);
+    if(!profile) throw new Error("Your signup details expired. Enter your name and phone and try Google again.");
+    busy(true);
+    await preflight();
+    await completeGoogleCredential(redirected,profile);
+    busy(false);
   }
-});
+}catch(error){
+  try{if(auth.currentUser) await signOut(auth)}catch(_){}
+  show("Google Sign-In Failed",friendlyError(error),"bad");
+  busy(false);
+}
 </script>
 </body>
 </html>
