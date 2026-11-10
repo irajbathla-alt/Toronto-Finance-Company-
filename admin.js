@@ -226,7 +226,7 @@
 
   function restoreClientUpdateActions() {
     setClientActionContent($('#save'), 'Update File', 'Save Client Update', 'No email sent');
-    setClientActionContent($('#saveEmailUpdate'), 'Update & Notify', 'Save & Send Email', 'Email client after saving');
+    setClientActionContent($('#saveEmailUpdate'), 'Update & Notify', 'Save & Send Email Update', 'Email client after saving');
     updateDriveButton();
   }
 
