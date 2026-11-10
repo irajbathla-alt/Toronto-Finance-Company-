@@ -104,7 +104,7 @@
           applicationId:update.applicationId,
           messageBody,
           messageId,
-          notifyClient:'true',
+          notifyClient:'false',
           adminToken:update.adminToken
         });
       }
@@ -118,13 +118,8 @@
       }
 
       if (status) {
-        if (notification.sent) {
-          status.className = 'notice success';
-          status.textContent = 'Message sent successfully.';
-        } else {
-          status.className = 'notice';
-          status.textContent = 'Message saved to the client portal. Email alert could not be sent.';
-        }
+        status.className = 'notice success';
+        status.textContent = 'Message sent to the client portal. No email was sent.';
       }
 
       const refresh = $('#refresh');
