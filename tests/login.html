@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Client Login | Toronto Finance Company</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif}
+.candidate-login-screen{
+  position:fixed;
+  inset:0;
+  z-index:500;
+  min-height:100vh;
+  overflow:auto;
+  background:
+    radial-gradient(circle at 82% 10%,rgba(198,150,78,.10),transparent 26%),
+    linear-gradient(180deg,#f8f1e7 0%,#f4eadc 100%);
+  color:#17130f;
+}
+.candidate-login-top{
+  height:68px;
+  padding:0 5vw;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  border-bottom:1px solid rgba(23,19,15,.13);
+  background:rgba(248,241,231,.96);
+  backdrop-filter:blur(8px);
+}
+.candidate-login-brand{
+  font-family:"Cormorant Garamond",serif;
+  font-weight:300;
+  text-transform:uppercase;
+  font-size:24px;
+  line-height:1;
+}
+.candidate-login-tag{
+  margin-top:5px;
+  color:#9b763f;
+  font-size:7px;
+  font-weight:600;
+  letter-spacing:.20em;
+  text-transform:uppercase;
+}
+.candidate-login-secure{
+  padding:8px 12px;
+  border:1px solid rgba(23,19,15,.12);
+  border-radius:999px;
+  background:rgba(255,255,255,.48);
+  color:#786f65;
+  font-size:8px;
+  font-weight:600;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+}
+.candidate-login-stage{
+  width:min(440px,92vw);
+  margin:72px auto 48px;
+}
+.candidate-login{
+  padding:30px;
+  border-radius:14px;
+  background:#fff;
+  border:1px solid rgba(23,19,15,.06);
+  box-shadow:0 22px 60px rgba(0,0,0,.12);
+}
+.candidate-login-eyebrow{
+  margin-bottom:9px;
+  color:#c6964e;
+  text-align:center;
+  font-size:8px;
+  font-weight:600;
+  letter-spacing:.17em;
+  text-transform:uppercase;
+}
+.candidate-login h1{
+  margin:0 0 8px;
+  text-align:center;
+  font-family:"Cormorant Garamond",serif;
+  font-size:38px;
+  line-height:1;
+  font-weight:400;
+  text-transform:uppercase;
+}
+.candidate-login>p{
+  margin:0;
+  text-align:center;
+  color:#786f65;
+  font-size:13px;
+  line-height:1.6;
+}
+.candidate-field{margin-top:16px}
+.candidate-field label{
+  display:block;
+  margin-bottom:7px;
+  font-size:10px;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+}
+.candidate-field input{
+  width:100%;
+  padding:13px;
+  border:1px solid #d4c8bb;
+  border-radius:7px;
+  background:#fbf7f0;
+  color:#17130f;
+  outline:none;
+  transition:border-color .16s ease,box-shadow .16s ease,background .16s ease;
+}
+.candidate-field input:focus{
+  border-color:#c6964e;
+  background:#fff;
+  box-shadow:0 0 0 3px rgba(198,150,78,.10);
+}
+.candidate-login-button{
+  width:100%;
+  margin-top:20px;
+  border:0;
+  border-radius:999px;
+  padding:14px;
+  background:#17130f;
+  color:#fff;
+  text-transform:uppercase;
+  font-size:10px;
+  letter-spacing:.12em;
+  cursor:pointer;
+}
+.candidate-login-button:disabled{opacity:.55;cursor:not-allowed}
+.firebase-login-divider{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:18px 0 12px;
+  color:#9a8f82;
+  font-size:8px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.firebase-login-divider:before,.firebase-login-divider:after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:rgba(23,19,15,.12);
+}
+.google-login-button{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  border:1px solid rgba(23,19,15,.14);
+  border-radius:999px;
+  padding:13px 16px;
+  background:#fff;
+  color:#17130f;
+  text-transform:uppercase;
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:.10em;
+  cursor:pointer;
+}
+.google-login-button:disabled{opacity:.55;cursor:not-allowed}
+.google-login-button{
+  box-shadow:0 8px 24px rgba(20,16,10,.06);
+  transition:transform .16s ease,box-shadow .16s ease,background .16s ease;
+}
+.google-login-button:hover{
+  background:#fff;
+  transform:translateY(-1px);
+  box-shadow:0 12px 30px rgba(20,16,10,.09);
+}
+.google-login-mark{width:18px;height:18px;display:block}
+.candidate-login-message{
+  min-height:18px;
+  margin-top:12px;
+  color:#a13f33;
+  font-size:12px;
+  line-height:1.6;
+  text-align:center;
+}
+.candidate-login-message.success{color:#2f855a}
+.candidate-login-foot{
+  margin-top:16px;
+  text-align:center;
+  color:#8b8176;
+  font-size:9px;
+  line-height:1.6;
+}
+@media(max-width:760px){
+  .candidate-login-top{height:62px;padding:0 18px}
+  .candidate-login-brand{font-size:19px}
+  .candidate-login-tag{font-size:5.8px;letter-spacing:.16em}
+  .candidate-login-secure{font-size:6px;padding:7px 8px}
+  .candidate-login-stage{margin:34px auto 30px}
+  .candidate-login{padding:24px 20px}
+  .candidate-login h1{font-size:31px}
+}
+</style>
+</head>
+<body>
+<section class="candidate-login-screen" id="candidateLogin">
+  <header class="candidate-login-top">
+    <div>
+      <div class="candidate-login-brand">Toronto Finance Company</div>
+      <div class="candidate-login-tag">Business Financing Solutions</div>
+    </div>
+    <div class="candidate-login-secure">Secure Client Portal</div>
+  </header>
+
+  <div class="candidate-login-stage">
+    <div class="candidate-login">
+      <div class="candidate-login-eyebrow">Welcome Back</div>
+      <h1>Client Login</h1>
+      <p>Use the same email address and password used to create your Toronto Finance Company account.</p>
+
+      <div class="candidate-field">
+        <label for="candidateEmail">Email Address</label>
+        <input id="candidateEmail" type="email" autocomplete="email">
+      </div>
+      <div class="candidate-field">
+        <label for="candidatePassword">Password</label>
+        <input id="candidatePassword" type="password" autocomplete="current-password">
+      </div>
+      <button class="candidate-login-button" id="candidateLoginBtn" type="button">Log In</button>
+      <div class="firebase-login-divider"><span>or</span></div>
+      <button class="google-login-button" id="googleLoginBtn" type="button">
+        <svg class="google-login-mark" viewBox="0 0 18 18" aria-hidden="true">
+          <path fill="#4285F4" d="M17.64 9.205c0-.638-.057-1.252-.164-1.841H9v3.482h4.844a4.14 4.14 0 0 1-1.797 2.715v2.258h2.909c1.703-1.568 2.684-3.878 2.684-6.614Z"/>
+          <path fill="#34A853" d="M9 18c2.43 0 4.468-.806 5.956-2.181l-2.91-2.258c-.806.54-1.835.859-3.046.859-2.344 0-4.328-1.584-5.037-3.711H.956v2.332A9 9 0 0 0 9 18Z"/>
+          <path fill="#FBBC05" d="M3.963 10.709A5.42 5.42 0 0 1 3.682 9c0-.593.102-1.169.281-1.709V4.959H.956A9 9 0 0 0 0 9c0 1.451.347 2.824.956 4.041l3.007-2.332Z"/>
+          <path fill="#EA4335" d="M9 3.58c1.321 0 2.507.454 3.441 1.346l2.581-2.581C13.464.892 11.426 0 9 0A9 9 0 0 0 .956 4.959l3.007 2.332C4.672 5.164 6.656 3.58 9 3.58Z"/>
+        </svg>
+        <span>Continue with Google</span>
+      </button>
+      <div class="candidate-login-message" id="candidateLoginMsg" role="status" aria-live="polite"></div>
+    </div>
+    <div class="candidate-login-foot">Toronto Finance Company · Secure business financing client access</div>
+  </div>
+</section>
+
+<script src="../crm-config.js?v=20261109-firebase-test-existing-backend"></script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  reload,
+  setPersistence,
+  browserSessionPersistence
+} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
+
+const firebaseConfig={
+  apiKey:"AIzaSyAXIObBDa-i8W_wAUtt43FXracH7ezPhlA",
+  authDomain:"toronto-finance-company-auth.firebaseapp.com",
+  projectId:"toronto-finance-company-auth",
+  storageBucket:"toronto-finance-company-auth.firebasestorage.app",
+  messagingSenderId:"494379883061",
+  appId:"1:494379883061:web:54acfe2bc5b27f8fa36f7c"
+};
+
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+await setPersistence(auth,browserSessionPersistence);
+auth.useDeviceLanguage();
+
+const googleProvider=new GoogleAuthProvider();
+googleProvider.setCustomParameters({prompt:"select_account"});
+
+const API_URL=String(window.TFC_CONFIG?.apiUrl||"").trim();
+const SESSION_KEY="tfc-client-auth";
+const LEGACY_KEY="tfc-current-application";
+
+const email=document.getElementById("candidateEmail");
+const password=document.getElementById("candidatePassword");
+const button=document.getElementById("candidateLoginBtn");
+const googleButton=document.getElementById("googleLoginBtn");
+const message=document.getElementById("candidateLoginMsg");
+const buttons=[button,googleButton];
+
+function setBusy(value){
+  buttons.forEach(item=>item.disabled=value);
+}
+function setMessage(text,success=false){
+  message.textContent=text;
+  message.className="candidate-login-message"+(success?" success":"");
+}
+function friendlyError(error){
+  const code=String(error?.code||"");
+  const known={
+    "auth/invalid-email":"Please enter a valid email address.",
+    "auth/invalid-credential":"The email or password is incorrect.",
+    "auth/user-disabled":"This account has been disabled.",
+    "auth/too-many-requests":"Too many sign-in attempts. Please try again later.",
+    "auth/operation-not-allowed":"This sign-in method is temporarily unavailable.",
+    "auth/popup-closed-by-user":"Google sign-in was closed before it finished.",
+    "auth/popup-blocked":"Your browser blocked the Google sign-in popup. Allow popups and try again.",
+    "auth/unauthorized-domain":"Google sign-in is not available on this domain yet.",
+    "auth/network-request-failed":"The secure login service could not be reached. Check your connection and try again."
+  };
+  return known[code]||error?.message||"Login failed. Please try again.";
+}
+function requestId(){
+  if(globalThis.crypto?.randomUUID) return crypto.randomUUID().replace(/-/g,"");
+  const bytes=new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return [...bytes].map(value=>value.toString(16).padStart(2,"0")).join("");
+}
+function jsonp(action,payload={},timeout=15000){
+  return new Promise((resolve,reject)=>{
+    if(!API_URL) return reject(new Error("The secure application service has not been updated yet."));
+    const callback="tfc_fb_login_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+    const script=document.createElement("script");
+    const params=new URLSearchParams({action,callback,_:String(Date.now())});
+    Object.entries(payload).forEach(([key,value])=>{
+      if(value!==undefined&&value!==null) params.set(key,String(value));
+    });
+    const timer=setTimeout(()=>{cleanup();reject(new Error("The secure application service timed out."))},timeout);
+    function cleanup(){
+      clearTimeout(timer);
+      try{delete window[callback]}catch(_){window[callback]=undefined}
+      script.remove();
+    }
+    window[callback]=data=>{cleanup();resolve(data)};
+    script.onerror=()=>{cleanup();reject(new Error("The secure application service could not be reached."))};
+    script.src=API_URL+"?"+params.toString();
+    document.head.appendChild(script);
+  });
+}
+async function bridgeLogin(firebaseIdToken){
+  if(!API_URL) throw new Error("The secure application service has not been updated yet.");
+  const id=requestId();
+
+  try{
+    await fetch(API_URL,{
+      method:"POST",
+      mode:"no-cors",
+      keepalive:false,
+      headers:{"Content-Type":"text/plain;charset=UTF-8"},
+      body:JSON.stringify({
+        action:"clientLoginFirebaseTest",
+        requestId:id,
+        firebaseIdToken
+      })
+    });
+  }catch(_){}
+
+  for(let attempt=0;attempt<30;attempt++){
+    if(attempt) await new Promise(resolve=>setTimeout(resolve,500));
+    const status=await jsonp("firebaseTestRequestStatus",{requestId:id});
+    if(status?.ok===false){
+      throw new Error(status.error==="Unknown action"
+        ? "The secure application service has not been updated yet."
+        : (status.error||"The secure application service returned an error."));
+    }
+    if(status?.ok&&status.pending===false){
+      const result=status.result||{};
+      if(!result.ok) throw new Error(result.error||"Your secure login could not be verified.");
+      return result;
+    }
+  }
+
+  throw new Error("Your identity was verified, but your Toronto Finance Company account could not be confirmed.");
+}
+function savePortalSession(data){
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({
+    applicationId:data.applicationId,
+    email:data.email||"",
+    authenticatedAt:new Date().toISOString(),
+    authMode:"firebase-test"
+  }));
+  localStorage.setItem(LEGACY_KEY,JSON.stringify(data));
+}
+async function completeLogin(user){
+  await reload(user);
+  const current=auth.currentUser;
+  if(!current) throw new Error("Your secure session ended. Please sign in again.");
+  if(!current.emailVerified) throw new Error("Please verify your email address before signing in.");
+
+  const token=await current.getIdToken(true);
+  const result=await bridgeLogin(token);
+  savePortalSession(result.data);
+  await signOut(auth);
+  return result;
+}
+
+async function emailLogin(){
+  const loginEmail=email.value.trim().toLowerCase();
+  const loginPassword=password.value;
+
+  if(!/^\S+@\S+\.\S+$/.test(loginEmail)){
+    setMessage("Please enter a valid email address.");
+    return;
+  }
+  if(!loginPassword){
+    setMessage("Please enter your password.");
+    return;
+  }
+
+  setBusy(true);
+  button.textContent="Signing In...";
+  setMessage("Checking your secure account...");
+
+  try{
+    const credential=await signInWithEmailAndPassword(auth,loginEmail,loginPassword);
+    const result=await completeLogin(credential.user);
+    password.value="";
+    setMessage("Login successful. Opening your secure client portal...",true);
+    window.location.replace("../client-dashboard.html");
+  }catch(error){
+    try{if(auth.currentUser) await signOut(auth)}catch(_){}
+    setMessage(friendlyError(error));
+  }finally{
+    setBusy(false);
+    button.textContent="Log In";
+  }
+}
+
+async function googleLogin(){
+  setBusy(true);
+  setMessage("Opening Google sign-in...");
+
+  try{
+    if(auth.currentUser) await signOut(auth);
+    const credential=await signInWithPopup(auth,googleProvider);
+    email.value=credential.user.email||"";
+    await completeLogin(credential.user);
+    setMessage("Google Login successful. Opening your secure client portal...",true);
+    window.location.replace("../client-dashboard.html");
+  }catch(error){
+    try{if(auth.currentUser) await signOut(auth)}catch(_){}
+    setMessage(friendlyError(error));
+  }finally{
+    setBusy(false);
+  }
+}
+
+button.addEventListener("click",emailLogin);
+googleButton.addEventListener("click",googleLogin);
+password.addEventListener("keydown",event=>{
+  if(event.key==="Enter") emailLogin();
+});
+</script>
+</body>
+</html>
