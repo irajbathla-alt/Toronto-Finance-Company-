@@ -236,7 +236,7 @@ html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif}
   </div>
 </section>
 
-<script src="firebase-test-config.js?v=20261109-test2"></script>
+<script src="../crm-config.js?v=20261109-firebase-test-existing-backend"></script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
 import {
@@ -267,7 +267,7 @@ auth.useDeviceLanguage();
 const googleProvider=new GoogleAuthProvider();
 googleProvider.setCustomParameters({prompt:"select_account"});
 
-const API_URL=String(window.TFC_FIREBASE_TEST_CONFIG?.apiUrl||"").trim();
+const API_URL=String(window.TFC_CONFIG?.apiUrl||"").trim();
 const SESSION_KEY="tfc-client-auth";
 const LEGACY_KEY="tfc-current-application";
 
