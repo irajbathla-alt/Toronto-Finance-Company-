@@ -2418,7 +2418,7 @@ button,input{font:inherit}
       <div class="task-grid" aria-label="Application process">
         <button class="task active" id="taskSign" type="button">
           <small>Step 1</small>
-          <strong>Review & Sign</strong>
+          <strong>TFC Application</strong>
         </button>
 
         <div class="task-confirm" id="taskConfirm">
@@ -2435,12 +2435,12 @@ button,input{font:inherit}
       </div>
 
       <section class="panel show" id="signPanel">
-        <h3>Review & Sign</h3>
-        <p id="flowSignCopy">Complete the Toronto Finance Company application and provide your secure Adobe electronic signature.</p>
+        <h3>Toronto Finance Company Application</h3>
+        <p id="flowSignCopy">Complete and sign your Toronto Finance Company business financing application securely through Adobe.</p>
         <div class="adobe">
           <iframe
             src="https://na4.documents.adobe.com/public/esignWidget?wid=CBFCIBAA3AAABLblqZhAnqjopKPPoN1QIkSjStJUCs-Ve6rjdHrEPhpbLmobYPxjFhDPyBUdS9egKOSZWeAI*&hosted=false"
-            title="Toronto Finance Company Secure Electronic Signature"
+            title="Toronto Finance Company Business Financing Application"
             loading="lazy"></iframe>
         </div>
         <div class="sign-next-note">After signing above, complete Step 2: Confirm Submission. Step 3 will then unlock for your bank statements.</div>
@@ -3648,7 +3648,7 @@ function openApplicationFlow(){
   flowEyebrow.textContent='Toronto Finance Company Route';
   flowTitle.textContent='Complete your application.';
   flowIntro.textContent='Follow the three steps below to complete your Toronto Finance Company application.';
-  flowSignCopy.textContent='Complete the Toronto Finance Company application and provide your secure Adobe electronic signature.';
+  flowSignCopy.textContent='Complete and sign your Toronto Finance Company business financing application securely through Adobe.';
   flowUploadCopy.textContent='Choose recent monthly business bank statements in PDF format. Uploaded statements are saved to your secure client file.';
   tfcFlow.classList.add('show');
   showTask('sign');
