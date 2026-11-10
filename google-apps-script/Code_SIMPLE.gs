@@ -861,12 +861,32 @@ function createAccountFirebaseTest(p) {
         }
         deduplicated = true;
       } else {
-        if (findRow('email',firebase.email)) {
-          throw new Error('This email already exists in the Applications sheet. Use a new test email so no existing client is changed.');
-        }
+        const existingRow = findRow('email',firebase.email);
 
-        const now = new Date();
-        record = {
+        if (existingRow) {
+          if (!firebase.emailVerified) {
+            throw new Error('Please verify your email address before linking this sign-in method to your existing Toronto Finance Company account.');
+          }
+
+          record = findApplication(existingRow.applicationId || existingRow.applicationID || existingRow.id);
+          if (!record || String(record.email || '').trim().toLowerCase() !== firebase.email) {
+            throw new Error('Existing Toronto Finance Company account could not be matched safely.');
+          }
+
+          firebaseTestSaveMapping(firebase,record.applicationId);
+          deduplicated = true;
+
+          appendAuditEvent({
+            applicationId:record.applicationId,
+            actorType:'CLIENT',
+            actorId:record.email,
+            action:'AUTH_METHOD_LINKED',
+            summary:'Additional verified Firebase sign-in method linked to existing client account',
+            metadata:{ testOnly:true, authProvider:firebase.provider }
+          });
+        } else {
+          const now = new Date();
+          record = {
           applicationId:firebaseTestApplicationId(firebase.uid),
           created:now,
           updated:now,
@@ -929,6 +949,7 @@ function createAccountFirebaseTest(p) {
           summary:'Firebase test client account created',
           metadata:{ testOnly:true, authProvider:firebase.provider }
         });
+        }
       }
     } finally {
       lock.releaseLock();
