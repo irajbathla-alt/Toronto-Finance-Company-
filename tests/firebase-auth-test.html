@@ -4,568 +4,281 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive">
-<title>Firebase Authentication Test | Toronto Finance Company</title>
+<title>Client Login Test | Toronto Finance Company</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{
-  --ink:#17130f;
-  --paper:#f4eadc;
-  --paper2:#fbf7f0;
-  --white:#fff;
-  --gold:#c6964e;
-  --muted:#786f65;
-  --line:rgba(23,19,15,.12);
-  --green:#2f855a;
-  --red:#a13f33;
-  --blue:#406b8a;
-}
 *{box-sizing:border-box}
-body{
-  margin:0;
+html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif}
+.candidate-login-screen{
+  position:fixed;
+  inset:0;
+  z-index:500;
   min-height:100vh;
-  background:linear-gradient(180deg,#f7efe4,#f3e6d5);
-  color:var(--ink);
-  font-family:Arial,Helvetica,sans-serif;
+  overflow:auto;
+  background:
+    radial-gradient(circle at 82% 10%,rgba(198,150,78,.10),transparent 26%),
+    linear-gradient(180deg,#f8f1e7 0%,#f4eadc 100%);
+  color:#17130f;
 }
-.wrap{width:min(760px,92vw);margin:48px auto 80px}
-.test-banner{
-  background:#fff4dd;
-  border:1px solid rgba(198,150,78,.35);
-  border-radius:12px;
-  padding:12px 16px;
-  margin-bottom:16px;
-  font-size:13px;
-  line-height:1.5;
+.candidate-login-top{
+  height:68px;
+  padding:0 5vw;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  border-bottom:1px solid rgba(23,19,15,.13);
+  background:rgba(248,241,231,.96);
+  backdrop-filter:blur(8px);
 }
-.card{
-  background:rgba(255,255,255,.96);
-  border:1px solid rgba(23,19,15,.08);
-  border-radius:18px;
-  padding:28px;
-  box-shadow:0 22px 60px rgba(42,30,18,.10);
-}
-.eyebrow{
-  color:var(--gold);
+.candidate-login-brand{
+  font-family:"Cormorant Garamond",serif;
+  font-weight:300;
   text-transform:uppercase;
-  letter-spacing:.14em;
+  font-size:24px;
+  line-height:1;
+}
+.candidate-login-tag{
+  margin-top:5px;
+  color:#9b763f;
+  font-size:7px;
+  font-weight:600;
+  letter-spacing:.20em;
+  text-transform:uppercase;
+}
+.candidate-login-secure{
+  padding:8px 12px;
+  border:1px solid rgba(23,19,15,.12);
+  border-radius:999px;
+  background:rgba(255,255,255,.48);
+  color:#786f65;
+  font-size:8px;
+  font-weight:600;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+}
+.candidate-login-stage{
+  width:min(440px,92vw);
+  margin:72px auto 48px;
+}
+.candidate-login{
+  padding:30px;
+  border-radius:14px;
+  background:#fff;
+  border:1px solid rgba(23,19,15,.06);
+  box-shadow:0 22px 60px rgba(0,0,0,.12);
+}
+.candidate-login-eyebrow{
+  margin-bottom:9px;
+  color:#c6964e;
+  text-align:center;
+  font-size:8px;
+  font-weight:600;
+  letter-spacing:.17em;
+  text-transform:uppercase;
+}
+.candidate-login h1{
+  margin:0 0 8px;
+  text-align:center;
+  font-family:"Cormorant Garamond",serif;
+  font-size:38px;
+  line-height:1;
+  font-weight:400;
+  text-transform:uppercase;
+}
+.candidate-login>p{
+  margin:0;
+  text-align:center;
+  color:#786f65;
+  font-size:13px;
+  line-height:1.6;
+}
+.candidate-field{margin-top:16px}
+.candidate-field label{
+  display:block;
+  margin-bottom:7px;
   font-size:10px;
-  font-weight:700;
+  letter-spacing:.11em;
+  text-transform:uppercase;
 }
-h1{font-family:Georgia,serif;font-weight:400;text-transform:uppercase;font-size:36px;margin:8px 0 7px}
-.intro{color:var(--muted);font-size:13px;line-height:1.65;margin:0 0 22px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.field{margin-top:14px}
-.field.full{grid-column:1/-1}
-label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px;font-weight:700;color:#5a5046}
-input{
+.candidate-field input{
   width:100%;
-  border:1px solid #d9cdbf;
-  border-radius:10px;
-  padding:13px 14px;
-  background:var(--paper2);
-  color:var(--ink);
+  padding:13px;
+  border:1px solid #d4c8bb;
+  border-radius:7px;
+  background:#fbf7f0;
+  color:#17130f;
   outline:none;
-  font-size:14px;
+  transition:border-color .16s ease,box-shadow .16s ease,background .16s ease;
 }
-input:focus{border-color:rgba(198,150,78,.85);box-shadow:0 0 0 4px rgba(198,150,78,.10);background:#fff}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
-button{
+.candidate-field input:focus{
+  border-color:#c6964e;
+  background:#fff;
+  box-shadow:0 0 0 3px rgba(198,150,78,.10);
+}
+.candidate-login-button{
+  width:100%;
+  margin-top:20px;
   border:0;
   border-radius:999px;
-  padding:13px 16px;
-  background:var(--ink);
+  padding:14px;
+  background:#17130f;
   color:#fff;
   text-transform:uppercase;
-  letter-spacing:.09em;
   font-size:10px;
-  font-weight:700;
+  letter-spacing:.12em;
   cursor:pointer;
 }
-button.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}
-button.blue{background:var(--blue)}
-button:disabled{opacity:.5;cursor:not-allowed}
-.status{
-  margin-top:22px;
-  border:1px solid var(--line);
-  background:var(--paper2);
-  border-radius:12px;
-  padding:17px;
+.candidate-login-button:disabled{opacity:.55;cursor:not-allowed}
+.candidate-login-message{
+  min-height:18px;
+  margin-top:12px;
+  color:#a13f33;
+  font-size:12px;
+  line-height:1.6;
+  text-align:center;
 }
-.status.good{border-color:rgba(47,133,90,.28);background:#edf6f0}
-.status.bad{border-color:rgba(161,63,51,.25);background:#faeeec}
-.status h2{font-family:Georgia,serif;text-transform:uppercase;font-weight:400;font-size:22px;margin:0 0 9px}
-.status p{margin:4px 0;font-size:12px;line-height:1.55;word-break:break-word}
-.muted{color:var(--muted)}
-code{font-family:Consolas,monospace;font-size:11px}
-@media(max-width:640px){.grid,.actions{grid-template-columns:1fr}.field.full{grid-column:auto}.card{padding:22px}h1{font-size:30px}}
+.candidate-login-message.success{color:#2f855a}
+.candidate-login-foot{
+  margin-top:16px;
+  text-align:center;
+  color:#8b8176;
+  font-size:9px;
+  line-height:1.6;
+}
+@media(max-width:760px){
+  .candidate-login-top{height:62px;padding:0 18px}
+  .candidate-login-brand{font-size:19px}
+  .candidate-login-tag{font-size:5.8px;letter-spacing:.16em}
+  .candidate-login-secure{font-size:6px;padding:7px 8px}
+  .candidate-login-stage{margin:34px auto 30px}
+  .candidate-login{padding:24px 20px}
+  .candidate-login h1{font-size:31px}
+}
 </style>
 </head>
 <body>
-<main class="wrap">
-  <div class="test-banner">
-    <strong>TEST ONLY.</strong> This page connects only to Firebase Authentication.
-    It has no Google Sheets, Apps Script, CRM, Drive, lender, Admin Portal, or Client Portal connection.
+<section class="candidate-login-screen" id="candidateLogin">
+  <header class="candidate-login-top">
+    <div>
+      <div class="candidate-login-brand">Toronto Finance Company</div>
+      <div class="candidate-login-tag">Business Financing Solutions</div>
+    </div>
+    <div class="candidate-login-secure">Secure Client Portal</div>
+  </header>
+
+  <div class="candidate-login-stage">
+    <div class="candidate-login">
+      <div class="candidate-login-eyebrow">Welcome Back</div>
+      <h1>Client Login</h1>
+      <p>Use the same email address and password used to create your Toronto Finance Company account.</p>
+
+      <div class="candidate-field">
+        <label for="candidateEmail">Email Address</label>
+        <input id="candidateEmail" type="email" autocomplete="email">
+      </div>
+      <div class="candidate-field">
+        <label for="candidatePassword">Password</label>
+        <input id="candidatePassword" type="password" autocomplete="current-password">
+      </div>
+      <button class="candidate-login-button" id="candidateLoginBtn" type="button">Log In</button>
+      <div class="candidate-login-message" id="candidateLoginMsg" role="status" aria-live="polite"></div>
+    </div>
+    <div class="candidate-login-foot">Toronto Finance Company · Secure business financing client access</div>
   </div>
-
-  <section class="card">
-    <div class="eyebrow">Toronto Finance Company</div>
-    <h1>Firebase Auth Test</h1>
-    <p class="intro">Use a test email and password only. We are testing Firebase account creation and login in isolation before any future migration.</p>
-
-    <div class="grid">
-      <div class="field full">
-        <label for="email">Email Address</label>
-        <input id="email" type="email" autocomplete="email" placeholder="test@example.com">
-      </div>
-      <div class="field full">
-        <label for="password">Password</label>
-        <input id="password" type="password" autocomplete="current-password" minlength="6" placeholder="Enter test password">
-      </div>
-    </div>
-
-    <div class="actions">
-      <button id="createAccount">Create Account</button>
-      <button id="login" class="blue">Log In</button>
-      <button id="logout" class="secondary">Log Out</button>
-      <button id="resetPassword" class="secondary">Forgot Password</button>
-      <button id="googleLogin" class="secondary" style="grid-column:1/-1">Continue with Google</button>
-      <button id="linkGoogle" class="secondary" style="grid-column:1/-1">Link Google to This Account</button>
-      <button id="sendVerification" class="secondary">Resend Verification Email</button>
-      <button id="refreshVerification" class="secondary">Refresh Verification Status</button>
-    </div>
-
-    <div class="status" id="status">
-      <h2>Not Signed In</h2>
-      <p class="muted">Waiting for Firebase Authentication.</p>
-    </div>
-  </section>
-</main>
+</section>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
 import {
   getAuth,
-  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  sendPasswordResetEmail,
-  sendEmailVerification,
   reload,
-  GoogleAuthProvider,
-  signInWithPopup,
-  linkWithPopup,
-  linkWithCredential,
-  onAuthStateChanged
+  setPersistence,
+  browserSessionPersistence
 } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAXIObBDa-i8W_wAUtt43FXracH7ezPhlA",
-  authDomain: "toronto-finance-company-auth.firebaseapp.com",
-  projectId: "toronto-finance-company-auth",
-  storageBucket: "toronto-finance-company-auth.firebasestorage.app",
-  messagingSenderId: "494379883061",
-  appId: "1:494379883061:web:54acfe2bc5b27f8fa36f7c"
+const firebaseConfig={
+  apiKey:"AIzaSyAXIObBDa-i8W_wAUtt43FXracH7ezPhlA",
+  authDomain:"toronto-finance-company-auth.firebaseapp.com",
+  projectId:"toronto-finance-company-auth",
+  storageBucket:"toronto-finance-company-auth.firebasestorage.app",
+  messagingSenderId:"494379883061",
+  appId:"1:494379883061:web:54acfe2bc5b27f8fa36f7c"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+await setPersistence(auth,browserSessionPersistence);
 auth.useDeviceLanguage();
-const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({ prompt:'select_account' });
 
-let pendingGoogleCredential = null;
-let pendingGoogleEmail = '';
+const email=document.getElementById('candidateEmail');
+const password=document.getElementById('candidatePassword');
+const button=document.getElementById('candidateLoginBtn');
+const message=document.getElementById('candidateLoginMsg');
 
-const $ = selector => document.querySelector(selector);
-const emailField = $('#email');
-const passwordField = $('#password');
-const statusBox = $('#status');
-const buttons = [...document.querySelectorAll('button')];
-
-function setBusy(busy) {
-  buttons.forEach(button => button.disabled = busy);
+function setMessage(text,success=false){
+  message.textContent=text;
+  message.className='candidate-login-message'+(success?' success':'');
 }
-
-function friendlyError(error) {
-  const code = String(error?.code || '');
-  const known = {
-    'auth/email-already-in-use': 'That email already has a Firebase account.',
-    'auth/invalid-email': 'Please enter a valid email address.',
-    'auth/invalid-credential': 'The email or password is incorrect.',
-    'auth/missing-password': 'Please enter a password.',
-    'auth/weak-password': 'The password does not meet the Firebase password requirements.',
-    'auth/user-disabled': 'This Firebase account has been disabled.',
-    'auth/too-many-requests': 'Firebase temporarily blocked repeated attempts. Try again later.',
-    'auth/unauthorized-continue-uri': 'The return URL is not authorized in Firebase Authentication settings.',
-    'auth/operation-not-allowed': 'This Firebase sign-in provider is not enabled for this project.',
-    'auth/popup-closed-by-user': 'The Google sign-in window was closed before login completed.',
-    'auth/popup-blocked': 'Your browser blocked the Google sign-in popup. Allow popups for this test page and try again.',
-    'auth/unauthorized-domain': 'This website domain is not authorized in Firebase Authentication. Add torontofinancecompany.com under Authentication > Settings > Authorized domains.',
-    'auth/requires-recent-login': 'Firebase requires you to sign in again before completing this action.',
-    'auth/provider-already-linked': 'Google is already linked to this Firebase user.',
-    'auth/account-exists-with-different-credential': 'An account already exists with this email using another sign-in method. Authenticate that existing account once so Firebase can securely link Google.',
-    'auth/credential-already-in-use': 'That Google account is already attached to a different Firebase user. For this test, use another test account or remove the duplicate test user in Firebase Authentication > Users.',
-    'auth/email-already-in-use': 'That email is already being used by another Firebase user.'
+function friendlyError(error){
+  const code=String(error?.code||'');
+  const known={
+    'auth/invalid-email':'Please enter a valid email address.',
+    'auth/invalid-credential':'The email or password is incorrect.',
+    'auth/user-disabled':'This account has been disabled.',
+    'auth/too-many-requests':'Too many sign-in attempts. Please try again later.',
+    'auth/operation-not-allowed':'Email/password sign-in is not enabled in Firebase.',
+    'auth/network-request-failed':'The secure login service could not be reached. Check your connection and try again.'
   };
-  const message = known[code] || error?.message || 'Firebase returned an unknown error.';
-  return code ? message + ' [' + code + ']' : message;
+  return known[code]||'Login failed. Please try again.';
 }
 
-function showMessage(title, message, type='') {
-  statusBox.className = 'status' + (type ? ' ' + type : '');
-  statusBox.innerHTML = '<h2></h2><p></p>';
-  statusBox.querySelector('h2').textContent = title;
-  statusBox.querySelector('p').textContent = message;
-}
-
-function credentials() {
-  return {
-    email: emailField.value.trim(),
-    password: passwordField.value
-  };
-}
-
-async function completePendingGoogleLink(user) {
-  if (!pendingGoogleCredential) return false;
-
-  const signedInEmail = String(user?.email || '').trim().toLowerCase();
-  const expectedEmail = String(pendingGoogleEmail || '').trim().toLowerCase();
-
-  if (expectedEmail && signedInEmail && expectedEmail !== signedInEmail) {
-    pendingGoogleCredential = null;
-    pendingGoogleEmail = '';
-    showMessage(
-      'Email Mismatch — Not Linked',
-      'For security, Google was not linked because the Google email does not match the existing Firebase account email.',
-      'bad'
-    );
-    return true;
+async function login(){
+  const loginEmail=email.value.trim().toLowerCase();
+  const loginPassword=password.value;
+  if(!/^\S+@\S+\.\S+$/.test(loginEmail)){
+    setMessage('Please enter a valid email address.');
+    return;
+  }
+  if(!loginPassword){
+    setMessage('Please enter your password.');
+    return;
   }
 
-  const originalUid = user.uid;
+  button.disabled=true;
+  button.textContent='Signing In...';
+  setMessage('Checking your secure account...');
 
-  try {
-    const linked = await linkWithCredential(user, pendingGoogleCredential);
-    await reload(linked.user);
-
-    const sameUid = linked.user.uid === originalUid;
-    const providers = linked.user.providerData.map(item => item.providerId);
-
-    pendingGoogleCredential = null;
-    pendingGoogleEmail = '';
-
-    showMessage(
-      sameUid ? 'Google Reconciled — Same UID Confirmed' : 'UID Check Failed',
-      sameUid
-        ? 'Success. The existing account was authenticated and Google was securely linked to the same Firebase UID: ' + linked.user.uid + '. Providers: ' + providers.join(', ')
-        : 'The Firebase UID changed unexpectedly. Do not proceed with production migration.',
-      sameUid ? 'good' : 'bad'
-    );
-    return true;
-  } catch (error) {
-    if (error?.code === 'auth/provider-already-linked') {
-      pendingGoogleCredential = null;
-      pendingGoogleEmail = '';
-      showMessage(
-        'Already Reconciled',
-        'Google is already linked to this Firebase user. No duplicate account was created.',
-        'good'
-      );
-      return true;
-    }
-
-    showMessage('Google Reconciliation Failed', friendlyError(error), 'bad');
-    return true;
-  }
-}
-
-$('#createAccount').addEventListener('click', async () => {
-  const { email, password } = credentials();
-  if (!email || !password) return showMessage('Missing Information','Enter both an email and password.','bad');
-  setBusy(true);
-  try {
-    const credential = await createUserWithEmailAndPassword(auth,email,password);
-    await sendEmailVerification(credential.user);
-    showMessage(
-      'Account Created',
-      'Firebase created and signed in ' + credential.user.email + '. A verification email was sent. Open that email, click Verify, then return here and press Refresh Verification Status.',
-      'good'
-    );
-  } catch (error) {
-    showMessage('Account Creation Failed', friendlyError(error), 'bad');
-  } finally {
-    setBusy(false);
-  }
-});
-
-$('#login').addEventListener('click', async () => {
-  const { email, password } = credentials();
-  if (!email || !password) return showMessage('Missing Information','Enter both an email and password.','bad');
-  setBusy(true);
-  try {
-    const credential = await signInWithEmailAndPassword(auth,email,password);
+  try{
+    const credential=await signInWithEmailAndPassword(auth,loginEmail,loginPassword);
     await reload(credential.user);
-    if (!credential.user.emailVerified) {
-      showMessage(
-        'Email Verification Required',
-        'Your email/password account is valid, but access is blocked until the email is verified. You can use Resend Verification Email, click the verification link, then press Refresh Verification Status.',
-        'bad'
-      );
+
+    if(!credential.user.emailVerified){
+      await signOut(auth);
+      setMessage('Please verify your email address before signing in.');
       return;
     }
 
-    if (pendingGoogleCredential) {
-      await completePendingGoogleLink(credential.user);
-    }
-  } catch (error) {
-    showMessage('Login Failed', friendlyError(error), 'bad');
-  } finally {
-    setBusy(false);
+    password.value='';
+    setMessage('Firebase login successful. Secure account verified.',true);
+  }catch(error){
+    setMessage(friendlyError(error));
+  }finally{
+    button.disabled=false;
+    button.textContent='Log In';
   }
+}
+
+button.addEventListener('click',login);
+password.addEventListener('keydown',event=>{
+  if(event.key==='Enter') login();
 });
 
-$('#googleLogin').addEventListener('click', async () => {
-  pendingGoogleCredential = null;
-  pendingGoogleEmail = '';
-
-  setBusy(true);
-  try {
-    const result = await signInWithPopup(auth,googleProvider);
-    const providers = result.user.providerData.map(item => item.providerId);
-
-    if (providers.includes('password') && providers.includes('google.com')) {
-      showMessage(
-        'Google Login — Existing Account Reconciled',
-        'Firebase signed in the existing user and both Email/Password and Google point to the same UID: ' + result.user.uid,
-        'good'
-      );
-    }
-  } catch (error) {
-    if (error?.code === 'auth/account-exists-with-different-credential') {
-      const pending = GoogleAuthProvider.credentialFromError(error);
-      const existingEmail = String(error?.customData?.email || '').trim();
-
-      if (!pending || !existingEmail) {
-        showMessage('Google Login Failed', friendlyError(error), 'bad');
-        return;
-      }
-
-      pendingGoogleCredential = pending;
-      pendingGoogleEmail = existingEmail;
-      emailField.value = existingEmail;
-      passwordField.value = '';
-      passwordField.focus();
-
-      showMessage(
-        'Existing Account Found — One-Time Reconciliation',
-        'Google confirmed ' + existingEmail + ', but Firebase requires proof of the existing account before linking. Enter the existing password and click Log In once. Google will then be linked to the same Firebase UID automatically.',
-        'bad'
-      );
-      return;
-    }
-
-    showMessage('Google Login Failed', friendlyError(error), 'bad');
-  } finally {
-    setBusy(false);
-  }
-});
-
-$('#linkGoogle').addEventListener('click', async () => {
-  const user = auth.currentUser;
-  if (!user) {
-    return showMessage(
-      'Sign In Required',
-      'First log in with the verified Email/Password account that you want to link to Google.',
-      'bad'
-    );
-  }
-
-  const providerIds = user.providerData.map(item => item.providerId);
-  if (!providerIds.includes('password')) {
-    return showMessage(
-      'Password Account Required',
-      'For this test, first sign in using the Email/Password account. Then link Google to that same Firebase user.',
-      'bad'
-    );
-  }
-
-  if (!user.emailVerified) {
-    return showMessage(
-      'Verify Email First',
-      'Verify the Email/Password account before linking Google.',
-      'bad'
-    );
-  }
-
-  if (providerIds.includes('google.com')) {
-    return showMessage(
-      'Already Linked',
-      'This Firebase user already has both Email/Password and Google linked.',
-      'good'
-    );
-  }
-
-  const originalUid = user.uid;
-  const originalEmail = (user.email || '').toLowerCase();
-  const provider = new GoogleAuthProvider();
-  provider.setCustomParameters({
-    prompt: 'select_account',
-    login_hint: user.email || ''
-  });
-
-  setBusy(true);
-  try {
-    const result = await linkWithPopup(user, provider);
-    const linkedUser = result.user;
-    const googleProfile = linkedUser.providerData.find(item => item.providerId === 'google.com');
-    const googleEmail = (googleProfile?.email || '').toLowerCase();
-
-    if (googleEmail && originalEmail && googleEmail !== originalEmail) {
-      showMessage(
-        'Google Linked — Email Mismatch',
-        'Firebase linked Google to the same UID, but the Google email (' + googleEmail + ') is different from the password email (' + originalEmail + '). For our production design we would not allow this.',
-        'bad'
-      );
-      return;
-    }
-
-    const sameUid = linkedUser.uid === originalUid;
-    showMessage(
-      sameUid ? 'Accounts Linked — Same UID Confirmed' : 'UID Check Failed',
-      sameUid
-        ? 'Success. Email/Password and Google now belong to one Firebase user. UID: ' + linkedUser.uid
-        : 'The Firebase UID changed unexpectedly. Do not proceed with production migration.',
-      sameUid ? 'good' : 'bad'
-    );
-  } catch (error) {
-    showMessage('Google Link Failed', friendlyError(error), 'bad');
-  } finally {
-    setBusy(false);
-  }
-});
-
-$('#sendVerification').addEventListener('click', async () => {
-  const user = auth.currentUser;
-  if (!user) return showMessage('Sign In Required','Log in with an Email/Password test account first.','bad');
-  if (user.emailVerified) return showMessage('Already Verified','This Firebase account is already email verified.','good');
-
-  setBusy(true);
-  try {
-    await sendEmailVerification(user);
-    showMessage(
-      'Verification Email Sent',
-      'Firebase sent a verification email to ' + (user.email || 'this account') + '. Check the inbox and Spam/Junk, click Verify, then return here and press Refresh Verification Status.',
-      'good'
-    );
-  } catch (error) {
-    showMessage('Verification Failed', friendlyError(error), 'bad');
-  } finally {
-    setBusy(false);
-  }
-});
-
-$('#refreshVerification').addEventListener('click', async () => {
-  const user = auth.currentUser;
-  if (!user) return showMessage('Sign In Required','Log in first, then refresh the verification status.','bad');
-
-  setBusy(true);
-  try {
-    await reload(user);
-    const freshUser = auth.currentUser;
-    if (freshUser?.emailVerified) {
-      if (pendingGoogleCredential) {
-        await completePendingGoogleLink(freshUser);
-      } else {
-        showMessage('Email Verified','Firebase now confirms that ' + (freshUser.email || 'this account') + ' is verified.','good');
-      }
-    } else {
-      showMessage('Not Verified Yet','Firebase still shows this email as unverified. Click the verification link in the email, then try Refresh Verification Status again.');
-    }
-  } catch (error) {
-    showMessage('Refresh Failed', friendlyError(error), 'bad');
-  } finally {
-    setBusy(false);
-  }
-});
-
-$('#logout').addEventListener('click', async () => {
-  setBusy(true);
-  try {
-    await signOut(auth);
-  } catch (error) {
-    showMessage('Logout Failed', friendlyError(error), 'bad');
-  } finally {
-    setBusy(false);
-  }
-});
-
-$('#resetPassword').addEventListener('click', async () => {
-  const email = emailField.value.trim();
-  if (!email) return showMessage('Email Required','Enter the test account email first.','bad');
-  setBusy(true);
-  try {
-    await sendPasswordResetEmail(auth,email);
-    showMessage(
-      'Reset Request Accepted',
-      'Firebase accepted the password-reset request for ' + email + '. If the email does not arrive, check Spam/Junk and Firebase Authentication > Templates > Password reset. This test page received no Firebase error.',
-      'good'
-    );
-  } catch (error) {
-    showMessage('Reset Request Failed', friendlyError(error), 'bad');
-  } finally {
-    setBusy(false);
-  }
-});
-
-onAuthStateChanged(auth, async user => {
-  if (!user) {
-    statusBox.className = 'status';
-    statusBox.innerHTML = '<h2>Not Signed In</h2><p class="muted">Firebase currently has no authenticated user in this browser.</p>';
-    return;
-  }
-
-  try {
-    await reload(user);
-  } catch (_) {}
-
-  const providerIds = user.providerData.map(item => item.providerId);
-  const usesPassword = providerIds.includes('password');
-  const usesGoogle = providerIds.includes('google.com');
-
-  if (usesPassword && !usesGoogle && !user.emailVerified) {
-    showMessage(
-      'Email Verification Required',
-      'This email/password account is signed in to Firebase, but access is blocked until the email is verified. Use Resend Verification Email if needed, then press Refresh Verification Status.',
-      'bad'
-    );
-    return;
-  }
-
-  statusBox.className = 'status good';
-  statusBox.replaceChildren();
-
-  const heading = document.createElement('h2');
-  heading.textContent = 'Firebase Login Active';
-
-  const emailLine = document.createElement('p');
-  emailLine.innerHTML = '<strong>Email:</strong> ';
-  emailLine.append(document.createTextNode(user.email || '—'));
-
-  const uidLine = document.createElement('p');
-  uidLine.innerHTML = '<strong>Firebase UID:</strong> ';
-  const uidCode = document.createElement('code');
-  uidCode.textContent = user.uid;
-  uidLine.append(uidCode);
-
-  const providerLine = document.createElement('p');
-  providerLine.innerHTML = '<strong>Provider:</strong> ';
-  providerLine.append(document.createTextNode(providerIds.join(', ') || 'Firebase'));
-
-  const verifiedLine = document.createElement('p');
-  verifiedLine.innerHTML = '<strong>Email verified:</strong> ';
-  verifiedLine.append(document.createTextNode(user.emailVerified ? 'Yes' : 'No'));
-
-  statusBox.append(heading,emailLine,uidLine,providerLine,verifiedLine);
-});
+// Keep the test isolated: no redirect, CRM call, Apps Script call, or portal session is created.
 </script>
 </body>
 </html>
