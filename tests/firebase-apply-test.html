@@ -1,55 +1,74 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="robots" content="noindex,nofollow,noarchive">
-<title>Firebase Apply Test | Toronto Finance Company</title>
+<title>Create Account Test | Toronto Finance Company</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css?v=20260828-contact2">
+<link rel="stylesheet" href="../typography.css">
 <style>
-:root{--ink:#17130f;--paper:#f5eadc;--paper2:#fbf7f1;--gold:#c6964e;--muted:#786f65;--line:rgba(23,19,15,.13);--green:#2f855a;--red:#a13f33;--blue:#406b8a}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:linear-gradient(180deg,#f7efe4,#f3e6d5);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
-.wrap{width:min(760px,92vw);margin:48px auto 80px}
-.banner{background:#fff4dd;border:1px solid rgba(198,150,78,.35);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;line-height:1.5}
-.card{background:rgba(255,255,255,.97);border:1px solid rgba(23,19,15,.08);border-radius:18px;padding:28px;box-shadow:0 22px 60px rgba(42,30,18,.10)}
-.eyebrow{color:var(--gold);text-transform:uppercase;letter-spacing:.14em;font-size:10px;font-weight:700}
-h1{font:400 36px Georgia,serif;text-transform:uppercase;margin:8px 0 7px}
-.intro{color:var(--muted);font-size:13px;line-height:1.65;margin:0 0 22px}
-.field{margin-top:14px} label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px;font-weight:700;color:#5a5046}
-input{width:100%;border:1px solid #d9cdbf;border-radius:10px;padding:13px 14px;background:var(--paper2);color:var(--ink);outline:none;font-size:14px}
-input:focus{border-color:rgba(198,150,78,.85);box-shadow:0 0 0 4px rgba(198,150,78,.10);background:#fff}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
-button{border:0;border-radius:999px;padding:13px 16px;background:var(--ink);color:#fff;text-transform:uppercase;letter-spacing:.08em;font-size:10px;font-weight:700;cursor:pointer}
-button.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)} button.blue{background:var(--blue)} button:disabled{opacity:.5;cursor:not-allowed}
-.status{margin-top:22px;border:1px solid var(--line);background:var(--paper2);border-radius:12px;padding:17px}
-.status.good{border-color:rgba(47,133,90,.28);background:#edf6f0}.status.bad{border-color:rgba(161,63,51,.25);background:#faeeec}
-.status h2{font:400 22px Georgia,serif;text-transform:uppercase;margin:0 0 9px}.status p{margin:4px 0;font-size:12px;line-height:1.55;word-break:break-word}.muted{color:var(--muted)}
-code{font-family:Consolas,monospace;font-size:11px}
-@media(max-width:640px){.actions{grid-template-columns:1fr}.card{padding:22px}h1{font-size:30px}}
+.firebase-test-hidden{display:none!important}
+#status{font-size:12px;margin-top:14px;color:#786f65}
+#status.good{color:#2f855a}
+#status.bad{color:#a13f33}
+#status h2{display:none}
+#status p{margin:0;line-height:1.6}
 </style>
 </head>
 <body>
-<main class="wrap">
-  <div class="banner"><strong>TEST ONLY.</strong> This page tests Firebase Authentication and the exact signup payload locally. It does not call Apps Script, write to Google Sheets, create a live application, touch Drive, or affect the Client/Admin portals.</div>
-  <section class="card">
-    <div class="eyebrow">Toronto Finance Company</div>
-    <h1>Apply Now Test</h1>
-    <p class="intro">Same simple front-door information: name, email, phone and authentication. Detailed business information and documents remain for the Client Portal later.</p>
+<main id="app">
+  <section class="page">
+    <nav class="lightnav">
+      <span>TORONTO FINANCE COMPANY</span>
+      <div class="steps"><span class="step active">Create Account</span></div>
+      <button class="linkbtn" type="button" onclick="window.location.href='../index.html'">Exit</button>
+    </nav>
 
-    <div class="field"><label for="name">Full Name</label><input id="name" autocomplete="name" placeholder="Your full legal name"></div>
-    <div class="field"><label for="email">Email Address</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com"></div>
-    <div class="field"><label for="phone">Phone Number</label><input id="phone" type="tel" autocomplete="tel" placeholder="+1 416-555-0123"></div>
-    <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="new-password" minlength="8" placeholder="Minimum 8 characters"></div>
+    <div class="formwrap">
+      <h2>Create Your Account</h2>
+      <p>Create your secure client account. After account creation, you will be guided through two steps: review and sign your application, then upload six bank statements.</p>
 
-    <div class="actions">
-      <button id="createEmail">Create with Email</button>
-      <button id="googleLogin" class="secondary">Continue with Google</button>
-      <button id="refreshVerification" class="secondary">Refresh Verification</button>
-      <button id="submitTest" class="blue">Verify Signup Payload</button>
-      <button id="logout" class="secondary" style="grid-column:1/-1">Log Out</button>
+      <div class="grid">
+        <div class="field full">
+          <label>Full Name</label>
+          <input id="name" autocomplete="name" placeholder="Your full legal name" required>
+        </div>
+        <div class="field full">
+          <label>Email Address</label>
+          <input id="email" type="email" autocomplete="email" placeholder="name@company.com" required>
+        </div>
+        <div class="field full">
+          <label>Phone Number</label>
+          <input id="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+1 416-555-0123" required>
+        </div>
+        <div class="field full">
+          <label>Create Password</label>
+          <input id="password" type="password" autocomplete="new-password" placeholder="Minimum 8 characters" minlength="8" required>
+        </div>
+      </div>
+
+      <p style="font-size:12px;line-height:1.6;color:#786f65;margin-top:18px">
+        By creating an account, you agree to Toronto Finance Company’s <a href="../terms.html">Terms & Conditions</a> and acknowledge its <a href="../privacy.html">Privacy Policy</a>.
+      </p>
+
+      <div class="form-actions">
+        <button class="linkbtn" type="button" onclick="window.location.href='../index.html'">Back Home</button>
+        <button class="darkbtn" id="createEmail" type="button">Create Account</button>
+      </div>
+
+      <div id="status" role="status" aria-live="polite"></div>
+
+      <div class="firebase-test-hidden" aria-hidden="true">
+        <button id="googleLogin" type="button"></button>
+        <button id="refreshVerification" type="button"></button>
+        <button id="submitTest" type="button"></button>
+        <button id="logout" type="button"></button>
+      </div>
     </div>
-
-    <div class="status" id="status"><h2>Not Signed In</h2><p class="muted">Authenticate with Firebase, then submit the test application.</p></div>
   </section>
 </main>
 
@@ -57,7 +76,8 @@ code{font-family:Consolas,monospace;font-size:11px}
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
 import {
   getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup,
-  sendEmailVerification, reload, signOut, updateProfile, onAuthStateChanged
+  sendEmailVerification, reload, signOut, updateProfile, setPersistence,
+  browserSessionPersistence, onAuthStateChanged
 } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
 
 const firebaseConfig={
@@ -70,6 +90,7 @@ const firebaseConfig={
 };
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
+await setPersistence(auth,browserSessionPersistence);
 auth.useDeviceLanguage();
 const googleProvider=new GoogleAuthProvider();
 googleProvider.setCustomParameters({prompt:"select_account"});
@@ -109,7 +130,8 @@ $("#createEmail").onclick=async()=>{
     const result=await createUserWithEmailAndPassword(auth,d.email,d.password);
     await updateProfile(result.user,{displayName:d.name});
     await sendEmailVerification(result.user);
-    show("Account Created","Verification email sent. Verify the email, return here, then click Refresh Verification.","good");
+    await signOut(auth);
+    show("Account Created","Verification email sent. Verify the email, then use the Firebase login test page to sign in.","good");
   }catch(e){show("Account Creation Failed",e?.message||String(e),"bad")}
   finally{busy(false)}
 };
