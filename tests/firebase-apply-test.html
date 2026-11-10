@@ -130,12 +130,21 @@
   </section>
 </main>
 
+<script src="firebase-test-config.js?v=20261109-test2"></script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
 import {
-  getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup,
-  sendEmailVerification, reload, signOut, updateProfile, setPersistence,
-  browserSessionPersistence, onAuthStateChanged
+  getAuth,
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+  sendEmailVerification,
+  reload,
+  signOut,
+  updateProfile,
+  setPersistence,
+  browserSessionPersistence,
+  onAuthStateChanged
 } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
 
 const firebaseConfig={
@@ -146,23 +155,45 @@ const firebaseConfig={
   messagingSenderId:"494379883061",
   appId:"1:494379883061:web:54acfe2bc5b27f8fa36f7c"
 };
+
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 await setPersistence(auth,browserSessionPersistence);
 auth.useDeviceLanguage();
+
 const googleProvider=new GoogleAuthProvider();
 googleProvider.setCustomParameters({prompt:"select_account"});
 
+const API_URL=String(window.TFC_FIREBASE_TEST_CONFIG?.apiUrl||"").trim();
+const PENDING_KEY="tfc-firebase-test-pending-profile";
 const $=s=>document.querySelector(s);
-const buttons=[...document.querySelectorAll("button")];
 const statusBox=$("#status");
+const createButton=$("#createEmail");
+const googleButton=$("#googleLogin");
+const allButtons=[...document.querySelectorAll("button")];
 
-function busy(value){buttons.forEach(b=>b.disabled=value)}
+function busy(value){
+  allButtons.forEach(button=>button.disabled=value);
+}
 function show(title,message,type=""){
   statusBox.className="status"+(type?" "+type:"");
   statusBox.innerHTML="<h2></h2><p></p>";
   statusBox.querySelector("h2").textContent=title;
   statusBox.querySelector("p").textContent=message;
+}
+function friendlyError(error){
+  const code=String(error?.code||"");
+  const known={
+    "auth/email-already-in-use":"A Firebase account already exists for this email. Use the Firebase Login test page instead.",
+    "auth/invalid-email":"Please enter a valid email address.",
+    "auth/weak-password":"Please use a stronger password with at least 8 characters.",
+    "auth/operation-not-allowed":"This Firebase sign-in method is not enabled.",
+    "auth/popup-closed-by-user":"Google sign-in was closed before it finished.",
+    "auth/popup-blocked":"Your browser blocked the Google sign-in popup. Allow popups and try again.",
+    "auth/unauthorized-domain":"This test domain is not authorized in Firebase Authentication.",
+    "auth/network-request-failed":"Firebase could not be reached. Check your connection and try again."
+  };
+  return known[code]||error?.message||String(error)||"The secure signup could not be completed.";
 }
 function details(){
   return {
@@ -172,126 +203,185 @@ function details(){
     password:$("#password").value
   };
 }
-function validateProfile(){
+function profileOnly(){
   const d=details();
-  if(!d.name){show("Name Required","Enter the client's full name.","bad");return null}
-  if(d.phone.replace(/\D/g,"").length<7){show("Phone Required","Enter a valid phone number.","bad");return null}
-  return d;
+  if(!d.name){show("Name Required","Enter the client's full name.","bad");$("#name").focus();return null}
+  if(d.phone.replace(/\D/g,"").length<7){show("Phone Required","Enter a valid phone number.","bad");$("#phone").focus();return null}
+  return {name:d.name,phone:d.phone};
+}
+function savePending(profile){
+  sessionStorage.setItem(PENDING_KEY,JSON.stringify(profile));
+}
+function readPending(){
+  try{return JSON.parse(sessionStorage.getItem(PENDING_KEY)||"null")}catch(_){return null}
+}
+function clearPending(){
+  sessionStorage.removeItem(PENDING_KEY);
+}
+function requestId(){
+  if(globalThis.crypto?.randomUUID) return crypto.randomUUID().replace(/-/g,"");
+  const bytes=new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return [...bytes].map(value=>value.toString(16).padStart(2,"0")).join("");
+}
+function jsonp(action,payload={},timeout=15000){
+  return new Promise((resolve,reject)=>{
+    if(!API_URL) return reject(new Error("The Apps Sheet test bridge is not configured."));
+    const callback="tfc_fb_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+    const script=document.createElement("script");
+    const params=new URLSearchParams({action,callback,_:String(Date.now())});
+    Object.entries(payload).forEach(([key,value])=>{
+      if(value!==undefined&&value!==null) params.set(key,String(value));
+    });
+    const timer=setTimeout(()=>{cleanup();reject(new Error("The Apps Sheet bridge timed out."))},timeout);
+    function cleanup(){
+      clearTimeout(timer);
+      try{delete window[callback]}catch(_){window[callback]=undefined}
+      script.remove();
+    }
+    window[callback]=data=>{cleanup();resolve(data)};
+    script.onerror=()=>{cleanup();reject(new Error("The Apps Sheet bridge could not be reached."))};
+    script.src=API_URL+"?"+params.toString();
+    document.head.appendChild(script);
+  });
+}
+async function bridge(action,payload){
+  if(!API_URL) throw new Error("The Apps Sheet test bridge is not configured.");
+  const id=requestId();
+  try{
+    await fetch(API_URL,{
+      method:"POST",
+      mode:"no-cors",
+      keepalive:false,
+      headers:{"Content-Type":"text/plain;charset=UTF-8"},
+      body:JSON.stringify({action,requestId:id,...payload})
+    });
+  }catch(_){}
+
+  for(let attempt=0;attempt<30;attempt++){
+    if(attempt) await new Promise(resolve=>setTimeout(resolve,500));
+    const status=await jsonp("firebaseTestRequestStatus",{requestId:id});
+    if(status?.ok&&status.pending===false){
+      const result=status.result||{};
+      if(!result.ok) throw new Error(result.error||"The Apps Sheet bridge rejected this signup.");
+      return result;
+    }
+  }
+  throw new Error("Firebase authenticated, but the Apps Sheet sync could not be confirmed. Do not create another test account until this is checked.");
+}
+async function finishSheetSignup(user,profile){
+  await reload(user);
+  const current=auth.currentUser;
+  if(!current) throw new Error("Firebase session ended. Sign in again.");
+  if(!current.emailVerified) throw new Error("Please click the verification link in your email first, then press Finish Signup.");
+  const token=await current.getIdToken(true);
+  return bridge("createAccountFirebaseTest",{
+    firebaseIdToken:token,
+    name:profile.name,
+    phone:profile.phone
+  });
+}
+function successMessage(result,email){
+  const notification=result?.notification;
+  const notified=notification?.sent===true;
+  return "Firebase and Applications sheet are synced for "+email+
+    ". Application "+(result?.data?.applicationId||"created")+
+    (notified?". The existing new-client signup notification was also sent.":". The account was created, but the signup-notification status should be checked.");
 }
 
-$("#createEmail").onclick=async()=>{
-  const d=validateProfile(); if(!d)return;
-  if(!/^\S+@\S+\.\S+$/.test(d.email)){show("Email Required","Enter a valid email address.","bad");return}
-  if(d.password.length<8){show("Password Required","Use at least 8 characters.","bad");return}
+createButton.addEventListener("click",async()=>{
+  const current=auth.currentUser;
+  const pending=readPending();
+
+  if(current&&pending){
+    busy(true);
+    createButton.textContent="Finishing Signup...";
+    try{
+      const result=await finishSheetSignup(current,pending);
+      const email=current.email||"this account";
+      clearPending();
+      await signOut(auth);
+      $("#password").value="";
+      show("Signup Complete",successMessage(result,email),"good");
+    }catch(error){
+      show("Finish Signup",friendlyError(error),"bad");
+    }finally{
+      busy(false);
+      createButton.textContent=auth.currentUser?"Finish Signup":"Create Account";
+    }
+    return;
+  }
+
+  const d=details();
+  const profile=profileOnly();
+  if(!profile)return;
+  if(!/^\S+@\S+\.\S+$/.test(d.email)){show("Email Required","Enter a valid email address.","bad");$("#email").focus();return}
+  if(d.password.length<8){show("Password Required","Use at least 8 characters.","bad");$("#password").focus();return}
+
   busy(true);
+  createButton.textContent="Creating Account...";
   try{
     const result=await createUserWithEmailAndPassword(auth,d.email,d.password);
     await updateProfile(result.user,{displayName:d.name});
+    savePending({name:d.name,phone:d.phone});
     await sendEmailVerification(result.user);
-    await signOut(auth);
-    show("Account Created","Verification email sent. Verify the email, then use the Firebase login test page to sign in.","good");
-  }catch(e){show("Account Creation Failed",e?.message||String(e),"bad")}
-  finally{busy(false)}
-};
+    createButton.textContent="Finish Signup";
+    show(
+      "Verify Your Email",
+      "Firebase account created. Check "+d.email+", click the verification link, return to this page, then press Finish Signup. The Applications sheet will only be populated after Firebase confirms the email.",
+      "good"
+    );
+  }catch(error){
+    show("Account Creation Failed",friendlyError(error),"bad");
+  }finally{
+    busy(false);
+    if(auth.currentUser&&readPending()) createButton.textContent="Finish Signup";
+    else createButton.textContent="Create Account";
+  }
+});
 
-$("#googleLogin").onclick=async()=>{
-  const d=validateProfile(); if(!d)return;
+googleButton.addEventListener("click",async()=>{
+  const profile=profileOnly();
+  if(!profile)return;
+
   busy(true);
   try{
+    if(auth.currentUser) await signOut(auth);
+    clearPending();
+
     const result=await signInWithPopup(auth,googleProvider);
-    if(!result.user.displayName && d.name) await updateProfile(result.user,{displayName:d.name});
-    $("#email").value=result.user.email||"";
-    show("Google Account Ready","Google securely authenticated "+(result.user.email||"the account")+". This Firebase test account is ready; nothing has been sent to the live application system.","good");
-  }catch(e){show("Google Login Failed",e?.message||String(e),"bad")}
-  finally{busy(false)}
-};
+    const user=result.user;
+    const googleEmail=String(user.email||"").trim().toLowerCase();
+    if(!googleEmail) throw new Error("Google did not return an email address.");
 
-$("#refreshVerification").onclick=async()=>{
-  const user=auth.currentUser;
-  if(!user){show("Sign In Required","Create/sign in to the Firebase account first.","bad");return}
-  busy(true);
-  try{
-    await reload(user);
-    if(auth.currentUser?.emailVerified){
-      show("Email Verified","Firebase confirms the email is verified. You can submit the test application.","good");
-    }else{
-      show("Not Verified Yet","Click the verification link in the email, then try again.","bad");
-    }
-  }catch(e){show("Refresh Failed",e?.message||String(e),"bad")}
-  finally{busy(false)}
-};
+    if(!user.displayName&&profile.name) await updateProfile(user,{displayName:profile.name});
+    $("#email").value=googleEmail;
 
-$("#submitTest").onclick=async()=>{
-  const d=validateProfile(); if(!d)return;
-  const user=auth.currentUser;
-  if(!user){show("Firebase Sign-In Required","Authenticate with Email or Google first.","bad");return}
-
-  busy(true);
-  try{
-    await reload(user);
-    const current=auth.currentUser;
-    if(!current?.emailVerified){
-      show("Verification Required","The Firebase email must be verified before signup can continue.","bad");
-      return;
-    }
-
-    const idToken=await current.getIdToken(true);
-    const providers=current.providerData.map(p=>p.providerId).join(", ")||"Firebase";
-    const firebaseEmail=String(current.email||"").trim().toLowerCase();
-    const formEmail=String(d.email||firebaseEmail).trim().toLowerCase();
-
-    if(formEmail && firebaseEmail && formEmail!==firebaseEmail){
-      show("Email Mismatch","The form email does not match the authenticated Firebase email. Signup would be blocked.","bad");
-      return;
-    }
-
-    const payload={
-      name:d.name,
-      email:firebaseEmail,
-      phone:d.phone,
-      firebaseIdToken:idToken
-    };
-
-    statusBox.className="status good";
-    statusBox.innerHTML="";
-    const h=document.createElement("h2");
-    h.textContent="Signup Payload Verified";
-    const lines=[
-      "Name: "+payload.name,
-      "Email: "+payload.email,
-      "Phone: "+payload.phone,
-      "Firebase UID: "+current.uid,
-      "Provider: "+providers,
-      "Email verified: Yes",
-      "Firebase ID token: Present ("+idToken.length+" characters)"
-    ];
-    statusBox.appendChild(h);
-    lines.forEach(text=>{
-      const p=document.createElement("p");
-      p.textContent=text;
-      statusBox.appendChild(p);
+    const token=await user.getIdToken(true);
+    const synced=await bridge("createAccountFirebaseTest",{
+      firebaseIdToken:token,
+      name:profile.name,
+      phone:profile.phone
     });
-    const note=document.createElement("p");
-    note.className="muted";
-    note.textContent="Nothing was sent to Apps Script or Google Sheets. This proves the exact data is ready for the existing Apps Script create-account flow later.";
-    statusBox.appendChild(note);
-  }catch(e){show("Payload Verification Failed",e?.message||String(e),"bad")}
-  finally{busy(false)}
-};
 
-$("#logout").onclick=async()=>{await signOut(auth);show("Logged Out","Firebase session ended.")};
+    await signOut(auth);
+    $("#password").value="";
+    show("Google Signup Complete",successMessage(synced,googleEmail),"good");
+  }catch(error){
+    show("Google Signup Failed",friendlyError(error),"bad");
+  }finally{
+    busy(false);
+  }
+});
 
 onAuthStateChanged(auth,async user=>{
-  if(!user)return;
-  try{await reload(user)}catch(_){}
-  const providers=user.providerData.map(p=>p.providerId).join(", ")||"Firebase";
-  $("#email").value=user.email||$("#email").value;
-  statusBox.className="status good";
-  statusBox.innerHTML="";
-  const h=document.createElement("h2");h.textContent="Firebase Login Active";
-  const p=document.createElement("p");
-  p.textContent="Email: "+(user.email||"—")+" | UID: "+user.uid+" | Provider: "+providers+" | Verified: "+(user.emailVerified?"Yes":"No");
-  statusBox.append(h,p);
+  const pending=readPending();
+  if(user&&pending){
+    $("#email").value=user.email||$("#email").value;
+    createButton.textContent="Finish Signup";
+  }else if(!user){
+    createButton.textContent="Create Account";
+  }
 });
 </script>
 </body>
