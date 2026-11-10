@@ -118,7 +118,7 @@ code{font-family:Consolas,monospace;font-size:11px}
       </div>
       <div class="field full">
         <label for="password">Password</label>
-        <input id="password" type="password" autocomplete="current-password" minlength="6" placeholder="Enter test password">
+        <input id="password" type="password" autocomplete="current-password" minlength="8" placeholder="Minimum 8 characters">
       </div>
     </div>
 
@@ -154,6 +154,9 @@ import {
   signInWithPopup,
   linkWithPopup,
   linkWithCredential,
+  unlink,
+  setPersistence,
+  browserSessionPersistence,
   onAuthStateChanged
 } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
 
@@ -168,6 +171,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+await setPersistence(auth,browserSessionPersistence);
 auth.useDeviceLanguage();
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt:'select_account' });
@@ -192,7 +196,7 @@ function friendlyError(error) {
     'auth/invalid-email': 'Please enter a valid email address.',
     'auth/invalid-credential': 'The email or password is incorrect.',
     'auth/missing-password': 'Please enter a password.',
-    'auth/weak-password': 'The password does not meet the Firebase password requirements.',
+    'auth/weak-password': 'Use a stronger password with at least 8 characters.',
     'auth/user-disabled': 'This Firebase account has been disabled.',
     'auth/too-many-requests': 'Firebase temporarily blocked repeated attempts. Try again later.',
     'auth/unauthorized-continue-uri': 'The return URL is not authorized in Firebase Authentication settings.',
@@ -203,8 +207,7 @@ function friendlyError(error) {
     'auth/requires-recent-login': 'Firebase requires you to sign in again before completing this action.',
     'auth/provider-already-linked': 'Google is already linked to this Firebase user.',
     'auth/account-exists-with-different-credential': 'An account already exists with this email using another sign-in method. Authenticate that existing account once so Firebase can securely link Google.',
-    'auth/credential-already-in-use': 'That Google account is already attached to a different Firebase user. For this test, use another test account or remove the duplicate test user in Firebase Authentication > Users.',
-    'auth/email-already-in-use': 'That email is already being used by another Firebase user.'
+    'auth/credential-already-in-use': 'That Google account is already attached to a different Firebase user. For this test, use another test account or remove the duplicate test user in Firebase Authentication > Users.'
   };
   const message = known[code] || error?.message || 'Firebase returned an unknown error.';
   return code ? message + ' [' + code + ']' : message;
@@ -281,6 +284,7 @@ async function completePendingGoogleLink(user) {
 $('#createAccount').addEventListener('click', async () => {
   const { email, password } = credentials();
   if (!email || !password) return showMessage('Missing Information','Enter both an email and password.','bad');
+  if (password.length < 8) return showMessage('Password Too Short','Use at least 8 characters for this Toronto Finance Company test.','bad');
   setBusy(true);
   try {
     const credential = await createUserWithEmailAndPassword(auth,email,password);
@@ -420,9 +424,18 @@ $('#linkGoogle').addEventListener('click', async () => {
     const googleEmail = (googleProfile?.email || '').toLowerCase();
 
     if (googleEmail && originalEmail && googleEmail !== originalEmail) {
+      let rolledBack = false;
+      try {
+        await unlink(linkedUser,'google.com');
+        await reload(linkedUser);
+        rolledBack = !linkedUser.providerData.some(item => item.providerId === 'google.com');
+      } catch (_) {}
+
       showMessage(
-        'Google Linked — Email Mismatch',
-        'Firebase linked Google to the same UID, but the Google email (' + googleEmail + ') is different from the password email (' + originalEmail + '). For our production design we would not allow this.',
+        rolledBack ? 'Google Email Mismatch — Link Rejected' : 'Google Email Mismatch — Manual Review Required',
+        rolledBack
+          ? 'The selected Google email (' + googleEmail + ') did not match the password account (' + originalEmail + '). The Google link was automatically removed and the original Firebase account was preserved.'
+          : 'The selected Google email (' + googleEmail + ') did not match the password account (' + originalEmail + '). Firebase linked it before the mismatch could be detected and automatic rollback did not confirm. Do not use this test user for production migration.',
         'bad'
       );
       return;
@@ -489,6 +502,8 @@ $('#refreshVerification').addEventListener('click', async () => {
 
 $('#logout').addEventListener('click', async () => {
   setBusy(true);
+  pendingGoogleCredential = null;
+  pendingGoogleEmail = '';
   try {
     await signOut(auth);
   } catch (error) {
