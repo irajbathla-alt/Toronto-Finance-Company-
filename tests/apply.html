@@ -190,6 +190,8 @@ const firebaseConfig={
 const EXPECTED_BUILD="20261109-fb-debug-v4";
 const API_URL=String(window.TFC_CONFIG?.apiUrl||"").trim();
 const GOOGLE_PENDING_KEY="tfc-google-signup-profile";
+const SESSION_KEY="tfc-client-auth";
+const LEGACY_KEY="tfc-current-application";
 
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
@@ -335,6 +337,18 @@ function successText(result,email){
   const id=result?.data?.applicationId||"";
   return "Account created successfully"+(id?" · "+id:"")+". "+email+" has been added to your Toronto Finance Company file.";
 }
+function savePortalSession(data){
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({
+    applicationId:data.applicationId,
+    email:data.email||"",
+    authenticatedAt:new Date().toISOString(),
+    authMode:"firebase-test"
+  }));
+  localStorage.setItem(LEGACY_KEY,JSON.stringify(data));
+}
+function openClientDashboard(){
+  window.location.replace("../client-dashboard.html");
+}
 
 createButton.addEventListener("click",async()=>{
   const d=details();
@@ -378,13 +392,15 @@ createButton.addEventListener("click",async()=>{
     }
 
     const accountEmail=credential.user.email||d.email;
+    savePortalSession(synced.data);
     await signOut(auth);
     $("#password").value="";
     show(
       "Account Created",
-      successText(synced,accountEmail)+" Please verify your email before using email/password login.",
+      successText(synced,accountEmail)+" Opening your client dashboard...",
       "good"
     );
+    openClientDashboard();
   }catch(error){
     show("Account Creation Failed",friendlyError(error),"bad");
   }finally{
@@ -402,8 +418,10 @@ async function completeGoogleCredential(credential,profile){
   $("#email").value=googleEmail;
 
   const synced=await syncUser(user,profile);
+  savePortalSession(synced.data);
   await signOut(auth);
-  show("Account Created",successText(synced,googleEmail),"good");
+  show("Account Created",successText(synced,googleEmail)+" Opening your client dashboard...","good");
+  openClientDashboard();
 }
 
 googleButton.addEventListener("click",async()=>{
