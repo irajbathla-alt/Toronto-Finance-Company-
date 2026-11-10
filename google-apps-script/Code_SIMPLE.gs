@@ -48,7 +48,7 @@ const MAX_LENDER_PACKAGE_BYTES = 17 * 1024 * 1024;
 const DOCUMENT_INDEX_CACHE_SECONDS = 20;
 const UPLOAD_IDEMPOTENCY_SECONDS = 21600;
 const AUDIT_CACHE_SECONDS = 15;
-const FIREBASE_TEST_BUILD = '20261109-fb-debug-v3';
+const FIREBASE_TEST_BUILD = '20261109-fb-debug-v4';
 
 function doGet(e) {
   try {
@@ -736,7 +736,7 @@ function firebaseTestRequestStatus(p) {
   }
 }
 
-function firebaseTestVerifyIdToken(idToken) {
+function firebaseTestVerifyIdToken(idToken, requireVerified) {
   const token = String(idToken || '').trim();
   if (token.length < 100 || token.length > 10000) {
     throw new Error('Firebase session token is missing or invalid');
@@ -773,13 +773,15 @@ function firebaseTestVerifyIdToken(idToken) {
   if (!uid || !/^\S+@\S+\.\S+$/.test(email)) {
     throw new Error('Firebase account is missing a valid email address');
   }
-  if (user.emailVerified !== true) {
+  const emailVerified = user.emailVerified === true;
+  if (requireVerified !== false && !emailVerified) {
     throw new Error('Please verify your email address before continuing');
   }
 
   return {
     uid,
     email,
+    emailVerified,
     provider:providers.includes('google.com') ? 'google.com' : (providers[0] || 'firebase')
   };
 }
@@ -830,7 +832,7 @@ function createAccountFirebaseTest(p) {
   let result;
 
   try {
-    const firebase = firebaseTestVerifyIdToken(p.firebaseIdToken);
+    const firebase = firebaseTestVerifyIdToken(p.firebaseIdToken,false);
     const name = String(p.name || '').trim();
     const phone = String(p.phone || '').trim();
 
@@ -941,7 +943,7 @@ function createAccountFirebaseTest(p) {
       ok:true,
       testOnly:true,
       data:safeClient({ ...record, documents:[] }),
-      firebase:{ provider:firebase.provider, email:firebase.email },
+      firebase:{ provider:firebase.provider, email:firebase.email, emailVerified:firebase.emailVerified },
       notification,
       deduplicated
     };
@@ -986,7 +988,7 @@ function clientLoginFirebaseTest(p) {
       ok:true,
       testOnly:true,
       data:safeClient({ ...record, documents:[] }),
-      firebase:{ provider:firebase.provider, email:firebase.email }
+      firebase:{ provider:firebase.provider, email:firebase.email, emailVerified:firebase.emailVerified }
     };
   } catch (err) {
     result = { ok:false, testOnly:true, error:err.message || String(err) };
