@@ -1434,7 +1434,7 @@ function adminChatSend(p) {
     return {
       ok:true,
       data:safe(findApplication(record.applicationId)),
-      notification:{ attempted:false, sent:false, deduplicated:true },
+      notification:{ attempted:false, sent:true, deduplicated:true },
       deduplicated:true
     };
   }
@@ -1449,12 +1449,25 @@ function adminChatSend(p) {
     metadata:{ length:message.length }
   });
 
-  // Portal chat is intentionally silent by email.
-  // Client email notifications are sent only by adminUpdate when notifyClient=true.
+  const notification = sendClientUpdateEmail(saved);
+
+  appendAuditEvent({
+    applicationId:record.applicationId,
+    actorType:'ADMIN',
+    actorId:adminEmail,
+    action:notification.sent ? 'CLIENT_NOTIFICATION_SENT' : 'CLIENT_NOTIFICATION_FAILED',
+    summary:notification.sent
+      ? 'Client message saved and email notification sent'
+      : 'Client message saved but email notification could not be sent',
+    metadata:notification.sent
+      ? { sender:notification.sender || CONFIG.CLIENT_NOTIFICATION_FROM }
+      : { error:notification.error || 'Unknown notification error' }
+  });
+
   return {
     ok:true,
-    data:safe(saved),
-    notification:{ attempted:false, sent:false }
+    data:safe(findApplication(record.applicationId)),
+    notification
   };
 }
 function adminEnsureDrive(p) {
