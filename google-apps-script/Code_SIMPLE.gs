@@ -960,7 +960,7 @@ function clientLoginFirebaseTest(p) {
   let result;
 
   try {
-    const firebase = firebaseTestVerifyIdToken(p.firebaseIdToken);
+    const firebase = firebaseTestVerifyIdToken(p.firebaseIdToken,true);
     const mapped = firebaseTestGetMapping(firebase.uid);
 
     if (!mapped) {
