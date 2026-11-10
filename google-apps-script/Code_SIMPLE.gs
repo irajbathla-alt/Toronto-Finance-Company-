@@ -684,7 +684,7 @@ function clientLogin(p) {
  * - The live Apply and Client Login pages do not call these actions.
  * - Uses the existing Applications sheet and existing notification/email logic.
  * - Firebase UID mapping is kept in Script Properties, not in a new sheet/tab.
- * - Test applications use a TFC-FB-* ID so they cannot affect live TFC-###### numbering.
+ * - Firebase test applications use the same TFC-###### numbering sequence as regular applications.
  */
 const FIREBASE_TEST_API_KEY = 'AIzaSyAXIObBDa-i8W_wAUtt43FXracH7ezPhlA';
 const FIREBASE_TEST_REQUEST_TTL_SECONDS = 300;
@@ -816,19 +816,6 @@ function firebaseTestSaveMapping(firebase,applicationId) {
   );
 }
 
-function firebaseTestApplicationId(firebaseUid) {
-  const stamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone() || 'America/Vancouver', 'yyyyMMdd-HHmmss');
-  const suffix = String(firebaseUid || '').replace(/[^a-zA-Z0-9]/g,'').slice(-6).toUpperCase() || 'TEST';
-  let candidate = 'TFC-FB-' + stamp + '-' + suffix;
-  let counter = 1;
-
-  while (findRow('applicationId',candidate)) {
-    counter += 1;
-    candidate = 'TFC-FB-' + stamp + '-' + suffix + '-' + counter;
-  }
-  return candidate;
-}
-
 function createAccountFirebaseTest(p) {
   const requestId = String(p.requestId || '').trim();
   let result;
@@ -886,8 +873,10 @@ function createAccountFirebaseTest(p) {
           });
         } else {
           const now = new Date();
+          const sh = applicationsSheet();
+          const headers = getHeaders(sh);
           record = {
-          applicationId:firebaseTestApplicationId(firebase.uid),
+          applicationId:nextApplicationIdInSheet(sh,headers),
           created:now,
           updated:now,
           name,
@@ -936,8 +925,6 @@ function createAccountFirebaseTest(p) {
           lastNotificationError:''
         };
 
-        const sh = applicationsSheet();
-        const headers = getHeaders(sh);
         appendRecordToSheet(sh,headers,record);
         firebaseTestSaveMapping(firebase,record.applicationId);
 
