@@ -12,6 +12,55 @@
 <link rel="stylesheet" href="../typography.css">
 <style>
 .firebase-test-hidden{display:none!important}
+.firebase-auth-divider{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:22px 0 14px;
+  color:#9a8f82;
+  font-size:9px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.firebase-auth-divider:before,
+.firebase-auth-divider:after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:rgba(21,19,16,.12);
+}
+.google-signup{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  border:1px solid rgba(21,19,16,.16);
+  border-radius:999px;
+  padding:13px 18px;
+  background:#fff;
+  color:#17130f;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.google-signup:hover{background:#fbf7f0}
+.google-signup:disabled{opacity:.55;cursor:not-allowed}
+.google-mark{
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(21,19,16,.14);
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:12px;
+  font-weight:700;
+  text-transform:none;
+  letter-spacing:0;
+}
 #status{font-size:12px;margin-top:14px;color:#786f65}
 #status.good{color:#2f855a}
 #status.bad{color:#a13f33}
@@ -60,10 +109,16 @@
         <button class="darkbtn" id="createEmail" type="button">Create Account</button>
       </div>
 
+      <div class="firebase-auth-divider"><span>or</span></div>
+
+      <button class="google-signup" id="googleLogin" type="button">
+        <span class="google-mark" aria-hidden="true">G</span>
+        <span>Continue with Google</span>
+      </button>
+
       <div id="status" role="status" aria-live="polite"></div>
 
       <div class="firebase-test-hidden" aria-hidden="true">
-        <button id="googleLogin" type="button"></button>
         <button id="refreshVerification" type="button"></button>
         <button id="submitTest" type="button"></button>
         <button id="logout" type="button"></button>
@@ -143,7 +198,7 @@ $("#googleLogin").onclick=async()=>{
     const result=await signInWithPopup(auth,googleProvider);
     if(!result.user.displayName && d.name) await updateProfile(result.user,{displayName:d.name});
     $("#email").value=result.user.email||"";
-    show("Google Authentication Complete","Firebase authenticated "+(result.user.email||"the Google account")+". You can now submit the test application.","good");
+    show("Google Account Ready","Google securely authenticated "+(result.user.email||"the account")+". This Firebase test account is ready; nothing has been sent to the live application system.","good");
   }catch(e){show("Google Login Failed",e?.message||String(e),"bad")}
   finally{busy(false)}
 };
