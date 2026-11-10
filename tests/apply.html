@@ -172,6 +172,7 @@ import {
   signInWithRedirect,
   getRedirectResult,
   sendEmailVerification,
+  reload,
   signOut,
   updateProfile,
   setPersistence,
@@ -187,7 +188,7 @@ const firebaseConfig={
   appId:"1:494379883061:web:54acfe2bc5b27f8fa36f7c"
 };
 
-const EXPECTED_BUILD="20261109-fb-debug-v6";
+const EXPECTED_BUILD="20261110-fb-debug-v7";
 const API_URL=String(window.TFC_CONFIG?.apiUrl||"").trim();
 const GOOGLE_PENDING_KEY="tfc-google-signup-profile";
 const SESSION_KEY="tfc-client-auth";
@@ -374,8 +375,11 @@ createButton.addEventListener("click",async()=>{
     await preflight();
 
     let credential;
+    let newlyCreated=false;
+
     try{
       credential=await createUserWithEmailAndPassword(auth,d.email,d.password);
+      newlyCreated=true;
     }catch(error){
       if(String(error?.code||"")==="auth/email-already-in-use"){
         credential=await signInWithEmailAndPassword(auth,d.email,d.password);
@@ -386,18 +390,34 @@ createButton.addEventListener("click",async()=>{
 
     if(!credential.user.displayName) await updateProfile(credential.user,{displayName:d.name});
 
-    const synced=await syncUser(credential.user,profile);
+    await reload(credential.user);
+    const current=auth.currentUser;
+    if(!current) throw new Error("Your secure Firebase session ended. Please try again.");
 
-    if(!credential.user.emailVerified){
-      try{await sendEmailVerification(credential.user)}catch(_){}
+    if(!current.emailVerified){
+      if(newlyCreated){
+        await sendEmailVerification(current);
+      }else{
+        try{await sendEmailVerification(current)}catch(_){}
+      }
+
+      show(
+        "Verify Your Email",
+        "We sent a verification link to "+(current.email||d.email)+". Open that email, verify the address, then return here and press Create Account again to finish. No Toronto Finance Company file will be duplicated while you verify.",
+        "good"
+      );
+      createButton.textContent="Finish Signup";
+      return;
     }
 
-    const accountEmail=credential.user.email||d.email;
+    const synced=await syncUser(current,profile);
+    const accountEmail=current.email||d.email;
+
     savePortalSession(synced.data);
     await signOut(auth);
     $("#password").value="";
     show(
-      "Account Created",
+      "Account Ready",
       successText(synced,accountEmail)+" Opening your client dashboard...",
       "good"
     );
@@ -406,7 +426,7 @@ createButton.addEventListener("click",async()=>{
     show("Account Creation Failed",friendlyError(error),"bad");
   }finally{
     busy(false);
-    createButton.textContent="Create Account";
+    if(createButton.textContent!=="Finish Signup") createButton.textContent="Create Account";
   }
 });
 
