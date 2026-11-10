@@ -48,7 +48,7 @@ const MAX_LENDER_PACKAGE_BYTES = 17 * 1024 * 1024;
 const DOCUMENT_INDEX_CACHE_SECONDS = 20;
 const UPLOAD_IDEMPOTENCY_SECONDS = 21600;
 const AUDIT_CACHE_SECONDS = 15;
-const FIREBASE_TEST_BUILD = '20261109-fb-debug-v5';
+const FIREBASE_TEST_BUILD = '20261109-fb-debug-v6';
 
 function doGet(e) {
   try {
@@ -971,18 +971,40 @@ function clientLoginFirebaseTest(p) {
 
   try {
     const firebase = firebaseTestVerifyIdToken(p.firebaseIdToken,true);
-    const mapped = firebaseTestGetMapping(firebase.uid);
+    let mapped = firebaseTestGetMapping(firebase.uid);
+    let record;
 
     if (!mapped) {
-      throw new Error('No Firebase test application is linked to this account yet');
-    }
-    if (String(mapped.email || '').trim().toLowerCase() !== firebase.email) {
-      throw new Error('Firebase test account verification failed');
-    }
+      const existingRow = findRow('email',firebase.email);
+      if (!existingRow) {
+        throw new Error('No Toronto Finance Company application is linked to this verified account yet');
+      }
 
-    const record = findApplication(mapped.applicationId);
-    if (String(record.email || '').trim().toLowerCase() !== firebase.email) {
-      throw new Error('Applications sheet email does not match Firebase');
+      record = readRecord(existingRow);
+      if (!record || String(record.email || '').trim().toLowerCase() !== firebase.email) {
+        throw new Error('Existing Toronto Finance Company account could not be matched safely');
+      }
+
+      firebaseTestSaveMapping(firebase,record.applicationId);
+      mapped = firebaseTestGetMapping(firebase.uid);
+
+      appendAuditEvent({
+        applicationId:record.applicationId,
+        actorType:'CLIENT',
+        actorId:record.email,
+        action:'AUTH_METHOD_LINKED',
+        summary:'Verified Firebase sign-in method linked during client login',
+        metadata:{ testOnly:true, authProvider:firebase.provider }
+      });
+    } else {
+      if (String(mapped.email || '').trim().toLowerCase() !== firebase.email) {
+        throw new Error('Firebase test account verification failed');
+      }
+
+      record = findApplication(mapped.applicationId);
+      if (String(record.email || '').trim().toLowerCase() !== firebase.email) {
+        throw new Error('Applications sheet email does not match Firebase');
+      }
     }
 
     appendAuditEvent({
