@@ -7,7 +7,9 @@ const CONFIG = {
   CLIENT_PORTAL_URL: 'https://torontofinancecompany.com/client-dashboard.html',
   CLIENT_NOTIFICATION_FROM: 'info@torontofinancecompany.com',
   COMPANY_NAME: 'Toronto Finance Company',
-  MIN_STATEMENTS: 6
+  MIN_STATEMENTS: 6,
+  FIREBASE_API_KEY: 'AIzaSyAXIObBDa-i8W_wAUtt43FXracH7ezPhlA',
+  FIREBASE_PROJECT_ID: 'toronto-finance-company-auth'
 };
 
 const REQUIRED_HEADERS = [
@@ -16,7 +18,8 @@ const REQUIRED_HEADERS = [
   'status','statements','signatureConfirmed','signatureConfirmedAt','advisor','messageTitle','messageBody','approvedAmount','quote',
   'term','paymentFrequency','paymentAmount','numberPayments','totalRepayment','documentsRequested','additionalDocsEnabled',
   'clientDecision','clientDecisionNote','clientDecisionAt','chatHistory','notes',
-  'driveFolderId','driveUrl','lastNotificationStatus','lastNotificationAt','lastNotificationError'
+  'driveFolderId','driveUrl','lastNotificationStatus','lastNotificationAt','lastNotificationError',
+  'firebaseUid','authProvider'
 ];
 
 const CLIENT_SAFE_FIELDS = [
@@ -28,7 +31,7 @@ const CLIENT_SAFE_FIELDS = [
 
 const EARLY_STATUSES = ['Account Created','Statements Required','Ready for Review'];
 const APPROVAL_STATUSES = ['Conditional Approval','Approved'];
-const SCHEMA_CACHE_KEY = 'tfc-schema-20261107-chat-history-v2';
+const SCHEMA_CACHE_KEY = 'tfc-schema-20261109-firebase-auth-v1';
 const AUDIT_SHEET_NAME = 'Audit Log';
 const AUDIT_HEADERS = [
   'auditId','timestamp','applicationId','actorType','actorId',
@@ -57,6 +60,8 @@ function doGet(e) {
     const actions = {
       createAccount,
       clientLogin,
+      createAccountFirebase,
+      clientLoginFirebase,
       getClient,
       clientConfirmSignature,
       clientDecision,
@@ -72,7 +77,8 @@ function doGet(e) {
       adminDeleteLender,
       adminGetSubmissionDocuments,
       adminSendLenderPackage,
-      getDocuments
+      getDocuments,
+      firebaseRequestStatus
     };
 
     if (!actions[p.action]) throw new Error('Unknown action');
@@ -665,6 +671,237 @@ function clientLogin(p) {
   });
 
   return { ok:true, data:safeClient({ ...record, documents:[] }) };
+}
+
+
+const FIREBASE_REQUEST_CACHE_SECONDS = 300;
+
+function firebaseRequestCacheKey(requestId) {
+  const id = String(requestId || '').trim();
+  if (!/^[a-zA-Z0-9_-]{20,120}$/.test(id)) throw new Error('Invalid Firebase request ID');
+  return 'tfc-firebase-request-' + id;
+}
+
+function cacheFirebaseRequestResult(requestId, result) {
+  if (!requestId) return;
+  try {
+    CacheService.getScriptCache().put(
+      firebaseRequestCacheKey(requestId),
+      JSON.stringify(result),
+      FIREBASE_REQUEST_CACHE_SECONDS
+    );
+  } catch (_) {}
+}
+
+function firebaseRequestStatus(p) {
+  const raw = CacheService.getScriptCache().get(firebaseRequestCacheKey(p.requestId));
+  if (!raw) return { ok:true, pending:true };
+  try {
+    return { ok:true, pending:false, result:JSON.parse(raw) };
+  } catch (_) {
+    return { ok:false, pending:false, error:'Firebase request result could not be read' };
+  }
+}
+
+function verifyFirebaseIdToken(idToken) {
+  const token = String(idToken || '').trim();
+  if (token.length < 100 || token.length > 10000) throw new Error('Firebase session token is missing or invalid');
+
+  const response = UrlFetchApp.fetch(
+    'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' + encodeURIComponent(CONFIG.FIREBASE_API_KEY),
+    {
+      method:'post',
+      contentType:'application/json',
+      payload:JSON.stringify({ idToken:token }),
+      muteHttpExceptions:true
+    }
+  );
+
+  let body = {};
+  try { body = JSON.parse(response.getContentText() || '{}'); } catch (_) {}
+
+  if (response.getResponseCode() !== 200 || !body.users || !body.users[0]) {
+    throw new Error('Firebase session could not be verified');
+  }
+
+  const user = body.users[0];
+  const email = String(user.email || '').trim().toLowerCase();
+  const uid = String(user.localId || '').trim();
+  const emailVerified = user.emailVerified === true;
+  const providers = (user.providerUserInfo || [])
+    .map(item => String(item.providerId || '').trim())
+    .filter(Boolean);
+
+  if (!uid || !/^\S+@\S+\.\S+$/.test(email)) {
+    throw new Error('Firebase account is missing a valid email address');
+  }
+  if (!emailVerified) {
+    throw new Error('Please verify your email address before continuing');
+  }
+
+  return {
+    uid,
+    email,
+    emailVerified:true,
+    providers,
+    provider:providers.includes('google.com') ? 'google.com' : (providers[0] || 'firebase')
+  };
+}
+
+function createAccountFirebase(p) {
+  const requestId = String(p.requestId || '').trim();
+  let result;
+
+  try {
+    const firebase = verifyFirebaseIdToken(p.firebaseIdToken);
+    const name = String(p.name || '').trim();
+    const phone = String(p.phone || '').trim();
+
+    if (!name) throw new Error('Name is required');
+    if (phone.replace(/\D/g,'').length < 7) throw new Error('A valid phone number is required');
+
+    const lock = LockService.getScriptLock();
+    lock.waitLock(20000);
+
+    let record;
+    let deduplicated = false;
+    try {
+      const sh = applicationsSheet();
+      const headers = getHeaders(sh);
+
+      const uidMatch = findRowInSheet(sh,headers,'firebaseUid',firebase.uid);
+      if (uidMatch) {
+        record = readRecord(uidMatch);
+        if (String(record.email || '').trim().toLowerCase() !== firebase.email) {
+          throw new Error('Firebase account mapping is inconsistent. Stop testing this account.');
+        }
+        deduplicated = true;
+      } else {
+        const emailMatch = findRowInSheet(sh,headers,'email',firebase.email);
+        if (emailMatch) {
+          throw new Error('An Applications sheet account already exists for this email. Use a new test email so the existing client is not modified.');
+        }
+
+        const now = new Date();
+        record = {
+          applicationId:nextApplicationIdInSheet(sh,headers),
+          created:now,
+          updated:now,
+          name,
+          email:firebase.email,
+          passwordHash:'',
+          phone,
+          business:'',
+          address:'',
+          city:'',
+          province:'',
+          postal:'',
+          industry:'',
+          revenue:'',
+          requested:'',
+          years:'',
+          purpose:'',
+          status:'Account Created',
+          statements:0,
+          signatureConfirmed:false,
+          signatureConfirmedAt:'',
+          advisor:'',
+          messageTitle:'Welcome',
+          messageBody:'Your account has been created. Please complete your application and upload six recent bank statements.',
+          approvedAmount:'',
+          quote:'',
+          term:'',
+          paymentFrequency:'',
+          paymentAmount:'',
+          numberPayments:'',
+          totalRepayment:'',
+          documentsRequested:'',
+          additionalDocsEnabled:'',
+          clientDecision:'',
+          clientDecisionNote:'',
+          clientDecisionAt:'',
+          chatHistory:JSON.stringify([{
+            id:Utilities.getUuid(),
+            sender:'ADVISOR',
+            message:'Your account has been created. Please complete your application and upload six recent bank statements.',
+            at:now.toISOString()
+          }]),
+          notes:'',
+          driveFolderId:'',
+          driveUrl:'',
+          lastNotificationStatus:'',
+          lastNotificationAt:'',
+          lastNotificationError:'',
+          firebaseUid:firebase.uid,
+          authProvider:firebase.provider
+        };
+
+        appendRecordToSheet(sh,headers,record);
+        appendAuditEvent({
+          applicationId:record.applicationId,
+          actorType:'CLIENT',
+          actorId:record.email,
+          action:'ACCOUNT_CREATED',
+          summary:'Client account created with Firebase authentication',
+          metadata:{ name:record.name, authProvider:record.authProvider }
+        });
+      }
+    } finally {
+      lock.releaseLock();
+    }
+
+    const notification = deduplicated
+      ? { ok:true, sent:true, alreadySent:true }
+      : sendSignupNotification({ applicationId:record.applicationId, email:record.email });
+
+    result = {
+      ok:true,
+      data:safeClient({ ...record, documents:[] }),
+      firebase:{ provider:firebase.provider },
+      notification,
+      deduplicated
+    };
+  } catch (err) {
+    result = { ok:false, error:err.message || String(err) };
+  }
+
+  cacheFirebaseRequestResult(requestId,result);
+  return result;
+}
+
+function clientLoginFirebase(p) {
+  const requestId = String(p.requestId || '').trim();
+  let result;
+
+  try {
+    const firebase = verifyFirebaseIdToken(p.firebaseIdToken);
+    const found = findRow('firebaseUid',firebase.uid);
+    if (!found) throw new Error('No Applications sheet account is linked to this Firebase user yet');
+
+    const record = readRecord(found);
+    const recordEmail = String(record.email || '').trim().toLowerCase();
+    if (recordEmail !== firebase.email) throw new Error('Firebase account verification failed');
+
+    appendAuditEvent({
+      applicationId:record.applicationId,
+      actorType:'CLIENT',
+      actorId:record.email,
+      action:'CLIENT_LOGIN',
+      summary:'Client signed in with Firebase authentication',
+      metadata:{ authProvider:firebase.provider }
+    });
+
+    result = {
+      ok:true,
+      data:safeClient({ ...record, documents:[] }),
+      firebase:{ provider:firebase.provider }
+    };
+  } catch (err) {
+    result = { ok:false, error:err.message || String(err) };
+  }
+
+  cacheFirebaseRequestResult(requestId,result);
+  return result;
 }
 
 function getClient(p) {
