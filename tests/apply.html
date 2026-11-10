@@ -187,7 +187,7 @@ const firebaseConfig={
   appId:"1:494379883061:web:54acfe2bc5b27f8fa36f7c"
 };
 
-const EXPECTED_BUILD="20261109-fb-debug-v4";
+const EXPECTED_BUILD="20261109-fb-debug-v5";
 const API_URL=String(window.TFC_CONFIG?.apiUrl||"").trim();
 const GOOGLE_PENDING_KEY="tfc-google-signup-profile";
 const SESSION_KEY="tfc-client-auth";
@@ -231,7 +231,8 @@ function markFieldError(id){
 function friendlyError(error){
   const code=String(error?.code||"");
   const known={
-    "auth/email-already-in-use":"An account already exists for this email. Use the same password to continue or use Log In.",
+    "auth/email-already-in-use":"An account already exists for this email. Use Log In, or continue with the same sign-in method you originally used.",
+    "auth/account-exists-with-different-credential":"This email already has a Toronto Finance Company login. Sign in with your existing method first; the verified Google identity can then resolve to the same client file.",
     "auth/invalid-email":"Please enter a valid email address.",
     "auth/invalid-credential":"The email or password is incorrect.",
     "auth/weak-password":"Please use at least 8 characters.",
