@@ -48,6 +48,7 @@ const MAX_LENDER_PACKAGE_BYTES = 17 * 1024 * 1024;
 const DOCUMENT_INDEX_CACHE_SECONDS = 20;
 const UPLOAD_IDEMPOTENCY_SECONDS = 21600;
 const AUDIT_CACHE_SECONDS = 15;
+const FIREBASE_TEST_BUILD = '20261109-fb-debug-v3';
 
 function doGet(e) {
   try {
@@ -75,7 +76,8 @@ function doGet(e) {
       adminGetSubmissionDocuments,
       adminSendLenderPackage,
       getDocuments,
-      firebaseTestRequestStatus
+      firebaseTestRequestStatus,
+      firebaseTestHealth
     };
 
     if (!actions[p.action]) throw new Error('Unknown action');
@@ -686,6 +688,26 @@ const FIREBASE_TEST_API_KEY = 'AIzaSyAXIObBDa-i8W_wAUtt43FXracH7ezPhlA';
 const FIREBASE_TEST_REQUEST_TTL_SECONDS = 300;
 const FIREBASE_TEST_MAPPING_PREFIX = 'tfc-firebase-test-map-';
 
+function firebaseTestHealth() {
+  let applicationsReady = false;
+  let sheetName = '';
+  try {
+    const sh = applicationsSheet();
+    applicationsReady = Boolean(sh);
+    sheetName = sh ? sh.getName() : '';
+  } catch (_) {}
+
+  return {
+    ok:true,
+    testOnly:true,
+    build:FIREBASE_TEST_BUILD,
+    firebaseProject:'toronto-finance-company-auth',
+    applicationsReady,
+    sheetName,
+    postActionsReady:true
+  };
+}
+
 function firebaseTestRequestCacheKey(requestId) {
   const id = String(requestId || '').trim();
   if (!/^[a-zA-Z0-9_-]{20,120}$/.test(id)) throw new Error('Invalid Firebase test request ID');
@@ -734,7 +756,11 @@ function firebaseTestVerifyIdToken(idToken) {
   try { body = JSON.parse(response.getContentText() || '{}'); } catch (_) {}
 
   if (response.getResponseCode() !== 200 || !body.users || !body.users[0]) {
-    throw new Error('Firebase session could not be verified');
+    const firebaseMessage = String(body && body.error && body.error.message || '').trim();
+    throw new Error(
+      'Firebase session could not be verified' +
+      (firebaseMessage ? ' (' + firebaseMessage + ')' : ' (HTTP ' + response.getResponseCode() + ')')
+    );
   }
 
   const user = body.users[0];
