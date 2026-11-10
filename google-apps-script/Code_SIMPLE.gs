@@ -868,7 +868,7 @@ function createAccountFirebaseTest(p) {
             throw new Error('Please verify your email address before linking this sign-in method to your existing Toronto Finance Company account.');
           }
 
-          record = findApplication(existingRow.applicationId || existingRow.applicationID || existingRow.id);
+          record = readRecord(existingRow);
           if (!record || String(record.email || '').trim().toLowerCase() !== firebase.email) {
             throw new Error('Existing Toronto Finance Company account could not be matched safely.');
           }
