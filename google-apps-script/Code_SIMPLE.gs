@@ -48,7 +48,7 @@ const MAX_LENDER_PACKAGE_BYTES = 17 * 1024 * 1024;
 const DOCUMENT_INDEX_CACHE_SECONDS = 20;
 const UPLOAD_IDEMPOTENCY_SECONDS = 21600;
 const AUDIT_CACHE_SECONDS = 15;
-const FIREBASE_TEST_BUILD = '20261109-fb-debug-v6';
+const FIREBASE_TEST_BUILD = '20261110-fb-debug-v7';
 
 function doGet(e) {
   try {
@@ -821,7 +821,7 @@ function createAccountFirebaseTest(p) {
   let result;
 
   try {
-    const firebase = firebaseTestVerifyIdToken(p.firebaseIdToken,false);
+    const firebase = firebaseTestVerifyIdToken(p.firebaseIdToken,true);
     const name = String(p.name || '').trim();
     const phone = String(p.phone || '').trim();
 
