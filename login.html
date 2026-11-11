@@ -479,6 +479,7 @@ async function emailLogin(){
   setBusy(true);
   button.textContent="Signing In...";
   setMessage("Checking your secure account...");
+  showGoogleLoading();
 
   try{
     await preflight();
@@ -506,7 +507,6 @@ async function googleLogin(){
     try{
       const credential=await signInWithPopup(auth,googleProvider);
       email.value=credential.user.email||"";
-      hideGoogleLoading();
       await finishAndOpen(credential.user,"Google sign-in");
     }catch(error){
       const code=String(error?.code||"");
@@ -536,6 +536,7 @@ try{
   const redirected=await getRedirectResult(auth);
   if(redirected){
     setBusy(true);
+    showGoogleLoading();
     email.value=redirected.user.email||"";
     await finishAndOpen(redirected.user,"Google sign-in");
   }else{
