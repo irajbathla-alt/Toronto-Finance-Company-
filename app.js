@@ -121,5 +121,5 @@ function wire() {
 }
 
 const params = new URLSearchParams(window.location.search);
-if (params.get('apply') === '1') apply();
+if (params.get('apply') === '1') window.location.replace('apply.html');
 else landing();
