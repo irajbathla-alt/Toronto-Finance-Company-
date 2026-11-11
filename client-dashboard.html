@@ -60,54 +60,112 @@ button,input{font:inherit}
 }
 .welcome-swipe-track{
   position:relative;
-  width:128px;
-  height:22px;
-  overflow:hidden;
+  width:74px;
+  height:34px;
+  margin-bottom:1px;
 }
 .welcome-swipe-track::before{
   content:"";
   position:absolute;
-  left:7px;
-  right:7px;
-  top:50%;
-  height:1px;
+  left:50%;
+  bottom:2px;
+  width:42px;
+  height:3px;
   border-radius:999px;
-  background:linear-gradient(90deg,transparent,rgba(159,116,52,.30) 18%,rgba(159,116,52,.48) 50%,rgba(159,116,52,.30) 82%,transparent);
-  transform:translateY(-50%);
+  background:rgba(176,138,87,.14);
+  transform:translateX(-50%);
+  filter:blur(1px);
 }
 .welcome-swipe-line{
   position:absolute;
-  left:-34px;
+  left:50%;
   top:50%;
-  width:46px;
+  width:34px;
+  height:24px;
+  border-radius:7px;
+  background:linear-gradient(145deg,#fffaf2,#f3e5cf);
+  border:1px solid rgba(185,137,63,.38);
+  box-shadow:0 5px 12px rgba(40,28,18,.10);
+  transform:translate(-50%,-50%);
+}
+.welcome-swipe-line::before{
+  content:"";
+  position:absolute;
+  left:6px;
+  right:6px;
+  top:7px;
   height:2px;
   border-radius:999px;
-  background:linear-gradient(90deg,transparent,rgba(184,137,63,.92));
-  transform:translateY(-50%) skewX(-18deg);
-  filter:blur(.15px);
-  animation:tfcSwipeSwoosh 2.4s cubic-bezier(.42,0,.2,1) infinite;
+  background:rgba(159,116,52,.35);
+  box-shadow:0 5px 0 rgba(159,116,52,.18);
 }
 .welcome-swipe-hand{
   position:absolute;
+  left:50%;
   top:50%;
-  left:7px;
-  width:18px;
-  height:18px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  background:#fffaf2;
-  border:1px solid rgba(176,138,87,.38);
-  box-shadow:0 4px 12px rgba(40,28,18,.10);
-  transform:translateY(-50%);
-  animation:tfcSwipeHand 2.4s cubic-bezier(.42,0,.2,1) infinite;
+  width:34px;
+  height:24px;
+  border-radius:7px;
+  background:linear-gradient(145deg,#fffdf9,#f5e9d7);
+  border:1px solid rgba(185,137,63,.48);
+  box-shadow:0 7px 16px rgba(40,28,18,.14);
+  transform:translate(-50%,-50%);
+  transform-origin:70% 85%;
+  animation:tfcTinderSwipeLeft 2.2s cubic-bezier(.22,.72,.24,1) infinite;
 }
 .welcome-swipe-hand::before{
-  content:"›";
+  content:"";
+  position:absolute;
+  left:7px;
+  right:7px;
+  top:7px;
+  height:2px;
+  border-radius:999px;
+  background:rgba(159,116,52,.55);
+  box-shadow:0 5px 0 rgba(159,116,52,.25);
+}
+.welcome-swipe-hand::after{
+  content:"←";
+  position:absolute;
+  left:50%;
+  bottom:-16px;
+  transform:translateX(-50%);
   color:#9f7434;
-  font-size:16px;
-  line-height:1;
-  transform:translateX(-1px);
+  font-size:12px;
+  font-weight:700;
+  opacity:0;
+  animation:tfcSwipeArrowLeft 2.2s ease-in-out infinite;
+}
+@keyframes tfcTinderSwipeLeft{
+  0%,18%{
+    transform:translate(-50%,-50%) rotate(0deg);
+    opacity:1;
+  }
+  55%{
+    transform:translate(calc(-50% - 34px),calc(-50% + 2px)) rotate(-10deg);
+    opacity:1;
+  }
+  72%{
+    transform:translate(calc(-50% - 52px),calc(-50% + 4px)) rotate(-15deg);
+    opacity:0;
+  }
+  73%{
+    transform:translate(-50%,-50%) rotate(0deg);
+    opacity:0;
+  }
+  86%,100%{
+    transform:translate(-50%,-50%) rotate(0deg);
+    opacity:1;
+  }
+}
+@keyframes tfcSwipeArrowLeft{
+  0%,18%{opacity:0;transform:translateX(-50%) translateX(8px)}
+  30%,55%{opacity:1;transform:translateX(-50%) translateX(-4px)}
+  72%,100%{opacity:0;transform:translateX(-50%) translateX(-12px)}
+}
+@media (prefers-reduced-motion:reduce){
+  .welcome-swipe-hand{animation:none}
+  .welcome-swipe-hand::after{animation:none;opacity:.8}
 }
 .welcome-swipe-text{
   font-size:9px;
@@ -134,14 +192,6 @@ button,input{font:inherit}
   transform:translateX(-50%);
   background:linear-gradient(90deg,transparent,rgba(176,138,87,.45),transparent);
 }
-@keyframes tfcSwipeHand{
-  0%,100%{left:7px;opacity:.7;transform:translateY(-50%) scale(.94)}
-  25%{left:103px;opacity:1;transform:translateY(-50%) scale(1)}
-  50%{left:103px;opacity:.72;transform:translateY(-50%) scale(.94)}
-  75%{left:7px;opacity:1;transform:translateY(-50%) scale(1)}
-}
-@keyframes tfcSwipeSwoosh{
-  0%{left:-34px;opacity:0;transform:translateY(-50%) skewX(-18deg) scaleX(1)}
   8%{opacity:1}
   25%{left:112px;opacity:0;transform:translateY(-50%) skewX(-18deg) scaleX(1)}
   50%{left:112px;opacity:0;transform:translateY(-50%) skewX(18deg) scaleX(-1)}
