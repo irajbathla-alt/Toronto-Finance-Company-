@@ -93,15 +93,35 @@
 .auth-loading.show{display:grid}
 .auth-loading-card{text-align:center;padding:28px 24px}
 .auth-loading-mark{
-  width:42px;height:42px;margin:0 auto 16px;border-radius:50%;
-  border:3px solid rgba(184,137,63,.18);border-top-color:#b8893f;
-  animation:tfcSpin .8s linear infinite;
+  position:relative;
+  width:min(280px,72vw);
+  height:4px;
+  margin:0 auto 18px;
+  border-radius:999px;
+  overflow:hidden;
+  background:rgba(64,107,138,.16);
+}
+.auth-loading-mark::after{
+  content:"";
+  position:absolute;
+  top:0;bottom:0;
+  width:42%;
+  border-radius:999px;
+  background:#406b8a;
+  animation:tfcLoadBar 1.05s ease-in-out infinite;
 }
 .auth-loading-title{
   font-family:"Cormorant Garamond",serif;font-size:27px;line-height:1;color:#17130f;margin-bottom:8px;
 }
 .auth-loading-copy{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8a7968}
-@keyframes tfcSpin{to{transform:rotate(360deg)}}
+@keyframes tfcLoadBar{
+  0%{left:-42%}
+  55%{left:58%}
+  100%{left:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  .auth-loading-mark::after{animation:none;left:29%}
+}
 </style>
 </head>
 <body>
