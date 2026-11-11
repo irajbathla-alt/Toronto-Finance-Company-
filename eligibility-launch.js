@@ -27,8 +27,7 @@
       applyButton.setAttribute('data-go', 'apply');
       applyButton.onclick = event => {
         event.preventDefault();
-        if (typeof window.apply === 'function') window.apply();
-        else window.location.href = 'index.html?apply=1';
+        window.location.href = 'apply.html';
       };
     }
   };
