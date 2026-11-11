@@ -170,7 +170,7 @@
       button.textContent = 'Log In';
       button.onclick = event => {
         event.preventDefault();
-        window.location.href = portalTarget() + '?login=1';
+        window.location.href = 'login.html';
       };
     });
 
