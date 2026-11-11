@@ -53,8 +53,10 @@ button,input{font:inherit}
   justify-content:center;
   gap:6px;
   width:min(460px,82vw);
-  margin:10px auto 12px;
+  margin:0 auto 12px;
   text-align:center;
+  position:relative;
+  z-index:7;
 }
 .welcome-swipe-track{
   position:relative;
@@ -83,7 +85,7 @@ button,input{font:inherit}
   background:linear-gradient(90deg,transparent,rgba(184,137,63,.92));
   transform:translateY(-50%) skewX(-18deg);
   filter:blur(.15px);
-  animation:tfcSwipeSwoosh 1.65s cubic-bezier(.42,0,.2,1) infinite;
+  animation:tfcSwipeSwoosh 2.4s cubic-bezier(.42,0,.2,1) infinite;
 }
 .welcome-swipe-hand{
   position:absolute;
@@ -98,7 +100,7 @@ button,input{font:inherit}
   border:1px solid rgba(176,138,87,.38);
   box-shadow:0 4px 12px rgba(40,28,18,.10);
   transform:translateY(-50%);
-  animation:tfcSwipeHand 1.65s cubic-bezier(.42,0,.2,1) infinite;
+  animation:tfcSwipeHand 2.4s cubic-bezier(.42,0,.2,1) infinite;
 }
 .welcome-swipe-hand::before{
   content:"›";
@@ -133,15 +135,19 @@ button,input{font:inherit}
   background:linear-gradient(90deg,transparent,rgba(176,138,87,.45),transparent);
 }
 @keyframes tfcSwipeHand{
-  0%{left:7px;opacity:.55;transform:translateY(-50%) scale(.92)}
-  45%,55%{opacity:1;transform:translateY(-50%) scale(1)}
-  100%{left:103px;opacity:.55;transform:translateY(-50%) scale(.92)}
+  0%,100%{left:7px;opacity:.7;transform:translateY(-50%) scale(.94)}
+  25%{left:103px;opacity:1;transform:translateY(-50%) scale(1)}
+  50%{left:103px;opacity:.72;transform:translateY(-50%) scale(.94)}
+  75%{left:7px;opacity:1;transform:translateY(-50%) scale(1)}
 }
 @keyframes tfcSwipeSwoosh{
-  0%{left:-34px;opacity:0}
-  15%{opacity:1}
-  75%{opacity:.9}
-  100%{left:112px;opacity:0}
+  0%{left:-34px;opacity:0;transform:translateY(-50%) skewX(-18deg) scaleX(1)}
+  8%{opacity:1}
+  25%{left:112px;opacity:0;transform:translateY(-50%) skewX(-18deg) scaleX(1)}
+  50%{left:112px;opacity:0;transform:translateY(-50%) skewX(18deg) scaleX(-1)}
+  58%{opacity:1}
+  75%{left:-34px;opacity:0;transform:translateY(-50%) skewX(18deg) scaleX(-1)}
+  100%{left:-34px;opacity:0}
 }
 @media (prefers-reduced-motion:reduce){
   .welcome-swipe-hand{animation:none;left:55px}
@@ -2361,6 +2367,11 @@ button,input{font:inherit}
     <section class="hero">
       <div class="eyebrow">Your Funding Options</div>
       <h1 id="clientWelcome">Welcome.</h1>
+
+    </section>
+
+    <div class="funding-row">
+    <div class="deck-wrap">
       <div class="welcome-swipe" aria-label="Swipe on the cards to check your lender">
         <div class="welcome-swipe-track" aria-hidden="true">
           <div class="welcome-swipe-line"></div>
@@ -2369,10 +2380,7 @@ button,input{font:inherit}
         <div class="welcome-swipe-text">Swipe on the Cards to Check Your Lender</div>
         <div class="welcome-swipe-subtext">Different lenders to choose from</div>
       </div>
-    </section>
-
-    <div class="funding-row">
-    <div class="deck-wrap"><section class="route-grid" id="lenderCarousel" aria-label="Funding application routes">
+      <section class="route-grid" id="lenderCarousel" aria-label="Funding application routes">
       <article class="route tfc" id="openTfc">
         <div class="route-logo"><div style="width:62px;height:62px;border-radius:15px;background:#17130f;color:#d0a15b;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:23px">TFC</div><strong>Toronto Finance Company</strong></div>
         <div class="route-kicker">Toronto Finance Company</div>
