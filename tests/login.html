@@ -201,9 +201,34 @@ html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif}
   .candidate-login{padding:24px 20px}
   .candidate-login h1{font-size:31px}
 }
+
+.auth-loading{
+  position:fixed;inset:0;z-index:9999;display:none;place-items:center;
+  background:rgba(251,247,240,.97);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.auth-loading.show{display:grid}
+.auth-loading-card{text-align:center;padding:28px 24px}
+.auth-loading-mark{
+  width:42px;height:42px;margin:0 auto 16px;border-radius:50%;
+  border:3px solid rgba(184,137,63,.18);border-top-color:#b8893f;
+  animation:tfcSpin .8s linear infinite;
+}
+.auth-loading-title{
+  font-family:"Cormorant Garamond",serif;font-size:27px;line-height:1;color:#17130f;margin-bottom:8px;
+}
+.auth-loading-copy{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8a7968}
+@keyframes tfcSpin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
+<div class="auth-loading" id="authLoading" aria-live="polite" aria-busy="true">
+  <div class="auth-loading-card">
+    <div class="auth-loading-mark"></div>
+    <div class="auth-loading-title">Toronto Finance Company</div>
+    <div class="auth-loading-copy" id="authLoadingCopy">Loading securely...</div>
+  </div>
+</div>
+
 <section class="candidate-login-screen" id="candidateLogin">
   <header class="candidate-login-top">
     <div>
@@ -289,6 +314,15 @@ const googleButton=document.getElementById("googleLoginBtn");
 const message=document.getElementById("candidateLoginMsg");
 const buttons=[button,googleButton];
 
+const authLoading=document.getElementById("authLoading");
+const authLoadingCopy=document.getElementById("authLoadingCopy");
+function showAuthLoading(message="Loading securely..."){
+  if(authLoadingCopy) authLoadingCopy.textContent=message;
+  if(authLoading) authLoading.classList.add("show");
+}
+function hideAuthLoading(){
+  if(authLoading) authLoading.classList.remove("show");
+}
 function setBusy(value){
   buttons.forEach(item=>item.disabled=value);
 }
@@ -431,6 +465,7 @@ async function emailLogin(){
     password.value="";
     await finishAndOpen(credential.user,"Login");
   }catch(error){
+    hideAuthLoading();
     try{if(auth.currentUser) await signOut(auth)}catch(_){}
     setMessage(friendlyError(error));
   }finally{
@@ -441,6 +476,7 @@ async function emailLogin(){
 
 async function googleLogin(){
   setBusy(true);
+  showAuthLoading("Loading securely...");
   setMessage("Opening Google sign-in...");
 
   try{
@@ -453,6 +489,7 @@ async function googleLogin(){
     }catch(error){
       const code=String(error?.code||"");
       if(code==="auth/popup-blocked"||code==="auth/operation-not-supported-in-this-environment"){
+        showAuthLoading("Loading securely...");
         await signInWithRedirect(auth,googleProvider);
         return;
       }
@@ -473,13 +510,17 @@ password.addEventListener("keydown",event=>{
 });
 
 try{
+  showAuthLoading("Loading securely...");
   const redirected=await getRedirectResult(auth);
   if(redirected){
     setBusy(true);
     email.value=redirected.user.email||"";
     await finishAndOpen(redirected.user,"Google sign-in");
+  }else{
+    hideAuthLoading();
   }
 }catch(error){
+  hideAuthLoading();
   try{if(auth.currentUser) await signOut(auth)}catch(_){}
   setMessage(friendlyError(error));
   setBusy(false);
