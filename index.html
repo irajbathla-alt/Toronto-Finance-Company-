@@ -24,7 +24,10 @@
     /* CRM files are intentionally cache-busted on every public visit. */
     document.write('<script src="crm-config.js?v=' + Date.now() + '"><\/script>');
   </script>
-  <script src="app.js?v=20260906-debug1"></script>
+  <script>
+    /* Always load the current public navigation bundle so Apply/Login routes cannot stay stale. */
+    document.write('<script src="app.js?v=' + Date.now() + '"><\/script>');
+  </script>
   <script src="mobile-nav.js?v=20260906-debug1"></script>
   <script src="eligibility-launch.js?v=20260906-debug1"></script>
   <script>
