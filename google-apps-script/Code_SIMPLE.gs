@@ -48,7 +48,7 @@ const MAX_LENDER_PACKAGE_BYTES = 17 * 1024 * 1024;
 const DOCUMENT_INDEX_CACHE_SECONDS = 20;
 const UPLOAD_IDEMPOTENCY_SECONDS = 21600;
 const AUDIT_CACHE_SECONDS = 15;
-const FIREBASE_TEST_BUILD = '20261110-fb-debug-v7';
+const FIREBASE_TEST_BUILD = '20261110-fb-debug-v8';
 
 function doGet(e) {
   try {
@@ -803,17 +803,50 @@ function firebaseTestGetMapping(uid) {
   }
 }
 
+function firebaseTestAuthMethodsKey(applicationId) {
+  return 'tfc-firebase-test-auth-methods-' + String(applicationId || '').trim();
+}
+
 function firebaseTestSaveMapping(firebase,applicationId) {
-  PropertiesService.getScriptProperties().setProperty(
+  const props = PropertiesService.getScriptProperties();
+  const appId = String(applicationId || '').trim();
+
+  props.setProperty(
     firebaseTestMappingKey(firebase.uid),
     JSON.stringify({
       firebaseUid:firebase.uid,
       email:firebase.email,
       provider:firebase.provider,
-      applicationId:String(applicationId || ''),
+      applicationId:appId,
       updated:new Date().toISOString()
     })
   );
+
+  if (appId) {
+    let methods = [];
+    try {
+      methods = JSON.parse(props.getProperty(firebaseTestAuthMethodsKey(appId)) || '[]');
+      if (!Array.isArray(methods)) methods = [];
+    } catch (_) {
+      methods = [];
+    }
+
+    const provider = String(firebase.provider || 'firebase');
+    if (!methods.includes(provider)) methods.push(provider);
+    props.setProperty(firebaseTestAuthMethodsKey(appId),JSON.stringify(methods));
+  }
+}
+
+function firebaseTestRecoverRecordByVerifiedEmail(firebase) {
+  if (!firebase || firebase.emailVerified !== true) return null;
+  const existingRow = findRow('email',firebase.email);
+  if (!existingRow) return null;
+
+  const record = readRecord(existingRow);
+  if (!record || String(record.email || '').trim().toLowerCase() !== firebase.email) return null;
+
+  firebaseTestSaveMapping(firebase,record.applicationId);
+  return record;
 }
 
 function createAccountFirebaseTest(p) {
@@ -842,10 +875,15 @@ function createAccountFirebaseTest(p) {
           throw new Error('Firebase test mapping email mismatch');
         }
 
-        record = findApplication(mapped.applicationId);
-        if (String(record.email || '').trim().toLowerCase() !== firebase.email) {
+        try {
+          record = findApplication(mapped.applicationId);
+        } catch (_) {
+          record = firebaseTestRecoverRecordByVerifiedEmail(firebase);
+        }
+        if (!record || String(record.email || '').trim().toLowerCase() !== firebase.email) {
           throw new Error('Applications sheet email does not match the Firebase test account');
         }
+        firebaseTestSaveMapping(firebase,record.applicationId);
         deduplicated = true;
       } else {
         const existingRow = findRow('email',firebase.email);
@@ -1001,10 +1039,15 @@ function clientLoginFirebaseTest(p) {
         throw new Error('Firebase test account verification failed');
       }
 
-      record = findApplication(mapped.applicationId);
-      if (String(record.email || '').trim().toLowerCase() !== firebase.email) {
+      try {
+        record = findApplication(mapped.applicationId);
+      } catch (_) {
+        record = firebaseTestRecoverRecordByVerifiedEmail(firebase);
+      }
+      if (!record || String(record.email || '').trim().toLowerCase() !== firebase.email) {
         throw new Error('Applications sheet email does not match Firebase');
       }
+      firebaseTestSaveMapping(firebase,record.applicationId);
     }
 
     appendAuditEvent({
