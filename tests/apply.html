@@ -129,7 +129,7 @@
   <div class="auth-loading-card">
     <div class="auth-loading-mark"></div>
     <div class="auth-loading-title">Toronto Finance Company</div>
-    <div class="auth-loading-copy" id="authLoadingCopy">Loading securely...</div>
+    <div class="auth-loading-copy" id="authLoadingCopy">Loading Securely...</div>
   </div>
 </div>
 
@@ -255,7 +255,7 @@ const allButtons=[...document.querySelectorAll("button")];
 
 const authLoading=document.getElementById("authLoading");
 const authLoadingCopy=document.getElementById("authLoadingCopy");
-function showAuthLoading(message="Loading securely..."){
+function showAuthLoading(message="Loading Securely..."){
   if(authLoadingCopy) authLoadingCopy.textContent=message;
   if(authLoading) authLoading.classList.add("show");
 }
@@ -504,7 +504,7 @@ googleButton.addEventListener("click",async()=>{
   if(!profile)return;
 
   busy(true);
-  showAuthLoading("Loading securely...");
+  showAuthLoading("Loading Securely...");
   show("Google Sign-In","Opening Google securely...");
 
   try{
@@ -518,7 +518,7 @@ googleButton.addEventListener("click",async()=>{
     }catch(error){
       const code=String(error?.code||"");
       if(code==="auth/popup-blocked"||code==="auth/operation-not-supported-in-this-environment"){
-        showAuthLoading("Loading securely...");
+        showAuthLoading("Loading Securely...");
         await signInWithRedirect(auth,googleProvider);
         return;
       }
@@ -534,7 +534,7 @@ googleButton.addEventListener("click",async()=>{
 });
 
 try{
-  if(sessionStorage.getItem(GOOGLE_PENDING_KEY)) showAuthLoading("Loading securely...");
+  if(sessionStorage.getItem(GOOGLE_PENDING_KEY)) showAuthLoading("Loading Securely...");
   const redirected=await getRedirectResult(auth);
   if(redirected){
     const profile=JSON.parse(sessionStorage.getItem(GOOGLE_PENDING_KEY)||"null");
