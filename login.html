@@ -202,74 +202,51 @@ html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif}
   .candidate-login h1{font-size:31px}
 }
 
-.auth-loading{
-  position:fixed;inset:0;z-index:99999;display:none;place-items:center;
-  background:
-    radial-gradient(circle at 78% 10%,rgba(198,150,78,.10),transparent 28%),
-    linear-gradient(180deg,#f8f1e7 0%,#f4eadc 100%);
+
+.google-inline-loading{
+  display:none;
+  width:100%;
+  margin-top:12px;
+  flex-direction:column;
+  align-items:center;
+  gap:7px;
 }
-.auth-loading.show{display:grid}
-.auth-loading-card{
-  width:min(420px,88vw);
-  text-align:center;
-  padding:42px 28px 38px;
-  border:1px solid rgba(23,19,15,.08);
-  border-radius:18px;
-  background:rgba(255,255,255,.76);
-  box-shadow:0 22px 60px rgba(50,35,20,.10);
-}
-.auth-loading-mark{
+.google-inline-loading.show{display:flex}
+.google-inline-track{
   position:relative;
-  width:min(280px,72vw);
+  width:min(240px,72vw);
   height:4px;
-  margin:0 auto 18px;
-  border-radius:999px;
   overflow:hidden;
+  border-radius:999px;
   background:rgba(64,107,138,.16);
 }
-.auth-loading-mark::after{
+.google-inline-track::after{
   content:"";
   position:absolute;
   top:0;bottom:0;
   width:42%;
   border-radius:999px;
   background:#406b8a;
-  animation:tfcLoadBar 1.05s ease-in-out infinite;
+  animation:tfcGoogleInlineLoad 1.05s ease-in-out infinite;
 }
-.auth-loading-title{
-  font-family:"Cormorant Garamond",serif;
-  font-size:30px;
-  font-weight:400;
-  line-height:1.08;
-  color:#17130f;
-  margin-bottom:12px;
-}
-.auth-loading-copy{
+.google-inline-label{
+  color:#6f665d;
   font-size:10px;
   font-weight:600;
-  letter-spacing:.12em;
+  letter-spacing:.10em;
   text-transform:uppercase;
-  color:#6f665d;
 }
-@keyframes tfcLoadBar{
+@keyframes tfcGoogleInlineLoad{
   0%{left:-42%}
   55%{left:58%}
   100%{left:100%}
 }
 @media (prefers-reduced-motion:reduce){
-  .auth-loading-mark::after{animation:none;left:29%}
+  .google-inline-track::after{animation:none;left:29%}
 }
 </style>
 </head>
 <body>
-<div class="auth-loading" id="authLoading" aria-live="polite" aria-busy="true">
-  <div class="auth-loading-card">
-    <div class="auth-loading-mark"></div>
-    <div class="auth-loading-title">Toronto Finance Company</div>
-    <div class="auth-loading-copy" id="authLoadingCopy">Loading Securely...</div>
-  </div>
-</div>
-
 <section class="candidate-login-screen" id="candidateLogin">
   <header class="candidate-login-top">
     <div>
@@ -304,6 +281,10 @@ html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif}
         </svg>
         <span>Continue with Google</span>
       </button>
+      <div class="google-inline-loading" id="googleInlineLoading" role="status" aria-live="polite" aria-label="Loading">
+        <div class="google-inline-track"></div>
+        <div class="google-inline-label">Loading</div>
+      </div>
       <div class="candidate-login-message" id="candidateLoginMsg" role="status" aria-live="polite"></div>
     </div>
     <div class="candidate-login-foot">Toronto Finance Company · Secure business financing client access</div>
@@ -328,7 +309,7 @@ import {
 
 const firebaseConfig={
   apiKey:"AIzaSyAXIObBDa-i8W_wAUtt43FXracH7ezPhlA",
-  authDomain:"toronto-finance-company-auth.firebaseapp.com",
+  authDomain:"auth.torontofinancecompany.com",
   projectId:"toronto-finance-company-auth",
   storageBucket:"toronto-finance-company-auth.firebasestorage.app",
   messagingSenderId:"494379883061",
@@ -355,15 +336,14 @@ const googleButton=document.getElementById("googleLoginBtn");
 const message=document.getElementById("candidateLoginMsg");
 const buttons=[button,googleButton];
 
-const authLoading=document.getElementById("authLoading");
-const authLoadingCopy=document.getElementById("authLoadingCopy");
-function showAuthLoading(message="Loading Securely..."){
-  if(authLoadingCopy) authLoadingCopy.textContent=message;
-  if(authLoading) authLoading.classList.add("show");
+const googleInlineLoading=document.getElementById("googleInlineLoading");
+function showGoogleLoading(){
+  if(googleInlineLoading) googleInlineLoading.classList.add("show");
 }
-function hideAuthLoading(){
-  if(authLoading) authLoading.classList.remove("show");
+function hideGoogleLoading(){
+  if(googleInlineLoading) googleInlineLoading.classList.remove("show");
 }
+
 function setBusy(value){
   buttons.forEach(item=>item.disabled=value);
 }
@@ -506,7 +486,7 @@ async function emailLogin(){
     password.value="";
     await finishAndOpen(credential.user,"Login");
   }catch(error){
-    hideAuthLoading();
+    hideGoogleLoading();
     try{if(auth.currentUser) await signOut(auth)}catch(_){}
     setMessage(friendlyError(error));
   }finally{
@@ -518,7 +498,7 @@ async function emailLogin(){
 async function googleLogin(){
   setBusy(true);
   setMessage("");
-  showAuthLoading("Opening Google Sign-In...");
+  showGoogleLoading();
 
   try{
     await preflight();
@@ -526,17 +506,19 @@ async function googleLogin(){
     try{
       const credential=await signInWithPopup(auth,googleProvider);
       email.value=credential.user.email||"";
+      hideGoogleLoading();
       await finishAndOpen(credential.user,"Google sign-in");
     }catch(error){
       const code=String(error?.code||"");
       if(code==="auth/popup-blocked"||code==="auth/operation-not-supported-in-this-environment"){
-        showAuthLoading("Loading Securely...");
+        showGoogleLoading();
         await signInWithRedirect(auth,googleProvider);
         return;
       }
       throw error;
     }
   }catch(error){
+    hideGoogleLoading();
     try{if(auth.currentUser) await signOut(auth)}catch(_){}
     setMessage(friendlyError(error));
   }finally{
@@ -551,17 +533,16 @@ password.addEventListener("keydown",event=>{
 });
 
 try{
-  showAuthLoading("Loading Securely...");
   const redirected=await getRedirectResult(auth);
   if(redirected){
     setBusy(true);
     email.value=redirected.user.email||"";
     await finishAndOpen(redirected.user,"Google sign-in");
   }else{
-    hideAuthLoading();
+    hideGoogleLoading();
   }
 }catch(error){
-  hideAuthLoading();
+  hideGoogleLoading();
   try{if(auth.currentUser) await signOut(auth)}catch(_){}
   setMessage(friendlyError(error));
   setBusy(false);
