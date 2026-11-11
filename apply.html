@@ -1,18 +1,556 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Apply | Toronto Finance Company</title>
-<script>
-(function(){
-  const params=new URLSearchParams(window.location.search);
-  params.set('apply','1');
-  window.location.replace('index.html?'+params.toString());
-})();
-</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=20260828-contact2">
+<link rel="stylesheet" href="typography.css">
+<style>
+.firebase-test-hidden{display:none!important}
+.firebase-auth-divider{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:22px 0 14px;
+  color:#9a8f82;
+  font-size:9px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.firebase-auth-divider:before,
+.firebase-auth-divider:after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:rgba(21,19,16,.12);
+}
+.google-signup{
+  width:auto;
+  min-width:240px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  border:1px solid rgba(21,19,16,.16);
+  border-radius:999px;
+  padding:13px 18px;
+  background:#fff;
+  color:#17130f;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.google-signup:hover{background:#fbf7f0}
+.google-signup:disabled{opacity:.55;cursor:not-allowed}
+.account-method-note{
+  margin:18px 0 8px!important;
+  color:#8b8176!important;
+  font-size:10px!important;
+  line-height:1.55!important;
+  text-align:left;
+  letter-spacing:.02em;
+}
+.google-signup{
+  box-shadow:0 8px 24px rgba(20,16,10,.06);
+  transition:transform .16s ease,box-shadow .16s ease,background .16s ease;
+}
+.google-signup:hover{background:#fff;transform:translateY(-1px);box-shadow:0 12px 30px rgba(20,16,10,.09)}
+.google-logo{width:18px;height:18px;display:block}
+.email-method{margin-top:8px}
+.field.invalid label{color:#a13f33!important}
+.field.invalid input{
+  border-color:#a13f33!important;
+  box-shadow:0 1px 0 #a13f33!important;
+}
+.field-error{
+  display:none;
+  margin-top:5px;
+  color:#a13f33;
+  font-size:10px;
+  line-height:1.35;
+}
+.field.invalid .field-error{display:block}
+#status{font-size:12px;margin-top:14px;color:#786f65}
+#status.good{color:#2f855a}
+#status.bad{color:#a13f33}
+#status h2{display:none}
+#status p{margin:0;line-height:1.6}
+
+.auth-loading{
+  position:fixed;inset:0;z-index:9999;display:none;place-items:center;
+  background:rgba(251,247,240,.97);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.auth-loading.show{display:grid}
+.auth-loading-card{text-align:center;padding:28px 24px}
+.auth-loading-mark{
+  position:relative;
+  width:min(280px,72vw);
+  height:4px;
+  margin:0 auto 18px;
+  border-radius:999px;
+  overflow:hidden;
+  background:rgba(64,107,138,.16);
+}
+.auth-loading-mark::after{
+  content:"";
+  position:absolute;
+  top:0;bottom:0;
+  width:42%;
+  border-radius:999px;
+  background:#406b8a;
+  animation:tfcLoadBar 1.05s ease-in-out infinite;
+}
+.auth-loading-title{
+  font-family:"Cormorant Garamond",serif;font-size:27px;line-height:1;color:#17130f;margin-bottom:8px;
+}
+.auth-loading-copy{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8a7968}
+@keyframes tfcLoadBar{
+  0%{left:-42%}
+  55%{left:58%}
+  100%{left:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  .auth-loading-mark::after{animation:none;left:29%}
+}
+</style>
 </head>
 <body>
-<p>Opening the Toronto Finance Company application…</p>
+<div class="auth-loading" id="authLoading" aria-live="polite" aria-busy="true">
+  <div class="auth-loading-card">
+    <div class="auth-loading-mark"></div>
+    <div class="auth-loading-title">Toronto Finance Company</div>
+    <div class="auth-loading-copy" id="authLoadingCopy">Loading Securely...</div>
+  </div>
+</div>
+
+<main id="app">
+  <section class="page">
+    <nav class="lightnav">
+      <span>TORONTO FINANCE COMPANY</span>
+      <div class="steps"><span class="step active">Create Account</span></div>
+      <button class="linkbtn" type="button" onclick="window.location.href='index.html'">Exit</button>
+    </nav>
+
+    <div class="formwrap">
+      <h2>Create Your Account</h2>
+      <p>Create your secure client account. After account creation, you will be guided through two steps: review and sign your application, then upload six bank statements.</p>
+
+      <div class="grid">
+        <div class="field full" id="nameField">
+          <label>Full Name</label>
+          <input id="name" autocomplete="name" placeholder="Your full legal name">
+          <div class="field-error">Please enter your full name.</div>
+        </div>
+        <div class="field full" id="phoneField">
+          <label>Phone Number</label>
+          <input id="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+1 416-555-0123" required>
+          <div class="field-error">Please enter a valid phone number.</div>
+        </div>
+      </div>
+
+      <div class="grid email-method">
+        <div class="field full" id="emailField">
+          <label>Email Address</label>
+          <input id="email" type="email" autocomplete="email" placeholder="name@company.com">
+          <div class="field-error">Please enter a valid email address.</div>
+        </div>
+        <div class="field full" id="passwordField">
+          <label>Create Password</label>
+          <input id="password" type="password" autocomplete="new-password" placeholder="Minimum 8 characters" minlength="8">
+          <div class="field-error">Password must contain at least 8 characters.</div>
+        </div>
+      </div>
+
+      <p style="font-size:12px;line-height:1.6;color:#786f65;margin-top:18px">
+        By creating an account, you agree to Toronto Finance Company’s <a href="terms.html">Terms & Conditions</a> and acknowledge its <a href="privacy.html">Privacy Policy</a>.
+      </p>
+
+      <div class="form-actions">
+        <button class="linkbtn" type="button" onclick="window.location.href='index.html'">Back Home</button>
+        <button class="darkbtn" id="createEmail" type="button">Create Account</button>
+      </div>
+
+      <div class="firebase-auth-divider"><span>or</span></div>
+
+      <div style="display:flex;justify-content:center;width:100%">
+      <button class="google-signup" id="googleLogin" type="button">
+        <svg class="google-logo" viewBox="0 0 18 18" aria-hidden="true">
+          <path fill="#4285F4" d="M17.64 9.205c0-.638-.057-1.252-.164-1.841H9v3.482h4.844a4.14 4.14 0 0 1-1.797 2.715v2.258h2.909c1.703-1.568 2.684-3.878 2.684-6.614Z"/>
+          <path fill="#34A853" d="M9 18c2.43 0 4.468-.806 5.956-2.181l-2.91-2.258c-.806.54-1.835.859-3.046.859-2.344 0-4.328-1.584-5.037-3.711H.956v2.332A9 9 0 0 0 9 18Z"/>
+          <path fill="#FBBC05" d="M3.963 10.709A5.42 5.42 0 0 1 3.682 9c0-.593.102-1.169.281-1.709V4.959H.956A9 9 0 0 0 0 9c0 1.451.347 2.824.956 4.041l3.007-2.332Z"/>
+          <path fill="#EA4335" d="M9 3.58c1.321 0 2.507.454 3.441 1.346l2.581-2.581C13.464.892 11.426 0 9 0A9 9 0 0 0 .956 4.959l3.007 2.332C4.672 5.164 6.656 3.58 9 3.58Z"/>
+        </svg>
+        <span>Continue with Google</span>
+      </button>
+      </div>
+
+      <div id="status" role="status" aria-live="polite"></div>
+
+      <div class="firebase-test-hidden" aria-hidden="true">
+        <button id="refreshVerification" type="button"></button>
+        <button id="submitTest" type="button"></button>
+        <button id="logout" type="button"></button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="crm-config.js?v=20261109-firebase-test-existing-backend"></script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js';
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  sendEmailVerification,
+  reload,
+  signOut,
+  updateProfile,
+  setPersistence,
+  browserSessionPersistence
+} from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
+
+const firebaseConfig={
+  apiKey:"AIzaSyAXIObBDa-i8W_wAUtt43FXracH7ezPhlA",
+  authDomain:"toronto-finance-company-auth.firebaseapp.com",
+  projectId:"toronto-finance-company-auth",
+  storageBucket:"toronto-finance-company-auth.firebasestorage.app",
+  messagingSenderId:"494379883061",
+  appId:"1:494379883061:web:54acfe2bc5b27f8fa36f7c"
+};
+
+const EXPECTED_BUILD="20261110-fb-debug-v8";
+const API_URL=String(window.TFC_CONFIG?.apiUrl||"").trim();
+const GOOGLE_PENDING_KEY="tfc-google-signup-profile";
+const SESSION_KEY="tfc-client-auth";
+const LEGACY_KEY="tfc-current-application";
+
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+await setPersistence(auth,browserSessionPersistence);
+auth.useDeviceLanguage();
+
+const googleProvider=new GoogleAuthProvider();
+googleProvider.setCustomParameters({prompt:"select_account"});
+
+const $=s=>document.querySelector(s);
+const statusBox=$("#status");
+const createButton=$("#createEmail");
+const googleButton=$("#googleLogin");
+const allButtons=[...document.querySelectorAll("button")];
+
+const authLoading=document.getElementById("authLoading");
+const authLoadingCopy=document.getElementById("authLoadingCopy");
+function showAuthLoading(message="Loading Securely..."){
+  if(authLoadingCopy) authLoadingCopy.textContent=message;
+  if(authLoading) authLoading.classList.add("show");
+}
+function hideAuthLoading(){
+  if(authLoading) authLoading.classList.remove("show");
+}
+function busy(value){
+  allButtons.forEach(button=>button.disabled=value);
+}
+function show(title,message,type=""){
+  statusBox.className="status"+(type?" "+type:"");
+  statusBox.innerHTML="<h2></h2><p></p>";
+  statusBox.querySelector("h2").textContent=title;
+  statusBox.querySelector("p").textContent=message;
+}
+function clearFieldError(id){
+  const field=document.getElementById(id+"Field");
+  if(field) field.classList.remove("invalid");
+}
+function markFieldError(id){
+  const field=document.getElementById(id+"Field");
+  if(field) field.classList.add("invalid");
+}
+["name","phone","email","password"].forEach(id=>{
+  const el=$("#"+id);
+  if(el) el.addEventListener("input",()=>clearFieldError(id));
+});
+function friendlyError(error){
+  const code=String(error?.code||"");
+  const known={
+    "auth/email-already-in-use":"An account already exists for this email. Use Log In, or continue with the same sign-in method you originally used.",
+    "auth/account-exists-with-different-credential":"This email already has a Toronto Finance Company login. Sign in with your existing method first; the verified Google identity can then resolve to the same client file.",
+    "auth/invalid-email":"Please enter a valid email address.",
+    "auth/invalid-credential":"The email or password is incorrect.",
+    "auth/weak-password":"Please use at least 8 characters.",
+    "auth/operation-not-allowed":"This sign-in method is not enabled yet.",
+    "auth/popup-closed-by-user":"Google sign-in was closed before it finished.",
+    "auth/popup-blocked":"Your browser blocked the Google popup. Redirecting to Google sign-in.",
+    "auth/unauthorized-domain":"This domain is not authorized for Google sign-in in Firebase.",
+    "auth/network-request-failed":"The secure account service could not be reached."
+  };
+  return known[code]||error?.message||String(error)||"Account creation could not be completed.";
+}
+function details(){
+  return {
+    name:$("#name").value.trim(),
+    email:$("#email").value.trim().toLowerCase(),
+    phone:$("#phone").value.trim(),
+    password:$("#password").value
+  };
+}
+function validateProfile(){
+  const d=details();
+  let valid=true;
+  if(!d.name){markFieldError("name");valid=false}else clearFieldError("name");
+  if(d.phone.replace(/\D/g,"").length<7){markFieldError("phone");valid=false}else clearFieldError("phone");
+  if(!valid){
+    const first=document.querySelector(".field.invalid input");
+    if(first) first.focus();
+    show("Missing Information","Complete the highlighted field"+(document.querySelectorAll(".field.invalid").length>1?"s":"")+" to continue.","bad");
+    return null;
+  }
+  return {name:d.name,phone:d.phone};
+}
+function requestId(){
+  if(globalThis.crypto?.randomUUID) return crypto.randomUUID().replace(/-/g,"");
+  const bytes=new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return [...bytes].map(v=>v.toString(16).padStart(2,"0")).join("");
+}
+function jsonp(action,payload={},timeout=15000){
+  return new Promise((resolve,reject)=>{
+    if(!API_URL) return reject(new Error("Secure application service is not configured."));
+    const callback="tfc_fb_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+    const script=document.createElement("script");
+    const params=new URLSearchParams({action,callback,_:String(Date.now())});
+    Object.entries(payload).forEach(([key,value])=>{
+      if(value!==undefined&&value!==null) params.set(key,String(value));
+    });
+    const timer=setTimeout(()=>{cleanup();reject(new Error("Secure application service timed out."))},timeout);
+    function cleanup(){
+      clearTimeout(timer);
+      try{delete window[callback]}catch(_){window[callback]=undefined}
+      script.remove();
+    }
+    window[callback]=data=>{cleanup();resolve(data)};
+    script.onerror=()=>{cleanup();reject(new Error("Secure application service could not be reached."))};
+    script.src=API_URL+"?"+params.toString();
+    document.head.appendChild(script);
+  });
+}
+async function preflight(){
+  const health=await jsonp("firebaseTestHealth",{},15000);
+  if(!health?.ok) throw new Error(health?.error||"Secure application service is unavailable.");
+  if(health.build!==EXPECTED_BUILD){
+    throw new Error("The Apps Script deployment is not the latest Firebase test build. Redeploy the existing Apps Script, then try again.");
+  }
+  if(!health.applicationsReady){
+    throw new Error("The existing Applications sheet could not be reached by Apps Script.");
+  }
+  return health;
+}
+async function bridge(action,payload){
+  const id=requestId();
+  try{
+    await fetch(API_URL,{
+      method:"POST",
+      mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=UTF-8"},
+      body:JSON.stringify({action,requestId:id,...payload})
+    });
+  }catch(_){}
+
+  for(let attempt=0;attempt<36;attempt++){
+    if(attempt) await new Promise(resolve=>setTimeout(resolve,500));
+    const status=await jsonp("firebaseTestRequestStatus",{requestId:id});
+    if(status?.ok===false) throw new Error(status.error||"Secure application service returned an error.");
+    if(status?.ok&&status.pending===false){
+      const result=status.result||{};
+      if(!result.ok) throw new Error(result.error||"Account sync could not be completed.");
+      return result;
+    }
+  }
+  throw new Error("Firebase sign-in succeeded, but the Applications sheet update could not be confirmed.");
+}
+async function syncUser(user,profile){
+  const token=await user.getIdToken(true);
+  return bridge("createAccountFirebaseTest",{
+    firebaseIdToken:token,
+    name:profile.name,
+    phone:profile.phone
+  });
+}
+function successText(result,email){
+  const id=result?.data?.applicationId||"";
+  return "Account created successfully"+(id?" · "+id:"")+". "+email+" has been added to your Toronto Finance Company file.";
+}
+function savePortalSession(data){
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({
+    applicationId:data.applicationId,
+    email:data.email||"",
+    authenticatedAt:new Date().toISOString(),
+    authMode:"firebase-test"
+  }));
+  localStorage.setItem(LEGACY_KEY,JSON.stringify(data));
+}
+function openClientDashboard(){
+  window.location.replace("client-dashboard.html");
+}
+
+createButton.addEventListener("click",async()=>{
+  const d=details();
+  const profile=validateProfile();
+  let valid=Boolean(profile);
+
+  if(!/^\S+@\S+\.\S+$/.test(d.email)){markFieldError("email");valid=false}else clearFieldError("email");
+  if(d.password.length<8){markFieldError("password");valid=false}else clearFieldError("password");
+
+  if(!valid){
+    const first=document.querySelector(".field.invalid input");
+    if(first) first.focus();
+    show("Missing Information","Complete the highlighted fields to continue.","bad");
+    return;
+  }
+
+  busy(true);
+  createButton.textContent="Creating Account...";
+  show("Creating Account","Connecting securely...");
+
+  try{
+    await preflight();
+
+    let credential;
+    let newlyCreated=false;
+
+    try{
+      credential=await createUserWithEmailAndPassword(auth,d.email,d.password);
+      newlyCreated=true;
+    }catch(error){
+      if(String(error?.code||"")==="auth/email-already-in-use"){
+        credential=await signInWithEmailAndPassword(auth,d.email,d.password);
+      }else{
+        throw error;
+      }
+    }
+
+    if(!credential.user.displayName) await updateProfile(credential.user,{displayName:d.name});
+
+    await reload(credential.user);
+    const current=auth.currentUser;
+    if(!current) throw new Error("Your secure Firebase session ended. Please try again.");
+
+    if(!current.emailVerified){
+      if(newlyCreated){
+        await sendEmailVerification(current);
+      }else{
+        try{await sendEmailVerification(current)}catch(_){}
+      }
+
+      show(
+        "Verify Your Email",
+        "We sent a verification link to "+(current.email||d.email)+". Open that email, verify the address, then return here and press Create Account again to finish. No Toronto Finance Company file will be duplicated while you verify.",
+        "good"
+      );
+      createButton.textContent="Finish Signup";
+      return;
+    }
+
+    const synced=await syncUser(current,profile);
+    const accountEmail=current.email||d.email;
+
+    savePortalSession(synced.data);
+    await signOut(auth);
+    $("#password").value="";
+    show(
+      "Account Ready",
+      successText(synced,accountEmail)+" Opening your client dashboard...",
+      "good"
+    );
+    openClientDashboard();
+  }catch(error){
+    show("Account Creation Failed",friendlyError(error),"bad");
+  }finally{
+    busy(false);
+    if(createButton.textContent!=="Finish Signup") createButton.textContent="Create Account";
+  }
+});
+
+async function completeGoogleCredential(credential,profile){
+  const user=credential.user;
+  const googleEmail=String(user.email||"").trim().toLowerCase();
+  if(!googleEmail) throw new Error("Google did not return an email address.");
+
+  if(!user.displayName&&profile.name) await updateProfile(user,{displayName:profile.name});
+  $("#email").value=googleEmail;
+
+  const synced=await syncUser(user,profile);
+  savePortalSession(synced.data);
+  await signOut(auth);
+  show("Account Created",successText(synced,googleEmail)+" Opening your client dashboard...","good");
+  openClientDashboard();
+}
+
+googleButton.addEventListener("click",async()=>{
+  const profile=validateProfile();
+  if(!profile)return;
+
+  busy(true);
+  showAuthLoading("Loading Securely...");
+  show("Google Sign-In","Opening Google securely...");
+
+  try{
+    await preflight();
+    sessionStorage.setItem(GOOGLE_PENDING_KEY,JSON.stringify(profile));
+
+    try{
+      const credential=await signInWithPopup(auth,googleProvider);
+      sessionStorage.removeItem(GOOGLE_PENDING_KEY);
+      await completeGoogleCredential(credential,profile);
+    }catch(error){
+      const code=String(error?.code||"");
+      if(code==="auth/popup-blocked"||code==="auth/operation-not-supported-in-this-environment"){
+        showAuthLoading("Loading Securely...");
+        await signInWithRedirect(auth,googleProvider);
+        return;
+      }
+      throw error;
+    }
+  }catch(error){
+    sessionStorage.removeItem(GOOGLE_PENDING_KEY);
+    hideAuthLoading();
+    show("Google Sign-In Failed",friendlyError(error),"bad");
+  }finally{
+    busy(false);
+  }
+});
+
+try{
+  if(sessionStorage.getItem(GOOGLE_PENDING_KEY)) showAuthLoading("Loading Securely...");
+  const redirected=await getRedirectResult(auth);
+  if(redirected){
+    const profile=JSON.parse(sessionStorage.getItem(GOOGLE_PENDING_KEY)||"null");
+    sessionStorage.removeItem(GOOGLE_PENDING_KEY);
+    if(!profile) throw new Error("Your signup details expired. Enter your name and phone and try Google again.");
+    busy(true);
+    await preflight();
+    await completeGoogleCredential(redirected,profile);
+    busy(false);
+  }
+}catch(error){
+  hideAuthLoading();
+  try{if(auth.currentUser) await signOut(auth)}catch(_){}
+  show("Google Sign-In Failed",friendlyError(error),"bad");
+  busy(false);
+}
+</script>
 </body>
 </html>
