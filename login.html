@@ -496,8 +496,8 @@ async function emailLogin(){
 
 async function googleLogin(){
   setBusy(true);
-  showAuthLoading("Loading Securely...");
-  setMessage("Opening Google sign-in...");
+  setMessage("");
+  showAuthLoading("Opening Google Sign-In...");
 
   try{
     await preflight();
