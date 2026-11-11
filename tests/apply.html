@@ -85,9 +85,34 @@
 #status.bad{color:#a13f33}
 #status h2{display:none}
 #status p{margin:0;line-height:1.6}
+
+.auth-loading{
+  position:fixed;inset:0;z-index:9999;display:none;place-items:center;
+  background:rgba(251,247,240,.97);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.auth-loading.show{display:grid}
+.auth-loading-card{text-align:center;padding:28px 24px}
+.auth-loading-mark{
+  width:42px;height:42px;margin:0 auto 16px;border-radius:50%;
+  border:3px solid rgba(184,137,63,.18);border-top-color:#b8893f;
+  animation:tfcSpin .8s linear infinite;
+}
+.auth-loading-title{
+  font-family:"Cormorant Garamond",serif;font-size:27px;line-height:1;color:#17130f;margin-bottom:8px;
+}
+.auth-loading-copy{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8a7968}
+@keyframes tfcSpin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
+<div class="auth-loading" id="authLoading" aria-live="polite" aria-busy="true">
+  <div class="auth-loading-card">
+    <div class="auth-loading-mark"></div>
+    <div class="auth-loading-title">Toronto Finance Company</div>
+    <div class="auth-loading-copy" id="authLoadingCopy">Loading securely...</div>
+  </div>
+</div>
+
 <main id="app">
   <section class="page">
     <nav class="lightnav">
@@ -208,6 +233,15 @@ const createButton=$("#createEmail");
 const googleButton=$("#googleLogin");
 const allButtons=[...document.querySelectorAll("button")];
 
+const authLoading=document.getElementById("authLoading");
+const authLoadingCopy=document.getElementById("authLoadingCopy");
+function showAuthLoading(message="Loading securely..."){
+  if(authLoadingCopy) authLoadingCopy.textContent=message;
+  if(authLoading) authLoading.classList.add("show");
+}
+function hideAuthLoading(){
+  if(authLoading) authLoading.classList.remove("show");
+}
 function busy(value){
   allButtons.forEach(button=>button.disabled=value);
 }
@@ -450,6 +484,7 @@ googleButton.addEventListener("click",async()=>{
   if(!profile)return;
 
   busy(true);
+  showAuthLoading("Loading securely...");
   show("Google Sign-In","Opening Google securely...");
 
   try{
@@ -463,6 +498,7 @@ googleButton.addEventListener("click",async()=>{
     }catch(error){
       const code=String(error?.code||"");
       if(code==="auth/popup-blocked"||code==="auth/operation-not-supported-in-this-environment"){
+        showAuthLoading("Loading securely...");
         await signInWithRedirect(auth,googleProvider);
         return;
       }
@@ -470,6 +506,7 @@ googleButton.addEventListener("click",async()=>{
     }
   }catch(error){
     sessionStorage.removeItem(GOOGLE_PENDING_KEY);
+    hideAuthLoading();
     show("Google Sign-In Failed",friendlyError(error),"bad");
   }finally{
     busy(false);
@@ -477,6 +514,7 @@ googleButton.addEventListener("click",async()=>{
 });
 
 try{
+  if(sessionStorage.getItem(GOOGLE_PENDING_KEY)) showAuthLoading("Loading securely...");
   const redirected=await getRedirectResult(auth);
   if(redirected){
     const profile=JSON.parse(sessionStorage.getItem(GOOGLE_PENDING_KEY)||"null");
@@ -488,6 +526,7 @@ try{
     busy(false);
   }
 }catch(error){
+  hideAuthLoading();
   try{if(auth.currentUser) await signOut(auth)}catch(_){}
   show("Google Sign-In Failed",friendlyError(error),"bad");
   busy(false);
