@@ -3895,9 +3895,7 @@ candidatePassword.addEventListener('keydown',e=>{
 });
 candidateLogout.addEventListener('click',()=>{
   clearCurrentClientSession();
-  showCandidateLogin('');
-  candidateEmail.value='';
-  candidatePassword.value='';
+  window.location.replace('login.html');
 });
 
 async function verifyCurrentCrmHealth(){
@@ -3912,10 +3910,11 @@ async function initCurrentCrmBridge(){
   const forceFresh=new URLSearchParams(window.location.search).get('login')==='1';
   if(forceFresh){
     clearCurrentClientSession();
-    history.replaceState({},'', 'client-dashboard.html');
+    window.location.replace('login.html');
+    return;
   }
 
-  const session=forceFresh ? null : readCurrentClientSession();
+  const session=readCurrentClientSession();
   if(session){
     crmClient={...session.stored,applicationId:session.auth.applicationId,email:session.auth.email||session.stored.email||''};
     showCandidatePortal(crmClient);
@@ -3930,13 +3929,7 @@ async function initCurrentCrmBridge(){
     return;
   }
 
-  try{
-    await verifyCurrentCrmHealth();
-    showCandidateLogin('');
-  }catch(error){
-    showCandidateLogin('The secure client portal could not be reached. Please refresh and try again.');
-    candidateLoginBtn.disabled=true;
-  }
+  window.location.replace('login.html');
 }
 
 window.addEventListener('focus',()=>{
