@@ -113,8 +113,8 @@ function wire() {
   document.querySelectorAll('[data-go]').forEach(element => {
     element.onclick = () => {
       const destination = element.dataset.go;
-      if (destination === 'apply') apply();
-      else if (destination === 'dashboard') window.location.href = 'client-dashboard.html?login=1';
+      if (destination === 'apply') window.location.href = 'apply.html';
+      else if (destination === 'dashboard') window.location.href = 'login.html';
       else landing();
     };
   });
