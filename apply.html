@@ -87,11 +87,21 @@
 #status p{margin:0;line-height:1.6}
 
 .auth-loading{
-  position:fixed;inset:0;z-index:9999;display:none;place-items:center;
-  background:rgba(251,247,240,.97);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  position:fixed;inset:0;z-index:99999;display:none;place-items:center;
+  background:
+    radial-gradient(circle at 78% 10%,rgba(198,150,78,.10),transparent 28%),
+    linear-gradient(180deg,#f8f1e7 0%,#f4eadc 100%);
 }
 .auth-loading.show{display:grid}
-.auth-loading-card{text-align:center;padding:28px 24px}
+.auth-loading-card{
+  width:min(420px,88vw);
+  text-align:center;
+  padding:42px 28px 38px;
+  border:1px solid rgba(23,19,15,.08);
+  border-radius:18px;
+  background:rgba(255,255,255,.76);
+  box-shadow:0 22px 60px rgba(50,35,20,.10);
+}
 .auth-loading-mark{
   position:relative;
   width:min(280px,72vw);
@@ -111,9 +121,20 @@
   animation:tfcLoadBar 1.05s ease-in-out infinite;
 }
 .auth-loading-title{
-  font-family:"Cormorant Garamond",serif;font-size:27px;line-height:1;color:#17130f;margin-bottom:8px;
+  font-family:"Cormorant Garamond",serif;
+  font-size:30px;
+  font-weight:400;
+  line-height:1.08;
+  color:#17130f;
+  margin-bottom:12px;
 }
-.auth-loading-copy{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8a7968}
+.auth-loading-copy{
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:#6f665d;
+}
 @keyframes tfcLoadBar{
   0%{left:-42%}
   55%{left:58%}
