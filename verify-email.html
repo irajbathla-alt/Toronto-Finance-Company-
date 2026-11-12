@@ -153,18 +153,24 @@ const mode=params.get("mode");
 const code=params.get("oobCode");
 
 try{
-  if(mode!=="verifyEmail"){
-    const firebaseHandler="https://toronto-finance-company-auth.firebaseapp.com/__/auth/action";
-    window.location.replace(firebaseHandler+"?"+params.toString());
-    throw new Error("Redirecting to Firebase.");
-  }
-  if(!code) throw new Error("This verification link is invalid or incomplete.");
-
   const app=initializeApp(firebaseConfig);
   const auth=getAuth(app);
   await setPersistence(auth,browserLocalPersistence);
 
-  await applyActionCode(auth,code);
+  // Two valid paths:
+  // 1) A custom Firebase action link gives us mode + oobCode, so verify here.
+  // 2) Firebase's built-in action page verifies first, then its Continue button
+  //    returns here without those params. In that case, recover the persisted
+  //    verified user and finish the TFC sync automatically.
+  if(mode&&mode!=="verifyEmail"){
+    const firebaseHandler="https://toronto-finance-company-auth.firebaseapp.com/__/auth/action";
+    window.location.replace(firebaseHandler+"?"+params.toString());
+    throw new Error("Redirecting to Firebase.");
+  }
+
+  if(mode==="verifyEmail"&&code){
+    await applyActionCode(auth,code);
+  }
 
   title.textContent="Email verified";
   message.textContent="Finishing your secure Toronto Finance Company account…";
@@ -174,32 +180,36 @@ try{
   let profile=null;
   try{profile=stored?JSON.parse(stored):null}catch(_){}
 
-  if(!user||!profile){
-    localStorage.removeItem(PROFILE_KEY);
+  if(!user){
     showError("Your email is verified. Please continue to Client Login to access your account.");
   }else{
     await reload(user);
     const current=auth.currentUser;
-    if(!current?.emailVerified) throw new Error("Email verification could not be confirmed.");
 
-    await preflight();
-    const token=await current.getIdToken(true);
-    const synced=await bridge("createAccountFirebaseTest",{
-      firebaseIdToken:token,
-      name:String(profile.name||current.displayName||""),
-      phone:String(profile.phone||"")
-    });
+    if(!current?.emailVerified){
+      showError("Your email verification is not complete yet. Please reopen the verification email and try again.");
+    }else if(!profile){
+      showError("Your email is verified. Please continue to Client Login to access your account.");
+    }else{
+      await preflight();
+      const token=await current.getIdToken(true);
+      const synced=await bridge("createAccountFirebaseTest",{
+        firebaseIdToken:token,
+        name:String(profile.name||current.displayName||""),
+        phone:String(profile.phone||"")
+      });
 
-    savePortalSession(synced.data);
-    localStorage.removeItem(PROFILE_KEY);
-    await signOut(auth);
-    title.textContent="Account ready";
-    message.textContent="Opening your secure client dashboard…";
-    window.location.replace("client-dashboard.html");
+      savePortalSession(synced.data);
+      localStorage.removeItem(PROFILE_KEY);
+      await signOut(auth);
+      title.textContent="Account ready";
+      message.textContent="Opening your secure client dashboard…";
+      window.location.replace("client-dashboard.html");
+    }
   }
 }catch(error){
   console.error(error);
-  showError("Your email may already be verified, or this link has expired. Please continue to Client Login.");
+  showError("We could not finish opening your account automatically. Your email may already be verified — please continue to Client Login.");
 }
 </script>
 </body>
