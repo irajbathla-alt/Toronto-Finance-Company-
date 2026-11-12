@@ -216,7 +216,6 @@ try{
     }else if(!profile){
       showError("Your email is verified. Please continue to Client Login to access your account.");
     }else{
-      await preflight();
       const token=await current.getIdToken(true);
       const synced=await bridge("createAccountFirebaseTest",{
         firebaseIdToken:token,
