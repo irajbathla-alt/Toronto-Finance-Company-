@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Verifying Email | Toronto Finance Company</title>
+<style>
+:root{--ink:#17130f;--cream:#fbf7f0;--gold:#b8893f;--blue:#406b8a;--muted:#786f65}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:#fbf7f0;color:var(--ink);font-family:Arial,sans-serif}
+.card{width:min(440px,92vw);padding:38px 30px;border:1px solid rgba(185,137,63,.22);border-radius:20px;background:#fff;box-shadow:0 18px 52px rgba(40,28,18,.09);text-align:center}
+.brand{font-family:Georgia,serif;font-size:25px;letter-spacing:.02em}
+.tag{margin-top:7px;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#9b763f}
+h1{margin:30px 0 10px;font-family:Georgia,serif;font-size:32px;font-weight:400}
+p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
+.loader{width:min(250px,72vw);height:4px;margin:24px auto 0;overflow:hidden;border-radius:999px;background:rgba(64,107,138,.16)}
+.loader:after{content:"";display:block;width:42%;height:100%;border-radius:999px;background:var(--blue);animation:load 1.05s ease-in-out infinite}
+@keyframes load{0%{transform:translateX(-100%)}100%{transform:translateX(240%)}}
+a{display:inline-block;margin-top:20px;color:var(--blue);font-size:12px;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand">Toronto Finance Company</div>
+  <div class="tag">Secure Client Portal</div>
+  <h1 id="title">Verifying your email</h1>
+  <p id="message">Please keep this page open while we securely finish your account.</p>
+  <div class="loader" id="loader"></div>
+  <a id="fallback" href="login.html" hidden>Continue to Client Login</a>
+</div>
+
+<script src="crm-config.js?v=20261109-firebase-test-existing-backend"></script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js';
+import {
+  getAuth,
+  applyActionCode,
+  reload,
+  signOut,
+  setPersistence,
+  browserLocalPersistence,
+  onAuthStateChanged
+} from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
+
+const firebaseConfig={
+  apiKey:"AIzaSyAXIObBDa-i8W_wAUtt43FXracH7ezPhlA",
+  authDomain:"toronto-finance-company-auth.firebaseapp.com",
+  projectId:"toronto-finance-company-auth",
+  storageBucket:"toronto-finance-company-auth.firebasestorage.app",
+  messagingSenderId:"494379883061",
+  appId:"1:494379883061:web:54acfe2bc5b27f8fa36f7c"
+};
+
+const EXPECTED_BUILD="20261110-fb-debug-v8";
+const API_URL=String(window.TFC_CONFIG?.apiUrl||"").trim();
+const SESSION_KEY="tfc-client-auth";
+const LEGACY_KEY="tfc-current-application";
+const PROFILE_KEY="tfc-email-verification-profile";
+
+const title=document.getElementById("title");
+const message=document.getElementById("message");
+const loader=document.getElementById("loader");
+const fallback=document.getElementById("fallback");
+
+function showError(text){
+  title.textContent="Email verified";
+  message.textContent=text;
+  loader.hidden=true;
+  fallback.hidden=false;
+}
+function requestId(){
+  if(globalThis.crypto?.randomUUID) return crypto.randomUUID().replace(/-/g,"");
+  const bytes=new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return [...bytes].map(v=>v.toString(16).padStart(2,"0")).join("");
+}
+function jsonp(action,payload={},timeout=15000){
+  return new Promise((resolve,reject)=>{
+    if(!API_URL) return reject(new Error("Secure application service is not configured."));
+    const callback="tfc_verify_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+    const script=document.createElement("script");
+    const params=new URLSearchParams({action,callback,_:String(Date.now())});
+    Object.entries(payload).forEach(([key,value])=>{
+      if(value!==undefined&&value!==null) params.set(key,String(value));
+    });
+    const timer=setTimeout(()=>{cleanup();reject(new Error("Secure application service timed out."))},timeout);
+    function cleanup(){
+      clearTimeout(timer);
+      try{delete window[callback]}catch(_){window[callback]=undefined}
+      script.remove();
+    }
+    window[callback]=data=>{cleanup();resolve(data)};
+    script.onerror=()=>{cleanup();reject(new Error("Secure application service could not be reached."))};
+    script.src=API_URL+"?"+params.toString();
+    document.head.appendChild(script);
+  });
+}
+async function preflight(){
+  const health=await jsonp("firebaseTestHealth",{},15000);
+  if(!health?.ok) throw new Error(health?.error||"Secure application service is unavailable.");
+  if(health.build!==EXPECTED_BUILD) throw new Error("Secure application service needs an update.");
+  if(!health.applicationsReady) throw new Error("Applications service is unavailable.");
+}
+async function bridge(action,payload){
+  const id=requestId();
+  try{
+    await fetch(API_URL,{
+      method:"POST",
+      mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=UTF-8"},
+      body:JSON.stringify({action,requestId:id,...payload})
+    });
+  }catch(_){}
+  for(let attempt=0;attempt<36;attempt++){
+    if(attempt) await new Promise(resolve=>setTimeout(resolve,500));
+    const status=await jsonp("firebaseTestRequestStatus",{requestId:id});
+    if(status?.ok===false) throw new Error(status.error||"Secure application service returned an error.");
+    if(status?.ok&&status.pending===false){
+      const result=status.result||{};
+      if(!result.ok) throw new Error(result.error||"Account sync could not be completed.");
+      return result;
+    }
+  }
+  throw new Error("Your verified account could not be confirmed yet.");
+}
+function waitForUser(auth){
+  return new Promise(resolve=>{
+    let settled=false;
+    const timer=setTimeout(()=>{if(!settled){settled=true;unsub();resolve(auth.currentUser||null)}},5000);
+    const unsub=onAuthStateChanged(auth,user=>{
+      if(!settled){
+        settled=true;
+        clearTimeout(timer);
+        unsub();
+        resolve(user||null);
+      }
+    });
+  });
+}
+function savePortalSession(data){
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({
+    applicationId:data.applicationId,
+    email:data.email||"",
+    authenticatedAt:new Date().toISOString(),
+    authMode:"firebase-test"
+  }));
+  localStorage.setItem(LEGACY_KEY,JSON.stringify(data));
+}
+
+const params=new URLSearchParams(location.search);
+const mode=params.get("mode");
+const code=params.get("oobCode");
+
+try{
+  if(mode!=="verifyEmail"||!code) throw new Error("This verification link is invalid or incomplete.");
+
+  const app=initializeApp(firebaseConfig);
+  const auth=getAuth(app);
+  await setPersistence(auth,browserLocalPersistence);
+
+  await applyActionCode(auth,code);
+
+  title.textContent="Email verified";
+  message.textContent="Finishing your secure Toronto Finance Company account…";
+
+  const user=await waitForUser(auth);
+  const stored=localStorage.getItem(PROFILE_KEY);
+  let profile=null;
+  try{profile=stored?JSON.parse(stored):null}catch(_){}
+
+  if(!user||!profile){
+    localStorage.removeItem(PROFILE_KEY);
+    showError("Your email is verified. Please continue to Client Login to access your account.");
+  }else{
+    await reload(user);
+    const current=auth.currentUser;
+    if(!current?.emailVerified) throw new Error("Email verification could not be confirmed.");
+
+    await preflight();
+    const token=await current.getIdToken(true);
+    const synced=await bridge("createAccountFirebaseTest",{
+      firebaseIdToken:token,
+      name:String(profile.name||current.displayName||""),
+      phone:String(profile.phone||"")
+    });
+
+    savePortalSession(synced.data);
+    localStorage.removeItem(PROFILE_KEY);
+    await signOut(auth);
+    title.textContent="Account ready";
+    message.textContent="Opening your secure client dashboard…";
+    window.location.replace("client-dashboard.html");
+  }
+}catch(error){
+  console.error(error);
+  showError("Your email may already be verified, or this link has expired. Please continue to Client Login.");
+}
+</script>
+</body>
+</html>
