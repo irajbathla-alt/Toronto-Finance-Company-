@@ -408,7 +408,8 @@ async function bridge(action,payload){
   throw lastTransientError||new Error("Your account is taking longer than expected to finish. Please try again.");
 }
 async function syncUser(user,profile){
-  const token=await user.getIdToken(true);
+  // Newly authenticated users already have a fresh token; Apps Script verifies it server-side.
+  const token=await user.getIdToken();
   return bridge("createAccountFirebaseTest",{
     firebaseIdToken:token,
     name:profile.name,
@@ -452,8 +453,6 @@ createButton.addEventListener("click",async()=>{
   show("Creating Account","Connecting securely...");
 
   try{
-    await preflight();
-
     let credential;
     let newlyCreated=false;
 
@@ -470,8 +469,7 @@ createButton.addEventListener("click",async()=>{
 
     if(!credential.user.displayName) await updateProfile(credential.user,{displayName:d.name});
 
-    await reload(credential.user);
-    const current=auth.currentUser;
+    const current=credential.user||auth.currentUser;
     if(!current) throw new Error("Your secure Firebase session ended. Please try again.");
 
     if(!current.emailVerified){
@@ -546,7 +544,6 @@ googleButton.addEventListener("click",async()=>{
   showGoogleLoading();
 
   try{
-    await preflight();
     sessionStorage.setItem(GOOGLE_PENDING_KEY,JSON.stringify(profile));
 
     try{
@@ -580,7 +577,6 @@ try{
     sessionStorage.removeItem(GOOGLE_PENDING_KEY);
     if(!profile) throw new Error("Your signup details expired. Enter your name and phone and try Google again.");
     busy(true);
-    await preflight();
     hideGoogleLoading();
     await completeGoogleCredential(redirected,profile);
     busy(false);
