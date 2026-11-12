@@ -373,7 +373,7 @@ function requestId(){
   crypto.getRandomValues(bytes);
   return [...bytes].map(v=>v.toString(16).padStart(2,"0")).join("");
 }
-function jsonp(action,payload={},timeout=15000){
+function jsonp(action,payload={},timeout=20000){
   return new Promise((resolve,reject)=>{
     if(!API_URL) return reject(new Error("Secure application service is not configured."));
     const callback="tfc_fb_login_"+Date.now()+"_"+Math.random().toString(36).slice(2);
@@ -395,15 +395,24 @@ function jsonp(action,payload={},timeout=15000){
   });
 }
 async function preflight(){
-  const health=await jsonp("firebaseTestHealth",{},15000);
-  if(!health?.ok) throw new Error(health?.error||"Secure application service is unavailable.");
-  if(health.build!==EXPECTED_BUILD){
-    throw new Error("The Apps Script deployment is not the latest Firebase test build. Redeploy the existing Apps Script, then try again.");
+  let lastError=null;
+  for(let attempt=0;attempt<3;attempt++){
+    try{
+      const health=await jsonp("firebaseTestHealth",{},12000);
+      if(!health?.ok) throw new Error(health?.error||"Secure application service is unavailable.");
+      if(health.build!==EXPECTED_BUILD){
+        throw new Error("The Apps Script deployment is not the latest Firebase test build. Redeploy the existing Apps Script, then try again.");
+      }
+      if(!health.applicationsReady){
+        throw new Error("The existing Applications sheet could not be reached by Apps Script.");
+      }
+      return health;
+    }catch(error){
+      lastError=error;
+      if(attempt<2) await new Promise(resolve=>setTimeout(resolve,900));
+    }
   }
-  if(!health.applicationsReady){
-    throw new Error("The existing Applications sheet could not be reached by Apps Script.");
-  }
-  return health;
+  throw lastError||new Error("Secure application service is temporarily unavailable.");
 }
 async function bridgeLogin(firebaseIdToken){
   const id=requestId();
@@ -421,18 +430,31 @@ async function bridgeLogin(firebaseIdToken){
     });
   }catch(_){}
 
-  for(let attempt=0;attempt<36;attempt++){
-    if(attempt) await new Promise(resolve=>setTimeout(resolve,500));
-    const status=await jsonp("firebaseTestRequestStatus",{requestId:id});
-    if(status?.ok===false) throw new Error(status.error||"Secure application service returned an error.");
-    if(status?.ok&&status.pending===false){
-      const result=status.result||{};
-      if(!result.ok) throw new Error(result.error||"Your secure login could not be verified.");
-      return result;
+  const deadline=Date.now()+90000;
+  let lastTransientError=null;
+
+  while(Date.now()<deadline){
+    try{
+      const status=await jsonp("firebaseTestRequestStatus",{requestId:id},8000);
+      if(status?.ok===false) throw new Error(status.error||"Secure application service returned an error.");
+      if(status?.ok&&status.pending===false){
+        const result=status.result||{};
+        if(!result.ok) throw new Error(result.error||"Your secure login could not be verified.");
+        return result;
+      }
+      lastTransientError=null;
+    }catch(error){
+      const text=String(error?.message||error||"");
+      if(/timed out|could not be reached|network/i.test(text)){
+        lastTransientError=error;
+      }else{
+        throw error;
+      }
     }
+    await new Promise(resolve=>setTimeout(resolve,750));
   }
 
-  throw new Error("Firebase sign-in succeeded, but the Applications sheet account could not be confirmed.");
+  throw lastTransientError||new Error("Your secure login is taking longer than expected. Please try again.");
 }
 function savePortalSession(data){
   sessionStorage.setItem(SESSION_KEY,JSON.stringify({
@@ -482,7 +504,6 @@ async function emailLogin(){
   showGoogleLoading();
 
   try{
-    await preflight();
     const credential=await signInWithEmailAndPassword(auth,loginEmail,loginPassword);
     password.value="";
     await finishAndOpen(credential.user,"Login");
@@ -502,8 +523,6 @@ async function googleLogin(){
   showGoogleLoading();
 
   try{
-    await preflight();
-
     try{
       const credential=await signInWithPopup(auth,googleProvider);
       email.value=credential.user.email||"";
