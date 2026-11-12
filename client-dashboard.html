@@ -4079,8 +4079,10 @@ async function initCurrentCrmBridge(){
     showCandidatePortal(crmClient);
 
     try{
-      await verifyCurrentCrmHealth();
+      // The client was already securely resolved before this dashboard opened.
+      // Render immediately from the saved session and refresh the latest Sheet data directly.
       await refreshCurrentClient(true);
+      crmHealthReady=true;
     }catch(_){
       // Keep the cached portal visible during a temporary CRM/network issue.
       portalModeHelper.textContent='Showing your saved portal. Reconnecting to the latest updates…';
