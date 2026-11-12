@@ -1023,8 +1023,8 @@ function clientLoginFirebaseTest(p) {
         throw new Error('Existing Toronto Finance Company account could not be matched safely');
       }
 
+      // First verified login for this Firebase UID: save the durable mapping once.
       firebaseTestSaveMapping(firebase,record.applicationId);
-      mapped = firebaseTestGetMapping(firebase.uid);
 
       appendAuditEvent({
         applicationId:record.applicationId,
@@ -1047,17 +1047,10 @@ function clientLoginFirebaseTest(p) {
       if (!record || String(record.email || '').trim().toLowerCase() !== firebase.email) {
         throw new Error('Applications sheet email does not match Firebase');
       }
-      firebaseTestSaveMapping(firebase,record.applicationId);
-    }
 
-    appendAuditEvent({
-      applicationId:record.applicationId,
-      actorType:'CLIENT',
-      actorId:record.email,
-      action:'CLIENT_LOGIN',
-      summary:'Client signed in through Firebase test authentication',
-      metadata:{ testOnly:true, authProvider:firebase.provider }
-    });
+      // Returning login: mapping already exists and has been verified.
+      // Avoid redundant Script Properties + Audit Sheet writes on the critical path.
+    }
 
     result = {
       ok:true,
