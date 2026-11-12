@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="styles.css?v=20260828-contact2">
 <link rel="stylesheet" href="typography.css">
 <style>
+.formwrap{position:relative;overflow:hidden}
 .firebase-test-hidden{display:none!important}
 .firebase-auth-divider{
   display:flex;
@@ -128,6 +129,66 @@
 @media (prefers-reduced-motion:reduce){
   .google-inline-track::after{animation:none;left:29%}
 }
+
+.email-verify-modal{
+  position:absolute;
+  inset:0;
+  z-index:30;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  border-radius:inherit;
+  background:rgba(18,14,10,.42);
+  backdrop-filter:blur(5px);
+}
+.email-verify-modal.show{display:flex}
+.email-verify-card{
+  width:min(390px,92%);
+  border-radius:20px;
+  padding:28px 24px 22px;
+  background:#fffaf2;
+  border:1px solid rgba(185,137,63,.24);
+  box-shadow:0 28px 80px rgba(0,0,0,.24);
+  text-align:center;
+}
+.email-verify-card h2{
+  margin:0 0 10px;
+  font-family:"Cormorant Garamond",serif;
+  font-size:31px;
+  line-height:1.05;
+  font-weight:400;
+  color:#17130f;
+}
+.email-verify-card p{
+  margin:0 auto 8px;
+  max-width:320px;
+  color:#786f65;
+  font-size:12px;
+  line-height:1.6;
+}
+.email-verify-address{
+  display:block;
+  margin:12px auto 18px;
+  color:#17130f;
+  font-size:12px;
+  font-weight:600;
+  word-break:break-word;
+}
+.email-verify-ok{
+  width:min(210px,100%);
+  border:0;
+  border-radius:999px;
+  padding:12px 18px;
+  background:#17130f;
+  color:#fff;
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+
 </style>
 </head>
 <body>
@@ -199,6 +260,16 @@
 
       <div id="status" role="status" aria-live="polite"></div>
 
+      <div class="email-verify-modal" id="emailVerifyModal" role="dialog" aria-modal="true" aria-labelledby="emailVerifyTitle">
+        <div class="email-verify-card">
+          <h2 id="emailVerifyTitle">Please Verify Your Email</h2>
+          <p>A verification email has been sent to your registered email address.</p>
+          <span class="email-verify-address" id="emailVerifyAddress"></span>
+          <p>Click the verification link in your email to continue to your secure client dashboard.</p>
+          <button class="email-verify-ok" id="emailVerifyOk" type="button">Got It</button>
+        </div>
+      </div>
+
       <div class="firebase-test-hidden" aria-hidden="true">
         <button id="refreshVerification" type="button"></button>
         <button id="submitTest" type="button"></button>
@@ -255,6 +326,9 @@ const $=s=>document.querySelector(s);
 const statusBox=$("#status");
 const createButton=$("#createEmail");
 const googleButton=$("#googleLogin");
+const emailVerifyModal=document.getElementById("emailVerifyModal");
+const emailVerifyAddress=document.getElementById("emailVerifyAddress");
+const emailVerifyOk=document.getElementById("emailVerifyOk");
 const allButtons=[...document.querySelectorAll("button")];
 
 const googleInlineLoading=document.getElementById("googleInlineLoading");
@@ -268,6 +342,14 @@ function hideGoogleLoading(){
 function busy(value){
   allButtons.forEach(button=>button.disabled=value);
 }
+function showEmailVerifyPopup(address){
+  if(emailVerifyAddress) emailVerifyAddress.textContent=String(address||"");
+  if(emailVerifyModal) emailVerifyModal.classList.add("show");
+}
+function hideEmailVerifyPopup(){
+  if(emailVerifyModal) emailVerifyModal.classList.remove("show");
+}
+emailVerifyOk?.addEventListener("click",hideEmailVerifyPopup);
 function show(title,message,type=""){
   statusBox.className="status"+(type?" "+type:"");
   statusBox.innerHTML="<h2></h2><p></p>";
@@ -490,11 +572,13 @@ createButton.addEventListener("click",async()=>{
         try{await sendEmailVerification(current,verificationSettings)}catch(_){}
       }
 
+      const verificationEmail=current.email||d.email;
       show(
         "Verify Your Email",
-        "We sent a verification link to "+(current.email||d.email)+". Click the link and we’ll verify your email and take you straight to your secure client dashboard.",
+        "Verification email sent.",
         "good"
       );
+      showEmailVerifyPopup(verificationEmail);
       createButton.textContent="Verification Sent";
       return;
     }
