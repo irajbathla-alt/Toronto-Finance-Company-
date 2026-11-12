@@ -224,7 +224,7 @@ import {
   signOut,
   updateProfile,
   setPersistence,
-  browserSessionPersistence
+  browserLocalPersistence
 } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
 
 const firebaseConfig={
@@ -241,10 +241,11 @@ const API_URL=String(window.TFC_CONFIG?.apiUrl||"").trim();
 const GOOGLE_PENDING_KEY="tfc-google-signup-profile";
 const SESSION_KEY="tfc-client-auth";
 const LEGACY_KEY="tfc-current-application";
+const EMAIL_VERIFY_PROFILE_KEY="tfc-email-verification-profile";
 
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
-await setPersistence(auth,browserSessionPersistence);
+await setPersistence(auth,browserLocalPersistence);
 auth.useDeviceLanguage();
 
 const googleProvider=new GoogleAuthProvider();
@@ -451,18 +452,29 @@ createButton.addEventListener("click",async()=>{
     if(!current) throw new Error("Your secure Firebase session ended. Please try again.");
 
     if(!current.emailVerified){
+      localStorage.setItem(EMAIL_VERIFY_PROFILE_KEY,JSON.stringify({
+        name:profile.name,
+        phone:profile.phone,
+        email:current.email||d.email
+      }));
+
+      const verificationSettings={
+        url:"https://torontofinancecompany.com/verify-email.html",
+        handleCodeInApp:false
+      };
+
       if(newlyCreated){
-        await sendEmailVerification(current);
+        await sendEmailVerification(current,verificationSettings);
       }else{
-        try{await sendEmailVerification(current)}catch(_){}
+        try{await sendEmailVerification(current,verificationSettings)}catch(_){}
       }
 
       show(
         "Verify Your Email",
-        "We sent a verification link to "+(current.email||d.email)+". Open that email, verify the address, then return here and press Create Account again to finish. No Toronto Finance Company file will be duplicated while you verify.",
+        "We sent a verification link to "+(current.email||d.email)+". Click the link and we’ll verify your email and take you straight to your secure client dashboard.",
         "good"
       );
-      createButton.textContent="Finish Signup";
+      createButton.textContent="Verification Sent";
       return;
     }
 
@@ -470,6 +482,7 @@ createButton.addEventListener("click",async()=>{
     const accountEmail=current.email||d.email;
 
     savePortalSession(synced.data);
+    localStorage.removeItem(EMAIL_VERIFY_PROFILE_KEY);
     await signOut(auth);
     $("#password").value="";
     show(
@@ -482,7 +495,7 @@ createButton.addEventListener("click",async()=>{
     show("Account Creation Failed",friendlyError(error),"bad");
   }finally{
     busy(false);
-    if(createButton.textContent!=="Finish Signup") createButton.textContent="Create Account";
+    if(createButton.textContent!=="Verification Sent") createButton.textContent="Create Account";
   }
 });
 
