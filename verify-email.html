@@ -153,7 +153,12 @@ const mode=params.get("mode");
 const code=params.get("oobCode");
 
 try{
-  if(mode!=="verifyEmail"||!code) throw new Error("This verification link is invalid or incomplete.");
+  if(mode!=="verifyEmail"){
+    const firebaseHandler="https://toronto-finance-company-auth.firebaseapp.com/__/auth/action";
+    window.location.replace(firebaseHandler+"?"+params.toString());
+    throw new Error("Redirecting to Firebase.");
+  }
+  if(!code) throw new Error("This verification link is invalid or incomplete.");
 
   const app=initializeApp(firebaseConfig);
   const auth=getAuth(app);
