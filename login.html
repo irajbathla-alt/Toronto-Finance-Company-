@@ -466,19 +466,19 @@ function savePortalSession(data){
   localStorage.setItem(LEGACY_KEY,JSON.stringify(data));
 }
 async function completeLogin(user){
-  await reload(user);
-  const current=auth.currentUser;
+  const current=user||auth.currentUser;
   if(!current) throw new Error("Your secure session ended. Please sign in again.");
   if(!current.emailVerified) throw new Error("Please verify your email address before signing in.");
 
-  const token=await current.getIdToken(true);
+  // The user has just authenticated, so this token is already fresh.
+  // Apps Script still verifies it server-side before returning any TFC file.
+  const token=await current.getIdToken();
   const result=await bridgeLogin(token);
   savePortalSession(result.data);
   await signOut(auth);
   return result;
 }
 async function finishAndOpen(user,providerLabel){
-  await preflight();
   const result=await completeLogin(user);
   setMessage(providerLabel+" successful. Opening your secure client portal...",true);
   window.location.replace("client-dashboard.html");
