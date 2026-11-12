@@ -75,7 +75,7 @@ function requestId(){
   crypto.getRandomValues(bytes);
   return [...bytes].map(v=>v.toString(16).padStart(2,"0")).join("");
 }
-function jsonp(action,payload={},timeout=15000){
+function jsonp(action,payload={},timeout=20000){
   return new Promise((resolve,reject)=>{
     if(!API_URL) return reject(new Error("Secure application service is not configured."));
     const callback="tfc_verify_"+Date.now()+"_"+Math.random().toString(36).slice(2);
@@ -97,10 +97,20 @@ function jsonp(action,payload={},timeout=15000){
   });
 }
 async function preflight(){
-  const health=await jsonp("firebaseTestHealth",{},15000);
-  if(!health?.ok) throw new Error(health?.error||"Secure application service is unavailable.");
-  if(health.build!==EXPECTED_BUILD) throw new Error("Secure application service needs an update.");
-  if(!health.applicationsReady) throw new Error("Applications service is unavailable.");
+  let lastError=null;
+  for(let attempt=0;attempt<3;attempt++){
+    try{
+      const health=await jsonp("firebaseTestHealth",{},12000);
+      if(!health?.ok) throw new Error(health?.error||"Secure application service is unavailable.");
+      if(health.build!==EXPECTED_BUILD) throw new Error("Secure application service needs an update.");
+      if(!health.applicationsReady) throw new Error("Applications service is unavailable.");
+      return health;
+    }catch(error){
+      lastError=error;
+      if(attempt<2) await new Promise(resolve=>setTimeout(resolve,900));
+    }
+  }
+  throw lastError||new Error("Secure application service is temporarily unavailable.");
 }
 async function bridge(action,payload){
   const id=requestId();
@@ -112,17 +122,32 @@ async function bridge(action,payload){
       body:JSON.stringify({action,requestId:id,...payload})
     });
   }catch(_){}
-  for(let attempt=0;attempt<36;attempt++){
-    if(attempt) await new Promise(resolve=>setTimeout(resolve,500));
-    const status=await jsonp("firebaseTestRequestStatus",{requestId:id});
-    if(status?.ok===false) throw new Error(status.error||"Secure application service returned an error.");
-    if(status?.ok&&status.pending===false){
-      const result=status.result||{};
-      if(!result.ok) throw new Error(result.error||"Account sync could not be completed.");
-      return result;
+
+  const deadline=Date.now()+90000;
+  let lastTransientError=null;
+
+  while(Date.now()<deadline){
+    try{
+      const status=await jsonp("firebaseTestRequestStatus",{requestId:id},8000);
+      if(status?.ok===false) throw new Error(status.error||"Secure application service returned an error.");
+      if(status?.ok&&status.pending===false){
+        const result=status.result||{};
+        if(!result.ok) throw new Error(result.error||"Account sync could not be completed.");
+        return result;
+      }
+      lastTransientError=null;
+    }catch(error){
+      const text=String(error?.message||error||"");
+      if(/timed out|could not be reached|network/i.test(text)){
+        lastTransientError=error;
+      }else{
+        throw error;
+      }
     }
+    await new Promise(resolve=>setTimeout(resolve,750));
   }
-  throw new Error("Your verified account could not be confirmed yet.");
+
+  throw lastTransientError||new Error("Your verified account is taking longer than expected to finish. Please continue to Client Login if needed.");
 }
 function waitForUser(auth){
   return new Promise(resolve=>{
