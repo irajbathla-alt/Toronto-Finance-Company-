@@ -244,6 +244,60 @@ html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif}
 @media (prefers-reduced-motion:reduce){
   .google-inline-track::after{animation:none;left:29%}
 }
+
+.no-account-modal{
+  position:fixed;
+  inset:0;
+  z-index:500;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:rgba(18,14,10,.48);
+  backdrop-filter:blur(5px);
+}
+.no-account-modal.show{display:flex}
+.no-account-card{
+  width:min(390px,92vw);
+  border-radius:20px;
+  padding:28px 24px 22px;
+  background:#fffaf2;
+  border:1px solid rgba(185,137,63,.24);
+  box-shadow:0 28px 80px rgba(0,0,0,.26);
+  text-align:center;
+}
+.no-account-card h2{
+  margin:0 0 10px;
+  font-family:"Cormorant Garamond",serif;
+  font-size:30px;
+  font-weight:400;
+}
+.no-account-card p{
+  margin:0 auto 20px;
+  max-width:320px;
+  color:#786f65;
+  font-size:12px;
+  line-height:1.6;
+}
+.no-account-actions{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:9px;
+}
+.no-account-actions button{
+  width:min(230px,100%);
+  border-radius:999px;
+  padding:11px 18px;
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.no-account-primary{border:0;background:#17130f;color:#fff}
+.no-account-secondary{border:1px solid rgba(23,19,15,.14);background:#fff;color:#17130f}
+
 </style>
 </head>
 <body>
@@ -291,6 +345,17 @@ html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif}
   </div>
 </section>
 
+<div class="no-account-modal" id="noAccountModal" role="dialog" aria-modal="true" aria-labelledby="noAccountTitle">
+  <div class="no-account-card">
+    <h2 id="noAccountTitle">Create Your Account First</h2>
+    <p>We couldn’t find a Toronto Finance Company client account for this email. Please create your account first, then return to Client Login.</p>
+    <div class="no-account-actions">
+      <button class="no-account-primary" id="goCreateAccount" type="button">Create Account</button>
+      <button class="no-account-secondary" id="closeNoAccount" type="button">Back to Login</button>
+    </div>
+  </div>
+</div>
+
 <script src="crm-config.js?v=20261109-firebase-test-existing-backend"></script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js';
@@ -335,6 +400,9 @@ const button=document.getElementById("candidateLoginBtn");
 const googleButton=document.getElementById("googleLoginBtn");
 const message=document.getElementById("candidateLoginMsg");
 const buttons=[button,googleButton];
+const noAccountModal=document.getElementById("noAccountModal");
+const goCreateAccount=document.getElementById("goCreateAccount");
+const closeNoAccount=document.getElementById("closeNoAccount");
 
 const googleInlineLoading=document.getElementById("googleInlineLoading");
 function showGoogleLoading(){
@@ -351,6 +419,22 @@ function setMessage(text,success=false){
   message.textContent=text;
   message.className="candidate-login-message"+(success?" success":"");
 }
+function isNoLinkedTfcAccount(error){
+  const text=String(error?.message||error||"");
+  return /No Toronto Finance Company application is linked|No Toronto Finance Company client account|not linked to this verified account/i.test(text);
+}
+function openNoAccountModal(){
+  if(noAccountModal) noAccountModal.classList.add("show");
+}
+function closeNoAccountModal(){
+  if(noAccountModal) noAccountModal.classList.remove("show");
+}
+goCreateAccount?.addEventListener("click",()=>window.location.href="apply.html");
+closeNoAccount?.addEventListener("click",closeNoAccountModal);
+noAccountModal?.addEventListener("click",event=>{
+  if(event.target===noAccountModal) closeNoAccountModal();
+});
+
 function friendlyError(error){
   const code=String(error?.code||"");
   const known={
@@ -510,7 +594,12 @@ async function emailLogin(){
   }catch(error){
     hideGoogleLoading();
     try{if(auth.currentUser) await signOut(auth)}catch(_){}
-    setMessage(friendlyError(error));
+    if(isNoLinkedTfcAccount(error)){
+      setMessage("");
+      openNoAccountModal();
+    }else{
+      setMessage(friendlyError(error));
+    }
   }finally{
     setBusy(false);
     button.textContent="Log In";
@@ -539,7 +628,12 @@ async function googleLogin(){
   }catch(error){
     hideGoogleLoading();
     try{if(auth.currentUser) await signOut(auth)}catch(_){}
-    setMessage(friendlyError(error));
+    if(isNoLinkedTfcAccount(error)){
+      setMessage("");
+      openNoAccountModal();
+    }else{
+      setMessage(friendlyError(error));
+    }
   }finally{
     setBusy(false);
   }
