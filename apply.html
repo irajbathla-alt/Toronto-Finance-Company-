@@ -281,7 +281,7 @@
 
 <script src="crm-config.js?v=20261109-firebase-test-existing-backend"></script>
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js';
+import { firebaseApp } from './firebase-config.js';
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -298,14 +298,6 @@ import {
   browserLocalPersistence
 } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
 
-const firebaseConfig={
-  apiKey:"AIzaSyAXIObBDa-i8W_wAUtt43FXracH7ezPhlA",
-  authDomain:"toronto-finance-company-auth.firebaseapp.com",
-  projectId:"toronto-finance-company-auth",
-  storageBucket:"toronto-finance-company-auth.firebasestorage.app",
-  messagingSenderId:"494379883061",
-  appId:"1:494379883061:web:54acfe2bc5b27f8fa36f7c"
-};
 
 const EXPECTED_BUILD="20261110-fb-debug-v8";
 const API_URL=String(window.TFC_CONFIG?.apiUrl||"").trim();
@@ -314,7 +306,7 @@ const SESSION_KEY="tfc-client-auth";
 const LEGACY_KEY="tfc-current-application";
 const EMAIL_VERIFY_PROFILE_KEY="tfc-email-verification-profile";
 
-const app=initializeApp(firebaseConfig);
+const app=firebaseApp;
 const auth=getAuth(app);
 await setPersistence(auth,browserLocalPersistence);
 auth.useDeviceLanguage();
