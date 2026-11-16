@@ -605,6 +605,7 @@ createButton.addEventListener("click",async()=>{
 });
 
 async function completeGoogleCredential(credential,profile){
+  showGoogleLoading();
   const user=credential.user;
   const googleEmail=String(user.email||"").trim().toLowerCase();
   if(!googleEmail) throw new Error("Google did not return an email address.");
@@ -633,7 +634,6 @@ googleButton.addEventListener("click",async()=>{
     try{
       const credential=await signInWithPopup(auth,googleProvider);
       sessionStorage.removeItem(GOOGLE_PENDING_KEY);
-      hideGoogleLoading();
       await completeGoogleCredential(credential,profile);
     }catch(error){
       const code=String(error?.code||"");
@@ -661,7 +661,7 @@ try{
     sessionStorage.removeItem(GOOGLE_PENDING_KEY);
     if(!profile) throw new Error("Your signup details expired. Enter your name and phone and try Google again.");
     busy(true);
-    hideGoogleLoading();
+    showGoogleLoading();
     await completeGoogleCredential(redirected,profile);
     busy(false);
   }
