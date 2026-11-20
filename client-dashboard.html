@@ -2598,8 +2598,8 @@ button,input{font:inherit}
 
         <div class="task-confirm" id="taskConfirm">
           <small>Step 2</small>
-          <strong>Confirm Submission</strong>
-          <button class="crm-primary-action" id="confirmSignatureBtn" type="button">Confirm Submission</button>
+          <strong>Submission Confirmed</strong>
+          <button class="crm-primary-action" id="confirmSignatureBtn" type="button" hidden>Confirm Submission</button>
           <div class="crm-action-msg" id="signatureActionMsg"></div>
         </div>
 
@@ -3850,7 +3850,7 @@ function openTfcFlow(){
   openApplicationFlow();
 }
 closeTfc.addEventListener('click',closeTfcFlow);
-taskSign.addEventListener('click',()=>showTask('sign'));
+taskSign.addEventListener('click',()=>openTfcElectronicApplication());
 taskUpload.addEventListener('click',()=>showTask('upload'));
 
 function refreshTfcFlowState(){
