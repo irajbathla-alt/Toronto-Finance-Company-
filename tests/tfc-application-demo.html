@@ -376,101 +376,117 @@ body{margin:0;background:#f6efe5;color:var(--ink);font-family:"DM Sans",sans-ser
     return y+24;
   }
 
+  function drawValueBox(doc,label,value,y,labelX=54,boxX=318,boxW=240){
+    doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(23,19,15);
+    doc.text(label,labelX,y+15);
+    doc.setFillColor(220,236,250);
+    doc.setDrawColor(92,145,184);
+    doc.roundedRect(boxX,y,boxW,26,1.5,1.5,'FD');
+    doc.setFont('helvetica','normal');doc.setFontSize(9.5);
+    const text=String(value||'');
+    const lines=doc.splitTextToSize(text,boxW-12);
+    doc.text(lines.slice(0,2),boxX+6,y+16);
+    doc.setDrawColor(120,120,120);
+    doc.line(boxX,y+31,boxX+boxW,y+31);
+    return y+49;
+  }
+
   function buildClientPdf(){
     if(!window.jspdf||!window.jspdf.jsPDF) return;
     const {jsPDF}=window.jspdf;
     const doc=new jsPDF({unit:'pt',format:'letter'});
     const left=54,right=558,width=right-left;
 
+    // PAGE 1 — Application details, styled to match the supplied reference.
+    doc.setTextColor(20,20,20);
+    doc.setFont('times','normal');doc.setFontSize(24);
+    doc.text('Business Information:',left,72);
+
+    let y=112;
+    y=drawValueBox(doc,'Legal Business Name:',data.legalName,y);
+    y=drawValueBox(doc,'Nature of Business:',data.nature,y);
+    y=drawValueBox(doc,'No. of Employees:',data.employees,y);
+    y=drawValueBox(doc,'Annual Revenue (Last 12 Months):',data.revenue?('$'+Number(data.revenue).toLocaleString('en-CA')):'',y);
+    y=drawValueBox(doc,'Business Address:',data.businessAddress,y);
+    y=drawValueBox(doc,'Business Registration Year:',data.registrationYear,y);
+    y=drawValueBox(doc,'Business Bank Account (TD/RBC/BMO/Scotia):',data.bank,y);
+
+    y+=22;
+    doc.setFont('times','normal');doc.setFontSize(24);
+    doc.text('Business Owner Information:',left,y);
+    y+=34;
+
+    y=drawValueBox(doc,'First Name & Last Name:',data.ownerName,y);
+    y=drawValueBox(doc,'Date of Birth:',data.dob,y);
+    y=drawValueBox(doc,'Phone Number:',data.phone,y);
+    y=drawValueBox(doc,'Email Address:',data.email,y);
+    y=drawValueBox(doc,'Address:',data.ownerAddress,y);
+
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(95,95,95);
+    doc.text('Application ID: '+TEST_CLIENT.applicationId,left,760);
+    doc.text('Document ID: '+audit.documentId,right,760,{align:'right'});
+
+    // PAGE 2 — Consent, signature and MCA disclosure.
+    doc.addPage();
     doc.setTextColor(23,19,15);
     doc.setFont('times','normal');doc.setFontSize(20);
-    doc.text('TORONTO FINANCE COMPANY',306,54,{align:'center'});
-    doc.setFontSize(12);
-    doc.text('SMALL BUSINESS FINANCING',306,74,{align:'center'});
-    doc.setFont('helvetica','normal');doc.setFontSize(8.5);
-    doc.text('TFC Electronic Application',306,91,{align:'center'});
-    doc.setDrawColor(198,150,78);doc.line(left,104,right,104);
+    doc.text('Toronto Finance Company',306,52,{align:'center'});
+    doc.setFontSize(14);
+    doc.text('Small Business Financing',306,76,{align:'center'});
+    doc.setFont('helvetica','normal');doc.setFontSize(13);
+    doc.text('Credit Check & Consent Authorization',306,124,{align:'center'});
 
-    doc.setFontSize(8);
-    doc.text('Application ID: '+TEST_CLIENT.applicationId,left,123);
-    doc.text('Document ID: '+audit.documentId,right,123,{align:'right'});
-
-    let y=151;
-    y=addSectionTitle(doc,'BUSINESS INFORMATION',y);
-    const appRows=[
-      ['Legal Business Name',data.legalName],
-      ['Nature of Business',data.nature],
-      ['Number of Employees',data.employees],
-      ['Annual Revenue (Last 12 Months)',data.revenue?('$'+Number(data.revenue).toLocaleString('en-CA')):''],
-      ['Business Address',data.businessAddress],
-      ['Business Registration Year',data.registrationYear],
-      ['Business Bank Account',data.bank]
-    ];
-    doc.setFontSize(9);
-    for(const [label,val] of appRows){
-      doc.setFont('helvetica','bold');doc.text(label+':',left,y);
-      doc.setFont('helvetica','normal');
-      y=wrapPdfText(doc,val||'Not provided',220,y,338,10)+8;
-    }
-
-    y+=5;
-    y=addSectionTitle(doc,'BUSINESS OWNER INFORMATION',y);
-    const ownerRows=[
-      ['First Name & Last Name',data.ownerName],
-      ['Date of Birth',data.dob],
-      ['Phone Number',data.phone],
-      ['Email Address',data.email],
-      ['Home Address',data.ownerAddress]
-    ];
-    for(const [label,val] of ownerRows){
-      doc.setFont('helvetica','bold');doc.text(label+':',left,y);
-      doc.setFont('helvetica','normal');
-      y=wrapPdfText(doc,val||'Not provided',220,y,338,10)+8;
-    }
-
-    doc.addPage();
-    doc.setFont('times','normal');doc.setFontSize(18);
-    doc.text('CREDIT CHECK & CONSENT AUTHORIZATION',306,54,{align:'center'});
-    doc.setDrawColor(198,150,78);doc.line(left,69,right,69);
-    doc.setFont('helvetica','normal');doc.setFontSize(8.7);
     const consent='Each person signing below declares that all information provided in this Business Financing Application is true, accurate, and complete. I/We authorize Toronto Finance Company, its affiliated companies, partner lenders, funding providers, Authorized Agents, and designated representatives — including, but not limited to, DUCA Financial Credit Union, Merchant Growth, Sheaves Capital, KM Capital, Canacap Funding, Journey Capital, Driven, iCapital, Vancity, and Xuper Funding — to obtain, verify, exchange, and disclose personal, business, financial, banking, and credit information as reasonably required to assess, arrange, obtain, or service financing or other financial products on my/our behalf. I/We authorize Toronto Finance Company Inc. and its designated representatives to obtain credit bureau reports and, where reasonably required in connection with my/our financing request, additional credit reports or credit-monitoring information for up to 12 months from the date of this consent. I/We also consent to being contacted by Toronto Finance Company by email, telephone, text message, or other electronic means regarding my/our application, financing opportunities, products, services, renewals, updates, and related financial information. Marketing consent may be withdrawn at any time, subject to communications otherwise permitted or required by law. I/We agree that an electronic or photocopied version of this consent shall have the same validity as the original. I/We consent to the collection, use, and disclosure of my/our personal and business information in accordance with Toronto Finance Company’s Privacy & Consent Policy, available at: https://torontofinancecompany.com/privacy.html';
-    y=92;
-    y=wrapPdfText(doc,consent,left,y,width,11)+14;
+
+    doc.setFont('helvetica','normal');doc.setFontSize(9);
+    y=166;
+    y=wrapPdfText(doc,consent,70,y,472,12)+18;
 
     doc.setFont('helvetica','bold');doc.setFontSize(9);
-    doc.text('CONSENT ACCEPTED',left,y);
+    doc.text('Consent:',70,y);
     doc.setFont('helvetica','normal');
-    doc.text('✓ Credit, Communication, Privacy & Electronic Signature Consent accepted',left+118,y);
-    y+=24;
+    doc.text('✓ Credit, Communication, Privacy & Electronic Signature Consent accepted',120,y);
+    y+=30;
 
-    doc.setFont('helvetica','bold');doc.text('Electronic Signature',left,y);y+=10;
-    doc.setDrawColor(180,170,160);doc.rect(left,y,250,72);
+    doc.setFont('helvetica','bold');doc.text('Signatory:',70,y);
+    doc.setFont('helvetica','normal');doc.text(String(data.ownerName||''),140,y);
+    y+=26;
+    doc.setFont('helvetica','bold');doc.text('Name:',70,y);
+    doc.setFont('helvetica','normal');doc.text(String(data.ownerName||''),140,y);
+    y+=26;
+    doc.setFont('helvetica','bold');doc.text('Date:',70,y);
+    doc.setFont('helvetica','normal');doc.text(new Date(audit.signedAt).toLocaleString('en-CA'),140,y);
+
+    const sigY=y-48;
+    doc.setDrawColor(110,110,110);
+    doc.line(140,sigY,280,sigY);
+    doc.line(140,sigY+26,280,sigY+26);
+    doc.line(140,sigY+52,280,sigY+52);
     if(signatureMethod==='typed'){
-      doc.setFont('times','italic');doc.setFontSize(24);
-      doc.text(String(data.ownerName||''),left+125,y+42,{align:'center'});
+      doc.setFont('times','italic');doc.setFontSize(20);
+      doc.text(String(data.ownerName||''),150,sigY-4);
     }else{
       try{
         const canvas=document.getElementById('signaturePad');
-        if(canvas) doc.addImage(canvas.toDataURL('image/png'),'PNG',left+8,y+8,234,56);
+        if(canvas) doc.addImage(canvas.toDataURL('image/png'),'PNG',145,sigY-28,125,32);
       }catch(_){}
     }
-    y+=90;
-    doc.setFont('helvetica','normal');doc.setFontSize(9);
-    doc.text('Signatory: '+String(data.ownerName||''),left,y);
-    doc.text('Date: '+new Date(audit.signedAt).toLocaleString('en-CA'),left+270,y);
 
-    y+=34;
-    doc.setFont('helvetica','bold');doc.setFontSize(9);
-    doc.text('MERCHANT CASH ADVANCE DISCLOSURE',left,y);y+=14;
-    doc.setFont('helvetica','normal');doc.setFontSize(8.4);
+    y+=72;
+    doc.setFont('helvetica','bold');doc.setFontSize(8.5);
+    doc.text('Merchant Cash Advance Disclosure:',70,y);
+    y+=12;
+    doc.setFont('helvetica','normal');doc.setFontSize(8);
     const mca='The Client understands that a Merchant Cash Advance (“MCA”) is generally structured as the purchase of future business receivables and is not intended to be a conventional loan. MCA pricing may use a factor rate rather than an interest rate or APR, and payments may be deducted daily or weekly. The Client is responsible for reviewing all funding terms, costs, payment obligations, guarantees, security requirements, and default provisions before accepting any offer. Final terms and legal characterization are governed by the funder’s agreement and applicable law.';
-    wrapPdfText(doc,mca,left,y,width,10.5);
+    wrapPdfText(doc,mca,70,y,472,9.5);
 
+    // PAGE 3 — Audit trail.
     doc.addPage();
     doc.setFont('times','normal');doc.setFontSize(18);
-    doc.text('ELECTRONIC SIGNATURE AUDIT TRAIL',306,54,{align:'center'});
+    doc.text('ELECTRONIC SIGNATURE AUDIT TRAIL',306,52,{align:'center'});
+    doc.setDrawColor(198,150,78);doc.line(left,68,right,68);
     doc.setFont('helvetica','normal');doc.setFontSize(8.5);
-    doc.setDrawColor(198,150,78);doc.line(left,69,right,69);
+
     let ay=96;
     const auditRows=[
       ['TFC Application ID',TEST_CLIENT.applicationId],
@@ -498,7 +514,7 @@ body{margin:0;background:#f6efe5;color:var(--ink);font-family:"DM Sans",sans-ser
       if(ay>735){doc.addPage();ay=60}
     }
     doc.setFont('helvetica','italic');doc.setFontSize(8);
-    wrapPdfText(doc,'This audit record was generated by the Toronto Finance Company demo at the time of electronic submission. Production will retain the same application, consent, signature and audit structure.',left,ay+8,width,10);
+    wrapPdfText(doc,'This audit record was generated by the Toronto Finance Company demo at the time of electronic submission.',left,ay+8,width,10);
 
     signedPdfBlob=doc.output('blob');
     signedPdfName=TEST_CLIENT.applicationId+'-Signed-TFC-Electronic-Application-TEST.pdf';
