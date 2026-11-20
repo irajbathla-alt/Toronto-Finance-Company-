@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eligibility CRM Migration Test | Toronto Finance Company</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#17130f;--cream:#f7f0e6;--gold:#c6964e;--muted:#786f65;--line:rgba(23,19,15,.16);--green:#2f855a;--amber:#b7791f;--red:#b44336}
+*{box-sizing:border-box}html,body{min-height:100%}body{margin:0;background:radial-gradient(circle at 70% 15%,rgba(198,150,78,.18),transparent 32%),linear-gradient(135deg,#17130f,#211a13 58%,#110e0b);font-family:"DM Sans",sans-serif;color:var(--ink);padding:28px 16px}
+.shell{width:min(520px,100%);margin:auto;background:rgba(247,240,230,.98);border:1px solid rgba(255,255,255,.18);box-shadow:0 28px 80px rgba(0,0,0,.35);border-radius:18px;overflow:hidden}.top{padding:24px 26px 18px;text-align:center;border-bottom:1px solid var(--line)}
+.brand{font-family:"Cormorant Garamond",serif;font-size:31px;line-height:.92;font-weight:300;text-transform:uppercase}.brand span{display:block}.tag{margin-top:12px;color:#9b763f;font-size:10px;letter-spacing:.18em;text-transform:uppercase}
+.container{padding:22px 26px 30px;text-align:center}.progress{display:flex;justify-content:center;gap:10px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#a99e91;margin-bottom:23px}.progress span{padding:7px 10px;border-bottom:1px solid transparent}.progress .active{color:var(--ink);border-color:var(--gold)}
+h2{font-family:"Cormorant Garamond",serif;font-size:34px;line-height:1;font-weight:400;margin:8px 0 12px;text-transform:uppercase;letter-spacing:.025em}p{font-size:12px;line-height:1.6;color:var(--muted)}.products{margin:24px 0}.product{padding:12px 0}.product strong{font-family:"Cormorant Garamond",serif;font-size:20px;font-weight:500;text-transform:uppercase}.product p{margin:4px 0 0}.divider{width:52%;height:1px;background:var(--line);margin:auto}
+label{display:block;text-align:left;margin-top:15px;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#665e55}select,input{width:100%;padding:13px 12px;margin-top:7px;border:1px solid #cfc3b5;background:#fbf7f0;border-radius:6px;color:var(--ink);outline:none}select:focus,input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(198,150,78,.12)}
+button{width:100%;margin-top:20px;padding:14px 18px;background:var(--ink);color:#fff;border:0;border-radius:999px;font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;cursor:pointer;transition:.2s}button:hover{transform:translateY(-1px);background:#2a2119}button:disabled{opacity:.65}.back{margin-top:10px;background:transparent;color:var(--ink);border:1px solid var(--line)}.back:hover{background:#eee3d6}.hidden{display:none}.section{opacity:0;transform:translateY(12px);transition:.32s ease}.section.active{opacity:1;transform:none}
+.tier-box{border:1px solid var(--line);border-radius:10px;padding:17px;margin-top:20px;text-align:left;background:#fbf7f0}.tier-a{border-left:4px solid var(--green)}.tier-b{border-left:4px solid var(--amber)}.tier-c,.tier-d{border-left:4px solid var(--red)}.tier-box strong{font-family:"Cormorant Garamond",serif;font-size:20px;text-transform:uppercase}.pathways{margin:14px 0 2px;border-top:1px solid var(--line)}.pathway{padding:11px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:center}.pathway b{font-size:10px;letter-spacing:.08em;text-transform:uppercase}.pathway span{font-size:11px;font-weight:600;text-align:right;color:#6f5837}.disclaimer{margin-top:12px;font-size:10px;line-height:1.5;color:#8a7e72}.status{margin-top:18px;font-size:11px;color:var(--muted)}
+.confirm-overlay{position:fixed;inset:0;background:rgba(10,8,6,.76);backdrop-filter:blur(8px);display:grid;place-items:center;padding:18px;z-index:100;opacity:0;visibility:hidden;transition:.28s}.confirm-overlay.show{opacity:1;visibility:visible}.confirm-card{width:min(440px,94vw);background:var(--cream);border:1px solid rgba(198,150,78,.38);box-shadow:0 28px 90px rgba(0,0,0,.45);border-radius:18px;padding:34px 28px 28px;text-align:center}.confirm-icon{width:58px;height:58px;margin:0 auto 18px;border:1px solid var(--gold);border-radius:50%;display:grid;place-items:center;color:var(--gold);font-size:25px}.confirm-card h3{font-family:"Cormorant Garamond",serif;font-size:32px;font-weight:400;margin:0 0 14px;text-transform:uppercase}.confirm-card p{font-size:13px}.confirm-card .response{margin:18px 0 2px;color:#9b763f;font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase}.confirm-card .close-confirm{margin-top:10px;background:transparent;color:var(--ink);border:1px solid var(--line)}
+@media(max-width:520px){body{padding:0}.shell{min-height:100vh;border-radius:0}.container,.top{padding-left:20px;padding-right:20px}.brand{font-size:28px}.progress{gap:2px}.confirm-card{padding:30px 22px 24px}}
+
+.history-lenders{margin-top:10px;padding-top:9px;border-top:1px solid rgba(185,137,63,.16);font-size:10px;font-weight:600;color:#5f4b32}
+.history-lenders span{display:block;margin-bottom:4px;font-size:7px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#9b763f}
+</style>
+<link rel="stylesheet" href="eligibility-guided.css?v=20261102-matchcards15">
+</head>
+<body>
+<div class="shell">
+<div class="top"><div class="brand"><span>Toronto</span><span>Finance Company</span></div><div class="tag">Business Financing Solutions</div></div>
+<div class="container">
+<section id="frontPage" class="section active"><div class="progress"><span class="active">Intro</span><span>Eligibility</span><span>Details</span></div><h2>Financing Options</h2><div class="products"><div class="product"><strong>Term Loans</strong><p>Fixed repayment structure</p></div><div class="divider"></div><div class="product"><strong>Business Lines of Credit</strong><p>Access funds as needed</p></div><div class="divider"></div><div class="product"><strong>Flex Funds</strong><p>Payments based on business sales</p></div><div class="divider"></div><div class="product"><strong>Merchant Cash Advance</strong><p>Fast working-capital solution</p></div></div><p><strong>Potential initial response within 24–48 hours.</strong></p><button id="startBtn">Check Eligibility</button></section>
+<section id="page1" class="section hidden"><div class="progress"><span>Intro</span><span class="active">Eligibility</span><span>Details</span></div><h2>Eligibility Check</h2><form id="eligibilityForm">
+<label>Business Industry</label><select id="industry" required><option value="">Select</option><option value="restaurant">Restaurant / Café / Food Service</option><option value="retail">Retail / Convenience / Liquor</option><option value="construction">Construction / Trades</option><option value="trucking">Trucking / Transportation</option><option value="automotive">Automotive / Repair / Welding</option><option value="medical">Medical / Clinic / Health</option><option value="professional">Professional Services</option><option value="manufacturing">Manufacturing / Wholesale</option><option value="beauty">Beauty / Personal Care</option><option value="cleaning">Cleaning / Janitorial</option><option value="travel">Travel / Tourism</option><option value="financial">Financial Services</option><option value="other">Other</option></select>
+<label>Time in Business</label><input id="timeMonths" type="number" min="0" max="600" step="1" placeholder="Months in business" required>
+<label>Average Monthly Business Deposits</label><input id="monthlyDeposits" type="number" min="1000" step="500" placeholder="$ e.g. 35000" required>
+<label>Financing Requested</label><input id="requestedAmount" type="number" min="1000" step="500" placeholder="$ e.g. 30000" required>
+<label>Estimated Personal Credit Score</label><select id="credit" required><option value="">Select</option><option value="700+">700+</option><option value="649-699">649–699</option><option value="600-648">600–648</option><option value="550-599">550–599</option><option value="500-549">500–549</option><option value="below-500">Below 500</option><option value="unknown">Not Sure</option></select>
+<label>NSFs / Returned Payments in Last 3 Months</label><select id="nsf3m" required><option value="">Select</option><option value="0">None</option><option value="1">1</option><option value="2">2</option><option value="3">3–4</option><option value="5">5+</option></select>
+<label>Recent Negative / Overdrawn Balances</label><select id="negativeBalances" required><option value="">Select</option><option value="none">None</option><option value="occasional">Occasional</option><option value="frequent">Frequent</option></select>
+<label>Active Business Financing Facilities</label><select id="activeFinancing" required><option value="">Select</option><option value="0">None</option><option value="1">One</option><option value="2">Two or More</option></select>
+<label>Approx. Monthly Business Financing Payments</label><input id="monthlyDebt" type="number" min="0" step="100" placeholder="$ enter 0 if none" required>
+<label>Recent Sales / Deposit Trend</label><select id="depositTrend" required><option value="">Select</option><option value="increasing">Increasing</option><option value="stable">Stable</option><option value="decreasing">Decreasing</option></select>
+<label>Business Bank Statements Available</label><select id="statementMonths" required><option value="">Select</option><option value="6">6+ months</option><option value="5">4–5 months</option><option value="3">3 months</option><option value="2">1–2 months</option></select>
+<button type="submit">Check Eligibility</button><button type="button" class="back" id="backToIntro">Back</button></form><div id="result" class="hidden"></div></section>
+<section id="page2" class="section hidden"><div class="progress"><span>Intro</span><span>Eligibility</span><span class="active">Details</span></div><h2>Your Details</h2><form id="leadForm"><input type="hidden" id="tier"><input type="hidden" id="score"><label>Business Name</label><input id="business" required><label>Name</label><input id="name" required><label>Phone</label><input id="phone" required><label>Email</label><input id="email" type="email" required><button type="submit" id="submitBtn">Submit</button><button type="button" class="back" id="backToEligibility">Back</button></form><div id="submitStatus" class="status"></div></section>
+</div></div>
+<div class="confirm-overlay" id="confirmOverlay"><div class="confirm-card"><div class="confirm-icon">✓</div><h3>Thank You</h3><p>Your financing inquiry has been successfully submitted.</p><p>One of our Business Financing Advisors will carefully review your information and contact you to discuss the financing solutions best suited to your business.</p><div class="response">Typical response time: 24–48 business hours</div><button id="returnHome">Return to Home</button><button class="close-confirm" id="closeConfirm">Close</button></div></div>
+<script>
+const MODEL="TFC-FUNDING-COMPASS-6.4",scriptURL=new URLSearchParams(location.search).get("api")||"";
+const $=id=>document.getElementById(id),frontPage=$("frontPage"),page1=$("page1"),page2=$("page2"),result=$("result"),confirmOverlay=$("confirmOverlay");let latest=null;
+function go(a,b){a.classList.remove("active");setTimeout(()=>{a.classList.add("hidden");b.classList.remove("hidden");requestAnimationFrame(()=>b.classList.add("active"));scrollTo({top:0,behavior:"smooth"})},280)}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}function r500(v){return Math.round(Math.max(0,v)/500)*500}function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function input(){return{industry:$("industry").value,time:+$("timeMonths").value||0,deposits:+$("monthlyDeposits").value||0,requested:+$("requestedAmount").value||0,credit:$("credit").value,nsf:+$("nsf3m").value||0,negative:$("negativeBalances").value,active:$("activeFinancing").value,debt:+$("monthlyDebt").value||0,trend:$("depositTrend").value,months:+$("statementMonths").value||0}}
+function pathwayLabel(score,type){if(type==="C"){if(score>=78)return"Strong Alternative Match";if(score>=58)return"Alternative Match";return"Possible Match"}if(score>=80)return"Strong Match";if(score>=62)return"Possible Match";if(score>=45)return"Possible with Review";return"Possible Match"}
+function assess(i){let s=[],r=[],cash=i.deposits>=100000?100:i.deposits>=50000?92:i.deposits>=25000?82:i.deposits>=15000?70:i.deposits>=10000?58:i.deposits>=5000?42:25;if(i.trend==="increasing"){cash+=7;s.push("Recent deposits are increasing.")}if(i.trend==="stable"){cash+=3;s.push("Recent deposits are stable.")}if(i.trend==="decreasing"){cash-=14;r.push("Recent deposits are decreasing.")}cash=clamp(cash,0,100);
+let nsf=i.nsf===0?100:i.nsf===1?78:i.nsf===2?58:i.nsf<5?35:15;i.nsf===0?s.push("No recent NSF activity reported."):r.push("Recent NSF / returned-payment activity reported.");let bal=i.negative==="none"?100:i.negative==="occasional"?62:25;i.negative==="none"?s.push("No recent negative balances reported."):r.push("Negative or overdrawn balances reported.");
+let dr=i.deposits?i.debt/i.deposits:1,debt=dr>.35?20:dr>.25?38:dr>.18?55:dr>.12?70:dr>.07?84:100;if(i.active==="1")debt-=8;if(i.active==="2"){debt-=22;r.push("Multiple active business financing facilities reported.")}debt=clamp(debt,0,100);if(dr>.18)r.push("Existing financing payments are high relative to deposits.");else if(i.active==="0")s.push("No material existing business-financing burden reported.");
+let cover=i.months>=6?100:i.months>=4?82:i.months>=3?68:50;i.months>=6?s.push("Six or more months of business banking available."):r.push("Limited statement history may reduce confidence.");let age=i.time>=36?100:i.time>=24?92:i.time>=12?80:i.time>=6?55:30;i.time>=24?s.push("Established operating history."):i.time<6&&r.push("Very short time in business may limit some lender options.");
+let cm={"700+":100,"649-699":90,"600-648":78,"550-599":62,"500-549":45,"below-500":25,"unknown":60},credit=cm[i.credit]||60,rr=i.deposits?i.requested/i.deposits:0,fit=100;
+let depA=i.deposits>=50000?100:i.deposits>=25000?85:i.deposits>=20000?70:i.deposits>=15000?50:i.deposits>=10000?30:10;
+let depB=i.deposits>=25000?100:i.deposits>=20000?90:i.deposits>=10000?72:i.deposits>=7500?55:i.deposits>=5000?40:20;
+let depC=i.deposits>=20000?100:i.deposits>=10000?85:i.deposits>=5000?70:i.deposits>=3000?50:30;
+let ageA=i.time>=24?100:i.time>=12?85:i.time>=6?50:20,ageB=i.time>=12?100:i.time>=6?80:i.time>=3?55:30,ageC=i.time>=6?100:i.time>=3?75:50;
+let creditB={"700+":100,"649-699":95,"600-648":88,"550-599":75,"500-549":60,"below-500":40,"unknown":70}[i.credit]||70;
+let creditC={"700+":100,"649-699":100,"600-648":95,"550-599":88,"500-549":78,"below-500":65,"unknown":75}[i.credit]||75;
+let aScore=Math.round(depA*.30+credit*.20+ageA*.15+nsf*.15+debt*.10+fit*.10);
+let bScore=Math.round(depB*.34+creditB*.10+ageB*.10+nsf*.14+clamp(debt+10,0,100)*.14+clamp(fit+10,0,100)*.13+cash*.05);
+let cScore=Math.round(depC*.30+creditC*.05+ageC*.10+nsf*.12+clamp(debt+20,0,100)*.13+clamp(fit+20,0,100)*.20+cash*.10);
+if(["financial","travel"].includes(i.industry)){aScore-=8;bScore-=4;r.push("Industry may require product-specific lender review.")}aScore=clamp(aScore,0,100);bScore=clamp(bScore,0,100);cScore=clamp(cScore,0,100);
+let pathways=[{key:"A",name:"Lender A Criteria",score:aScore,status:pathwayLabel(aScore,"A")},{key:"B",name:"Lender B Criteria",score:bScore,status:pathwayLabel(bScore,"B")},{key:"C",name:"Lender C Criteria",score:cScore,status:pathwayLabel(cScore,"C")}];let top=pathways.slice().sort((x,y)=>y.score-x.score)[0],score=top.score,tier=top.key,status="Financing Options May Be Available",confidence=i.months>=6?"High":i.months>=3?"Moderate":"Low",cap=r500(i.deposits*(score>=82?.95:score>=70?.8:score>=58?.65:score>=45?.45:.3)*clamp(1-dr*.7,.45,1)),within=true;return{score,tier,status,confidence,cap,within,dr,rr,cash,nsf,bal,debt,cover,age,credit,fit,pathways,topPath:top.name,strengths:[...new Set(s)].slice(0,5),risks:[...new Set(r)].slice(0,6)}}
+const LENDER_HISTORY={
+  // Only clean Training Record -> Structured Feature matches are used here.
+  // 4 ambiguous duplicate feature rows and the corrupted Amber Trucking feature row are excluded.
+  "Journey Capital":{
+    approvals:[[19820.50,11550],[20962.73,15000],[24636.93,18000],[26234.98,19500],[41645.62,29500],[51674.25,40000],[77959.69,65000],[80913.59,15000],[87849.59,24000],[99009.13,60000],[114773.12,77000],[121755.97,77000],[153918.24,77000],[294351.88,57800],[490475.23,150000]],
+    sample:15,minRevenue:10000,minTime:6,path:"A"
+  },
+  "Canacap Funding":{
+    approvals:[[22121.70,7000],[29255.91,7000],[38032.24,20000],[40631.35,11000],[62050.12,10000],[83804.05,20000],[139616.68,35000],[157412.62,44000],[228489.33,12500],[1268432.31,45000]],
+    sample:10,minRevenue:20000,minTime:6,path:"A"
+  },
+  "Merchant Growth":{
+    approvals:[[32857.67,10000],[80913.59,21875],[87417.15,40000],[91416.62,70000],[126911.89,45000],[181579.86,62500],[237941.69,40000]],
+    sample:7,minRevenue:25000,minTime:6,path:"B"
+  },
+  "Judi.Ai":{
+    approvals:[[5623.46,15000],[10788.09,45000],[21982.50,45000],[26585.47,50000],[70378.16,7500],[102289.50,75000]],
+    sample:6,minRevenue:5000,minTime:6,minCredit:649,path:"C"
+  },
+  "iCapital Financial":{
+    approvals:[[18591.67,19000],[55436.50,19000]],sample:2,limited:true,path:"C"
+  },
+  "KM Capital":{
+    approvals:[[235464.70,45000]],sample:1,limited:true,path:"B"
+  }
+};
+
+function fmtMoney(v){return "$"+Math.round(v).toLocaleString("en-CA")}
+function creditFloorValue(v){
+  return ({"700+":700,"649-699":649,"600-648":600,"550-599":550,"500-549":500,"below-500":0,"unknown":null}[v]??null);
+}
+
+function profileDistance(deposits,approvedDeposits){
+  if(!deposits||!approvedDeposits)return Infinity;
+  return Math.abs(Math.log(deposits/approvedDeposits));
+}
+
+function comparableCases(h,i,count=3){
+  return h.approvals
+    .map(x=>({deposits:x[0],amount:x[1],distance:profileDistance(i.deposits,x[0])}))
+    .sort((x,y)=>x.distance-y.distance)
+    .slice(0,Math.min(count,h.approvals.length));
+}
+
+function percentile(values,p){
+  const a=values.filter(Number.isFinite).slice().sort((x,y)=>x-y);
+  if(!a.length)return Infinity;
+  const n=(a.length-1)*p,l=Math.floor(n),u=Math.ceil(n);
+  return l===u?a[l]:a[l]+(a[u]-a[l])*(n-l);
+}
+
+function derivedFitLimit(h){
+  if(!h.approvals||h.approvals.length<4)return Infinity;
+  const loo=h.approvals.map((point,idx)=>{
+    const others=h.approvals.filter((_,j)=>j!==idx)
+      .map(x=>profileDistance(point[0],x[0]))
+      .sort((a,b)=>a-b)
+      .slice(0,Math.min(3,h.approvals.length-1));
+    return others.reduce((s,d)=>s+d,0)/others.length;
+  });
+  // 75th percentile of leave-one-out historical distances.
+  return percentile(loo,.75);
+}
+
+function lenderFit(name,h,i){
+  if(h.limited)return {name,eligible:false,limited:true,reasons:["limited-history"],fit:Infinity,score:0,nearest:[]};
+
+  const reasons=[];
+  const debtRatio=i.deposits?i.debt/i.deposits:1;
+
+  // Hard review gates are deliberately conservative for a public pre-screen.
+  if(i.deposits<10000)reasons.push("public-min-revenue");
+  if(i.deposits<h.minRevenue)reasons.push("revenue");
+  if(i.time<h.minTime)reasons.push("time-in-business");
+  if(i.months<3)reasons.push("insufficient-statements");
+  if(i.nsf>=5)reasons.push("nsf-review");
+  if(i.negative==="frequent")reasons.push("negative-cashflow");
+  if(debtRatio>=.30||(i.active==="2"&&debtRatio>.20))reasons.push("existing-debt");
+  const creditValue=creditFloorValue(i.credit);
+  if(h.minCredit){
+    if(creditValue===null)reasons.push("credit-unknown");
+    else if(creditValue<h.minCredit)reasons.push("credit-below-lender-minimum");
+  } else if(i.credit==="below-500")reasons.push("credit-review");
+
+  const nearest=comparableCases(h,i,3);
+  const fit=nearest.length?nearest.reduce((s,x)=>s+x.distance,0)/nearest.length:Infinity;
+  const fitLimit=derivedFitLimit(h);
+  if(fit>fitLimit)reasons.push("outside-comparable-history");
+
+  const eligible=reasons.length===0;
+  const score=Number.isFinite(fit)?Math.round(100*Math.exp(-fit)):0;
+  return {name,eligible,limited:false,reasons,fit,fitLimit,score,nearest,path:h.path,sample:h.sample};
+}
+
+function rankLenders(i){
+  return Object.entries(LENDER_HISTORY)
+    .map(([name,h])=>lenderFit(name,h,i))
+    .filter(x=>!x.limited)
+    .sort((x,y)=>{
+      if(x.eligible!==y.eligible)return x.eligible?-1:1;
+      if(x.fit!==y.fit)return x.fit-y.fit;
+      return (y.sample||0)-(x.sample||0);
+    });
+}
+
+function probableEstimateForFit(fit){
+  if(!fit||!fit.nearest||!fit.nearest.length)return null;
+
+  const nearest=fit.nearest;
+  const amounts=nearest.map(x=>x.amount);
+  const observedLow=Math.min(...amounts);
+  const observedHigh=Math.max(...amounts);
+
+  // Similar files carry more weight. Log-space averaging prevents one large approval
+  // from pulling the estimate too far upward.
+  const weighted=nearest.map(x=>{
+    const w=1/Math.pow(.15+x.distance,2);
+    return {w,logAmount:Math.log(x.amount)};
+  });
+  const weightTotal=weighted.reduce((s,x)=>s+x.w,0);
+  const weightedLog=weighted.reduce((s,x)=>s+x.w*x.logAmount,0)/weightTotal;
+  let center=Math.exp(weightedLog);
+
+  // Keep the estimate inside actual observed comparable approvals.
+  center=Math.max(observedLow,Math.min(observedHigh,center));
+
+  // Tight likely band: stronger matches get a narrower range.
+  const band=fit.fit<=fit.fitLimit*.65?.10:.15;
+  let low=center*(1-band);
+  let high=center*(1+band);
+
+  low=Math.max(observedLow,low);
+  high=Math.min(observedHigh,high);
+
+  if(high<low)low=high;
+
+  const roundedHigh=r500(high);
+  const roundedCenter=r500(center);
+  const roundedLow=Math.min(roundedHigh,r500(low));
+
+  return{
+    low:roundedLow,
+    high:roundedHigh,
+    center:roundedCenter,
+    observedLow:r500(observedLow),
+    observedHigh:r500(observedHigh),
+    count:nearest.length,
+    lender:fit.name,
+    nearest
+  };
+}
+
+function applyBankingRiskCap(estimate,i){
+  if(!estimate||i.nsf!==3)return estimate;
+
+  // 3–4 recent NSFs: keep an estimate, but cap it at about one month of deposits.
+  // This can only reduce a normal comparable estimate, never increase it.
+  const maxCap=r500(i.deposits);
+  const centerCap=r500(i.deposits*.90);
+  const lowCap=r500(i.deposits*.75);
+
+  const high=Math.min(estimate.high,maxCap);
+  const center=Math.min(estimate.center,centerCap,high);
+  const low=Math.min(estimate.low,lowCap,center);
+
+  return{
+    ...estimate,
+    low,
+    center,
+    high,
+    nsfCapApplied:true
+  };
+}
+
+function fallbackDepositEstimate(i){
+  const high=Math.max(500,r500(i.deposits));
+  const center=Math.max(500,r500(i.deposits*.75));
+  const low=Math.max(500,Math.min(center,r500(i.deposits*.50)));
+  return{
+    low,
+    center,
+    high,
+    observedLow:low,
+    observedHigh:high,
+    count:0,
+    lender:"",
+    nearest:[],
+    fallback:true
+  };
+}
+
+function eligibilityOutcome(i){
+  const lenderRank=rankLenders(i);
+  const recommended=lenderRank.filter(x=>x.eligible).slice(0,2);
+  const primary=recommended[0]||null;
+  const rawEstimate=primary?probableEstimateForFit(primary):null;
+  const comparableEstimate=applyBankingRiskCap(rawEstimate,i);
+  const displayEstimate=comparableEstimate||fallbackDepositEstimate(i);
+  const displayTier=primary?(LENDER_HISTORY[primary.name]?.path||"C"):"C";
+
+  return{
+    lenderRank,recommended,primary,rawEstimate,displayEstimate,displayTier,
+    status:"Your Estimated Funding Range",
+    copy:recommended.length
+      ?"Based on the information you provided, your business may qualify for funding within the estimated range below."
+      :"Based on the information you provided, we have calculated a conservative preliminary funding range for your business.",
+    confidence:primary?(primary.fit<=primary.fitLimit*.65?"High":"Moderate"):"Low",
+    routingScore:primary?primary.score:0
+  };
+}
+function render(a){
+  const profile=latest&&latest.i?latest.i:null;
+  const out=profile?eligibilityOutcome(profile):null;
+  const recommended=out?out.recommended:[];
+  const displayEstimate=out?out.displayEstimate:null;
+  const resultTitle=out?out.status:"Your Estimated Funding Range";
+  const resultCopy=out?out.copy:"Based on the information provided, we have calculated a preliminary funding range for your business.";
+  const displayTier=out?out.displayTier:a.tier;
+
+  const lenderNames=recommended.map(x=>esc(x.name)).join(" · ");
+  const amountText=displayEstimate
+    ?(displayEstimate.low===displayEstimate.high
+      ?fmtMoney(displayEstimate.high)
+      :`${fmtMoney(displayEstimate.low)} – ${fmtMoney(displayEstimate.high)}`)
+    :"";
+
+  const bankingNote=displayEstimate&&displayEstimate.nsfCapApplied
+    ?'<div class="history-caption"><strong>Recent banking activity has been reflected in a more conservative estimated range.</strong></div>'
+    :'';
+  const historyBlock=displayEstimate?`<div class="history-highlight">
+    <div class="history-label">${displayEstimate.fallback?"Estimated Funding Range":"Estimated Funding Range"}</div>
+    <div class="history-amount">${amountText}</div>
+    ${lenderNames?`<div class="history-lenders"><span>Lenders worth reviewing</span>${lenderNames}</div>`:""}
+    <div class="history-caption">${displayEstimate.fallback
+      ?"This preliminary estimate is based on the business information you provided. Final funding is subject to document verification and lender underwriting."
+      :`This preliminary estimate is based on similar historical approvals and the business information you provided. Final funding is subject to document verification and lender underwriting.`}</div>
+    ${bankingNote}
+  </div>`:`<div class="history-highlight">
+    <div class="history-label">Preliminary Funding Range</div>
+    <div class="history-amount" style="font-size:24px">Funding Estimate</div>
+    <div class="history-caption">A conservative funding range is being shown from the information provided.</div>
+  </div>`;
+
+  const lenderCards=recommended.length?recommended.map((x,idx)=>{
+    const h=LENDER_HISTORY[x.name];
+    const label=idx===0?"Best Historical Fit":"Other Lender Worth Reviewing";
+    const status=x.fit<=x.fitLimit*.65?"Strong Historical Fit":"Historical Fit";
+    return `<div class="pathway-card ${idx===0?"primary featured":"compact"}">
+      <div class="pathway-label">${label}</div>
+      <div class="pathway-top">
+        <div class="pathway-main">
+          <div class="pathway-name">${esc(x.name)}</div>
+          <span class="pathway-type">${h.sample} clean approved cases in the verified dataset</span>
+        </div>
+        <div class="pathway-status">${status}</div>
+      </div>
+    </div>`;
+  }).join(""):"";
+
+  result.innerHTML=`<div class="tier-box tier-${displayTier.toLowerCase()}">
+    <div class="result-eyebrow">TFC Funding Compass™ · Preliminary Assessment</div>
+    <div class="result-title">${esc(resultTitle)}</div>
+    <p class="result-copy">${esc(resultCopy)}</p>
+
+    ${historyBlock}
+
+    <button id="continueBtn" class="range-cta">Continue My Application ⟶</button>
+
+    ${lenderCards}
+
+    <div class="disclaimer">Preliminary estimate only. Final eligibility, lender selection and funding amount are subject to document verification and lender underwriting.</div>
+  </div>`;
+
+  result.classList.remove("hidden");
+  $("continueBtn").onclick=()=>go(page1,page2);
+}
+$("startBtn").onclick=()=>go(frontPage,page1);$("backToIntro").onclick=()=>go(page1,frontPage);$("backToEligibility").onclick=()=>go(page2,page1);$("closeConfirm").onclick=()=>{confirmOverlay.classList.remove("show");document.body.style.overflow=""};$("returnHome").onclick=()=>{if(opener&&!opener.closed){opener.focus();close()}else location.href="index.html"};
+$("eligibilityForm").onsubmit=e=>{e.preventDefault();let i=input(),a=assess(i),out=eligibilityOutcome(i);latest={i,a};$("tier").value=out.displayTier;$("score").value=out.routingScore;render(a)};
+$("leadForm").onsubmit=async e=>{e.preventDefault();if(!latest)return;let b=$("submitBtn"),st=$("submitStatus"),i=latest.i,a=latest.a,out=eligibilityOutcome(i),raw=out.rawEstimate;b.disabled=true;b.textContent="Submitting...";st.textContent="";
+if(!scriptURL){st.textContent="TEST MODE: add ?api=YOUR_TEST_APPS_SCRIPT_URL to this page before submitting.";b.disabled=false;b.textContent="Submit";return}
+const payload={
+action:"eligibilityLead",
+business:$("business").value.trim(),
+name:$("name").value.trim(),
+phone:$("phone").value.trim(),
+email:$("email").value.trim(),
+industry:i.industry,
+timeMonths:String(i.time),
+monthlyDeposits:String(i.deposits),
+requestedAmount:String(i.requested),
+credit:i.credit,
+nsf3m:String(i.nsf),
+negativeBalances:i.negative,
+activeFinancing:i.active,
+monthlyDebt:String(i.debt),
+depositTrend:i.trend,
+statementMonths:String(i.months),
+model:MODEL,
+tier:out.displayTier,
+score:String(out.routingScore),
+estimatedLow:out.displayEstimate?String(out.displayEstimate.low):"",
+estimatedCenter:out.displayEstimate?String(out.displayEstimate.center):"",
+estimatedHigh:out.displayEstimate?String(out.displayEstimate.high):"",
+recommendedLenders:(out.recommended.map(x=>x.name).join(" | ")||"No automatic lender match"),
+observedComparableLender:raw?raw.lender:"",
+strengths:a.strengths.join(" | "),
+risks:a.risks.join(" | "),
+source:"Toronto Finance Company Website Eligibility - CRM Migration Test"
+};
+try{
+  const resp=await fetch(scriptURL,{method:"POST",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify(payload)});
+  const json=await resp.json();
+  if(!json||!json.ok)throw new Error(json&&json.error?json.error:"Submission could not be confirmed");
+  $("leadForm").reset();
+  confirmOverlay.classList.add("show");
+  document.body.style.overflow="hidden";
+  st.textContent=json.data&&json.data.eligibilityId?"Test saved as "+json.data.eligibilityId:"Test saved successfully";
+}catch(x){
+  st.textContent="Test submission failed: "+(x.message||"Please try again.");
+}finally{b.disabled=false;b.textContent="Submit"}};
+</script>
+<script src="eligibility-guided.js?v=20261103-audit18"></script>
+</body>
+</html>
