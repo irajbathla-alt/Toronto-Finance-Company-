@@ -1720,9 +1720,24 @@ function submitSignedApplication(p) {
     clearDocumentIndexCache(applicationId);
   }
 
-  const emailMarkerKey = 'tfc-signed-app-email-' + hash(applicationId + '|' + documentId).slice(0,48);
+  const markerHash = hash(applicationId + '|' + documentId).slice(0,48);
+  const emailMarkerKey = 'tfc-signed-app-email-' + markerHash;
+  const completeMarkerKey = 'tfc-signed-app-complete-' + markerHash;
   const props = PropertiesService.getScriptProperties();
   let emailSent = props.getProperty(emailMarkerKey) === '1';
+
+  if (props.getProperty(completeMarkerKey) === '1') {
+    return {
+      ok:true,
+      applicationId,
+      documentId,
+      fileId:file.getId(),
+      fileName,
+      emailSent,
+      deduplicated:true,
+      data:safeClient({ ...findApplication(applicationId), documents:[] })
+    };
+  }
 
   if (!emailSent) {
     const subject = 'Signed TFC Electronic Application - ' + applicationId + ' - ' +
@@ -1807,6 +1822,7 @@ function submitSignedApplication(p) {
       audit
     }
   });
+  props.setProperty(completeMarkerKey,'1');
 
   return {
     ok:true,
