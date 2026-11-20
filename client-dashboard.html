@@ -3059,6 +3059,24 @@ lenderCards.forEach((_,i)=>{
   carouselDots.appendChild(b);
 });
 
+function syncApprovalCardTop(){
+  if(!approvalSideSample||!fundingRow) return;
+  if(window.innerWidth<=760){
+    approvalSideSample.style.marginTop='';
+    return;
+  }
+  const front=lenderCards.find(card=>card.dataset.pos==='0')||lenderCards[currentCard];
+  if(!front) return;
+  requestAnimationFrame(()=>{
+    if(!approvalSideSample.classList.contains('visible')) return;
+    const rowRect=fundingRow.getBoundingClientRect();
+    const cardRect=front.getBoundingClientRect();
+    const offset=Math.max(0,Math.round(cardRect.top-rowRect.top));
+    approvalSideSample.style.marginTop=offset+'px';
+  });
+}
+window.addEventListener('resize',()=>syncApprovalCardTop());
+
 function renderDeck(){
   lenderCards.forEach((card,index)=>{
     const distance=(index-currentCard+lenderCards.length)%lenderCards.length;
@@ -3069,6 +3087,7 @@ function renderDeck(){
   });
   [...carouselDots.children].forEach((dot,i)=>dot.classList.toggle('active',i===currentCard));
   deckStatus.textContent=(currentCard+1)+' of '+lenderCards.length;
+  syncApprovalCardTop();
 }
 function setCard(index){
   closeCriteria();
@@ -3609,6 +3628,7 @@ function renderPortalState(data){
   fundingRow.classList.toggle('has-approval',approved);
   fundingRow.classList.toggle('no-approval',!approved);
   approvalSideSample.classList.toggle('visible',approved);
+  syncApprovalCardTop();
 
   const workspace=document.getElementById('approvalWorkspace');
   workspace.classList.add('visible');
