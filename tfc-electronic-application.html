@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TFC Electronic Application Test | Toronto Finance Company</title>
+<title>TFC Electronic Application | Toronto Finance Company</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400;500&family=Allura&display=swap" rel="stylesheet">
@@ -17,6 +17,8 @@ body{margin:0;background:radial-gradient(circle at 70% 15%,rgba(198,150,78,.18),
 .top{padding:24px 26px 18px;text-align:center;border-bottom:1px solid var(--line)}
 .brand{font-family:"Cormorant Garamond",serif;font-size:31px;line-height:.92;font-weight:300;text-transform:uppercase}.brand span{display:block}
 .tag{margin-top:12px;color:#9b763f;font-size:10px;letter-spacing:.18em;text-transform:uppercase}
+.app-ref{display:inline-flex;align-items:center;justify-content:center;margin-top:12px;padding:7px 12px;border:1px solid rgba(198,150,78,.28);border-radius:999px;background:rgba(255,253,249,.72);color:#6f5837;font-size:9px;font-weight:600;letter-spacing:.10em;text-transform:uppercase}
+html.embedded body{padding:0;background:#f7f0e6}html.embedded .shell{width:100%;max-width:none;border-radius:0;border:0;box-shadow:none;min-height:100vh}
 .container{padding:22px 26px 30px;text-align:center}
 .progress-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:14px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#9d9184}
 .back{border:0;background:transparent;padding:8px 0;color:var(--ink);font:inherit;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
@@ -73,6 +75,7 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
   <header class="top">
     <div class="brand"><span>Toronto</span><span>Finance Company</span></div>
     <div class="tag">Business Financing Application</div>
+    <div class="app-ref" id="applicationRef">Secure Client Application</div>
   </header>
   <main class="container">
     <div class="progress-head">
@@ -83,10 +86,17 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
     <section class="question" id="question"></section>
   </main>
 </div>
+<script src="crm-config.js"></script>
 <script>
 (()=>{
-  const FORMSUBMIT_AJAX='https://formsubmit.co/ajax/info@torontofinancecompany.com';
+  const params=new URLSearchParams(location.search);
+  if(params.get('embedded')==='1') document.documentElement.classList.add('embedded');
+  const crmCfg=window.TFC_CONFIG||{};
+  const API_URL=String(crmCfg.apiUrl||'').trim();
+  const SESSION_KEY='tfc-client-auth';
+  const LEGACY_KEY='tfc-current-application';
   const openedAt=new Date().toISOString();
+  let clientContext=null;
   let lastPdfBlob=null, lastPdfName='', lastAudit=null;
   const q=document.getElementById('question'), back=document.getElementById('backBtn'), stepText=document.getElementById('stepText'), bar=document.getElementById('progressBar');
 
@@ -193,7 +203,7 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
       '<div class="signbox" id="drawSignBox"><label>Draw your signature</label><div class="signature-wrap"><canvas id="signaturePad"></canvas></div><div class="sign-actions"><button type="button" class="text-btn" id="clearSig">Clear signature</button></div></div>'+
       '<div class="type-signature" id="typeSignBox"><label style="display:block;margin-bottom:8px;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#665e55">Type your full legal name</label><input type="text" id="typedSignatureName" autocomplete="name" placeholder="Type full legal name"><div class="cursive-preview" id="cursivePreview">Your Signature</div></div>'+
       '<button type="button" class="primary" id="submitSigned">Sign & Submit Application ⟶</button>'+
-      '<div class="notice" id="submitNotice">A completed TFC application PDF and electronic signature audit trail will be generated and sent through FormSubmit.</div></div>';
+      '<div class="notice" id="submitNotice">Your signed TFC application and electronic signature audit trail will be securely saved to your client file.</div></div>';
 
     initSignaturePad();
     initSignatureMethods();
@@ -284,7 +294,8 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
     const d=new Date();
     const stamp=d.toISOString().replace(/[-:TZ.]/g,'').slice(0,14);
     const rand=Math.random().toString(36).slice(2,8).toUpperCase();
-    return 'TFC-ESIGN-'+stamp+'-'+rand;
+    const appId=String(clientContext?.applicationId||'TFC').replace(/[^A-Za-z0-9-]/g,'');
+    return appId+'-ESIGN-'+stamp+'-'+rand;
   }
 
   async function publicIp(){
@@ -318,6 +329,7 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
     const signedAt=new Date().toISOString();
     const ip=await publicIp();
     const auditBase={
+      applicationId:String(clientContext?.applicationId||''),
       documentId:docId,
       signer:data.ownerName||'',
       email:data.email||'',
@@ -347,13 +359,15 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
     doc.text('TORONTO FINANCE COMPANY',306,56,{align:'center'});
     doc.setFontSize(10);
     doc.text('SMALL BUSINESS FINANCING',306,74,{align:'center'});
+    doc.setFont('helvetica','normal');doc.setFontSize(8);
+    doc.text('Application: '+String(clientContext?.applicationId||''),306,84,{align:'center'});
     doc.setDrawColor(198,150,78);
-    doc.line(left,88,right,88);
+    doc.line(left,94,right,94);
 
     doc.setFont('helvetica','bold');doc.setFontSize(10);
-    doc.text('BUSINESS INFORMATION',left,116);
+    doc.text('BUSINESS INFORMATION',left,122);
     doc.setFont('helvetica','normal');doc.setFontSize(9);
-    let y=138;
+    let y=144;
     const appRows=[
       ['Legal Business Name',data.legalName],
       ['Nature of Business',data.nature],
@@ -405,6 +419,7 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
     doc.setDrawColor(198,150,78);doc.line(left,72,right,72);
     let ay=100;
     const auditRows=[
+      ['TFC Application ID',audit.applicationId],
       ['Document ID',audit.documentId],
       ['Signer Full Name',audit.signer],
       ['Signer Email',audit.email],
@@ -432,33 +447,122 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
     doc.setFont('helvetica','italic');doc.setFontSize(8);
     wrapPdfText(doc,'This audit record was generated by the Toronto Finance Company web application at the time of electronic submission.',left,ay+8,width,10);
 
-    return {blob:doc.output('blob'),name:docId+'.pdf',audit};
+    return {blob:doc.output('blob'),name:String(clientContext?.applicationId||'TFC')+'-Electronic-Application-'+docId+'.pdf',audit};
   }
 
-  async function sendViaFormSubmit(pdf){
-    const payload=new FormData();
-    payload.append('_subject','Signed TFC Business Financing Application - '+(data.legalName||data.ownerName||'Applicant'));
-    payload.append('_template','table');
-    payload.append('_captcha','false');
-    payload.append('_replyto',data.email||'');
-    payload.append('Document ID',pdf.audit.documentId);
-    payload.append('Legal Business Name',data.legalName||'');
-    payload.append('Nature of Business',data.nature||'');
-    payload.append('Owner Name',data.ownerName||'');
-    payload.append('Owner Email',data.email||'');
-    payload.append('Owner Phone',data.phone||'');
-    payload.append('Credit Consent Accepted','Yes');
-    payload.append('Communication Consent Accepted','Yes');
-    payload.append('Electronic Signature Consent Accepted','Yes');
-    payload.append('Signature Method',pdf.audit.signatureMethod);
-    payload.append('Signed At',pdf.audit.signedAt);
-    payload.append('Signer IP',pdf.audit.ipAddress);
-    payload.append('Document Integrity Hash',pdf.audit.documentIntegrityHash);
-    payload.append('Source','Toronto Finance Company Electronic Application Test');
-    payload.append('Signed Application PDF',pdf.blob,pdf.name);
-    const res=await fetch(FORMSUBMIT_AJAX,{method:'POST',body:payload,headers:{Accept:'application/json'}});
-    if(!res.ok)throw new Error('FormSubmit request failed');
-    return res.json().catch(()=>({success:true}));
+  function readClientSession(){
+    let auth={},stored={};
+    try{auth=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'{}')}catch(_){}
+    try{stored=JSON.parse(localStorage.getItem(LEGACY_KEY)||'{}')}catch(_){}
+    if(!auth.applicationId||!stored.applicationId||String(auth.applicationId)!==String(stored.applicationId)) return null;
+    return {auth,stored};
+  }
+
+  function jsonp(action,payload={},timeout=30000){
+    return new Promise((resolve,reject)=>{
+      if(!API_URL) return reject(new Error('Secure application service is not configured.'));
+      const callback='tfc_eapp_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+      const script=document.createElement('script');
+      const query=new URLSearchParams({action,callback,_:String(Date.now())});
+      Object.entries(payload).forEach(([key,value])=>{
+        if(value!==undefined&&value!==null) query.set(key,String(value));
+      });
+      const timer=setTimeout(()=>{cleanup();reject(new Error('Secure application service timed out.'))},timeout);
+      function cleanup(){
+        clearTimeout(timer);
+        try{delete window[callback]}catch(_){window[callback]=undefined}
+        script.remove();
+      }
+      window[callback]=value=>{cleanup();resolve(value)};
+      script.onerror=()=>{cleanup();reject(new Error('Secure application service could not be reached.'))};
+      script.src=API_URL+'?'+query.toString();
+      document.head.appendChild(script);
+    });
+  }
+
+  function blobToBase64(blob){
+    return new Promise((resolve,reject)=>{
+      const reader=new FileReader();
+      reader.onload=()=>resolve(String(reader.result||'').split(',')[1]||'');
+      reader.onerror=()=>reject(new Error('Could not prepare the signed PDF.'));
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function loadClientContext(){
+    const session=readClientSession();
+    if(!session) throw new Error('Please open the TFC Electronic Application from your Client Dashboard.');
+    const applicationId=String(session.auth.applicationId||'');
+    const email=String(session.auth.email||session.stored.email||'');
+    let record=session.stored||{};
+
+    try{
+      const latest=await jsonp('getClient',{applicationId,email},20000);
+      if(latest?.ok&&latest.data) record=latest.data;
+    }catch(_){}
+
+    clientContext={applicationId,email,record};
+    data.ownerName=String(record.name||'');
+    data.email=String(record.email||email||'');
+    data.phone=String(record.phone||'');
+    if(record.business) data.legalName=String(record.business);
+    if(record.industry) data.nature=String(record.industry);
+    if(record.revenue) data.revenue=String(record.revenue).replace(/[^0-9.]/g,'');
+    if(record.address) data.businessAddress=String(record.address);
+    if(record.years && /^\d{4}$/.test(String(record.years).trim())) data.registrationYear=String(record.years).trim();
+
+    const ref=document.getElementById('applicationRef');
+    if(ref) ref.textContent='Application '+applicationId;
+    return record;
+  }
+
+  async function submitToTfcBackend(pdf){
+    const base64=await blobToBase64(pdf.blob);
+    const payload={
+      action:'submitSignedApplication',
+      applicationId:clientContext.applicationId,
+      email:clientContext.email,
+      documentId:pdf.audit.documentId,
+      fileName:pdf.name,
+      base64,
+      applicationData:JSON.stringify(data),
+      audit:JSON.stringify(pdf.audit)
+    };
+
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),90000);
+    try{
+      await fetch(API_URL,{
+        method:'POST',
+        mode:'no-cors',
+        signal:controller.signal,
+        headers:{'Content-Type':'text/plain;charset=UTF-8'},
+        body:JSON.stringify(payload)
+      });
+    }catch(error){
+      if(error?.name!=='AbortError') throw error;
+    }finally{
+      clearTimeout(timer);
+    }
+
+    const deadline=Date.now()+90000;
+    let lastError=null;
+    while(Date.now()<deadline){
+      try{
+        const latest=await jsonp('getClient',{
+          applicationId:clientContext.applicationId,
+          email:clientContext.email
+        },10000);
+        if(latest?.ok && latest.data){
+          localStorage.setItem(LEGACY_KEY,JSON.stringify(latest.data));
+          if(latest.data.signatureConfirmed===true||['true','1','yes'].includes(String(latest.data.signatureConfirmed||'').toLowerCase())){
+            return latest.data;
+          }
+        }
+      }catch(error){lastError=error}
+      await new Promise(resolve=>setTimeout(resolve,1200));
+    }
+    throw lastError||new Error('We could not confirm the signed application submission yet.');
   }
 
   async function submitSignedApplication(){
@@ -482,9 +586,14 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
     try{
       const pdf=await buildSignedPdf(signature);
       lastPdfBlob=pdf.blob;lastPdfName=pdf.name;
-      btn.textContent='Sending Application…';
-      notice.textContent='Sending the completed PDF to Toronto Finance Company…';
-      await sendViaFormSubmit(pdf);
+      btn.textContent='Securing Application…';
+      notice.textContent='Saving your signed application to your secure TFC client file…';
+      await submitToTfcBackend(pdf);
+      try{
+        if(window.parent&&window.parent!==window){
+          window.parent.postMessage({type:'tfcSignedApplicationSubmitted',applicationId:clientContext.applicationId},location.origin);
+        }
+      }catch(_){}
       renderSuccess();
     }catch(err){
       console.error(err);
@@ -497,7 +606,7 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
     stepText.textContent='Complete';
     bar.style.width='100%';
     back.style.visibility='hidden';
-    q.innerHTML='<div class="success-card"><div class="success-mark">✓</div><div class="kicker">Application submitted</div><h2>Thank You</h2><p class="help">Your signed Toronto Finance Company application and electronic signature audit trail have been generated and sent.</p><button type="button" class="secondary" id="downloadPdf">Download My Signed Copy</button><div class="notice">Document ID: '+esc(lastAudit?lastAudit.documentId:'')+'</div></div>';
+    q.innerHTML='<div class="success-card"><div class="success-mark">✓</div><div class="kicker">Application submitted</div><h2>Thank You</h2><p class="help">Your signed Toronto Finance Company application has been securely submitted and saved to your client file.</p><button type="button" class="secondary" id="downloadPdf">Download My Signed Copy</button><div class="notice">Document ID: '+esc(lastAudit?lastAudit.documentId:'')+'</div></div>';
     document.getElementById('downloadPdf').addEventListener('click',()=>{
       if(!lastPdfBlob)return;
       const url=URL.createObjectURL(lastPdfBlob);
@@ -512,7 +621,20 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
     if(index>0){index--;render()}
   });
 
-  render();
+  async function boot(){
+    q.innerHTML='<div class="success-card"><div class="kicker">Secure client application</div><h2>Loading Your Application</h2><p class="help">Connecting this form to your Toronto Finance Company client file…</p></div>';
+    back.style.visibility='hidden';
+    try{
+      await loadClientContext();
+      render();
+    }catch(error){
+      stepText.textContent='Secure Access';
+      bar.style.width='0%';
+      q.innerHTML='<div class="success-card"><div class="kicker">Client Dashboard Required</div><h2>Secure Application</h2><p class="help">'+esc(error.message||'Please open this application from your Client Dashboard.')+'</p></div>';
+    }
+  }
+
+  boot();
 })();
 </script>
 </body>
