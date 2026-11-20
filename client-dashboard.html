@@ -3061,10 +3061,6 @@ lenderCards.forEach((_,i)=>{
 
 function syncApprovalCardTop(){
   if(!approvalSideSample||!fundingRow) return;
-  if(window.innerWidth<=760){
-    approvalSideSample.style.marginTop='';
-    return;
-  }
   const front=lenderCards.find(card=>card.dataset.pos==='0')||lenderCards[currentCard];
   if(!front) return;
   requestAnimationFrame(()=>{
