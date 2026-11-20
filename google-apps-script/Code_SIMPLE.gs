@@ -102,7 +102,6 @@ function doPost(e) {
       clientChatSend,
       sendSignupNotification,
       uploadDocument,
-      submitSignedApplication,
       adminLogin,
       adminList,
       adminUpdate,
@@ -161,7 +160,6 @@ function health() {
   return {
     ok:true,
     service:'Toronto Finance Company CRM Simple 1.8 Lender Submissions',
-    electronicApplicationBuild:'20261119-test-eapp-v1',
     minimumStatements:CONFIG.MIN_STATEMENTS,
     adminPasswordConfigured:CONFIG.ADMIN_PASSWORD !== 'CHANGE_THIS_PASSWORD',
     clientNotificationFrom:CONFIG.CLIENT_NOTIFICATION_FROM
@@ -1667,173 +1665,6 @@ function uploadDocument(p) {
   }
 
   return { ok:true };
-}
-
-
-function parseSignedApplicationJson(value,label) {
-  if (value && typeof value === 'object') return value;
-  const raw = String(value || '').trim();
-  if (!raw) return {};
-  try {
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === 'object' ? parsed : {};
-  } catch (_) {
-    throw new Error((label || 'Application data') + ' is invalid');
-  }
-}
-
-function submitSignedApplication(p) {
-  const applicationId = String(p.applicationId || '').trim();
-  if (!applicationId) throw new Error('Application ID is required');
-
-  const record = findApplication(applicationId);
-  const clientEmail = requireClientEmail(record,p.email);
-  const documentId = String(p.documentId || '').trim().slice(0,180);
-  if (!documentId) throw new Error('Signed application document ID is required');
-
-  const base64 = String(p.base64 || '').trim();
-  if (!base64) throw new Error('Signed application PDF is missing');
-
-  const estimatedBytes = Math.ceil(base64.length * 3 / 4);
-  if (estimatedBytes > 20 * 1024 * 1024) {
-    throw new Error('The signed application PDF is too large');
-  }
-
-  const applicationData = parseSignedApplicationJson(p.applicationData,'Application data');
-  const audit = parseSignedApplicationJson(p.audit,'Signature audit trail');
-  const fileName = String(
-    p.fileName || (applicationId + '-Electronic-Application-' + documentId + '.pdf')
-  ).trim().replace(/[\\/:*?"<>|]+/g,'-').slice(0,180) || (applicationId + '-Electronic-Application.pdf');
-
-  const rootFolder = ensureDriveFolder(record);
-  const targetFolder = childFolder(rootFolder,'Other Documents');
-  let file = null;
-  const existing = targetFolder.getFilesByName(fileName);
-  if (existing.hasNext()) file = existing.next();
-
-  if (!file) {
-    const blob = Utilities.newBlob(
-      Utilities.base64Decode(base64),
-      'application/pdf',
-      fileName
-    );
-    file = targetFolder.createFile(blob);
-    clearDocumentIndexCache(applicationId);
-  }
-
-  const markerHash = hash(applicationId + '|' + documentId).slice(0,48);
-  const emailMarkerKey = 'tfc-signed-app-email-' + markerHash;
-  const completeMarkerKey = 'tfc-signed-app-complete-' + markerHash;
-  const props = PropertiesService.getScriptProperties();
-  let emailSent = props.getProperty(emailMarkerKey) === '1';
-
-  if (props.getProperty(completeMarkerKey) === '1') {
-    return {
-      ok:true,
-      applicationId,
-      documentId,
-      fileId:file.getId(),
-      fileName,
-      emailSent,
-      deduplicated:true,
-      data:safeClient({ ...findApplication(applicationId), documents:[] })
-    };
-  }
-
-  if (!emailSent) {
-    const subject = 'Signed TFC Electronic Application - ' + applicationId + ' - ' +
-      String(applicationData.legalName || applicationData.ownerName || record.business || record.name || 'Client');
-    const body = [
-      'A signed TFC Electronic Application has been submitted.',
-      '',
-      'Application: ' + applicationId,
-      'Client: ' + String(applicationData.ownerName || record.name || ''),
-      'Business: ' + String(applicationData.legalName || record.business || ''),
-      'Email: ' + String(applicationData.email || record.email || ''),
-      'Document ID: ' + documentId,
-      'Signed at: ' + String(audit.signedAt || ''),
-      '',
-      'The signed PDF is attached and has also been saved to the client Drive folder under Other Documents.'
-    ].join('\n');
-
-    try {
-      const from = String(CONFIG.CLIENT_NOTIFICATION_FROM || '').trim().toLowerCase();
-      const aliases = GmailApp.getAliases().map(alias => String(alias || '').trim().toLowerCase());
-      const options = {
-        name:CONFIG.COMPANY_NAME,
-        replyTo:CONFIG.CLIENT_NOTIFICATION_FROM,
-        attachments:[file.getBlob().setName(fileName)]
-      };
-      if (from && aliases.includes(from)) options.from = CONFIG.CLIENT_NOTIFICATION_FROM;
-
-      GmailApp.sendEmail(CONFIG.SIGNUP_NOTIFICATION_EMAIL,subject,body,options);
-      props.setProperty(emailMarkerKey,'1');
-      emailSent = true;
-    } catch (error) {
-      appendAuditEvent({
-        applicationId,
-        actorType:'SYSTEM',
-        actorId:CONFIG.SIGNUP_NOTIFICATION_EMAIL,
-        action:'SIGNED_APPLICATION_EMAIL_FAILED',
-        field:'documents',
-        newValue:fileName,
-        summary:'Signed application saved to Drive but email copy could not be sent',
-        metadata:{
-          documentId,
-          fileId:file.getId(),
-          error:error && error.message ? error.message : String(error)
-        }
-      });
-      throw new Error('Your signed application was secured, but the email copy could not be sent. Please submit again.');
-    }
-  }
-
-  const patch = {
-    signatureConfirmed:true,
-    signatureConfirmedAt:record.signatureConfirmedAt || new Date()
-  };
-  if (String(applicationData.ownerName || '').trim()) patch.name = String(applicationData.ownerName).trim();
-  if (String(applicationData.phone || '').trim()) patch.phone = String(applicationData.phone).trim();
-  if (String(applicationData.legalName || '').trim()) patch.business = String(applicationData.legalName).trim();
-  if (String(applicationData.businessAddress || '').trim()) patch.address = String(applicationData.businessAddress).trim();
-  if (String(applicationData.nature || '').trim()) patch.industry = String(applicationData.nature).trim();
-  if (String(applicationData.revenue || '').trim()) patch.revenue = String(applicationData.revenue).trim();
-  if (String(applicationData.registrationYear || '').trim()) patch.years = String(applicationData.registrationYear).trim();
-
-  updateRecord(applicationId,patch);
-
-  appendAuditEvent({
-    applicationId,
-    actorType:'CLIENT',
-    actorId:clientEmail,
-    action:'SIGNED_APPLICATION_SUBMITTED',
-    field:'signatureConfirmed',
-    oldValue:record.signatureConfirmed || false,
-    newValue:true,
-    summary:'TFC Electronic Application signed and submitted',
-    metadata:{
-      documentId,
-      fileId:file.getId(),
-      fileName,
-      folder:'Other Documents',
-      documentIntegrityHash:String(audit.documentIntegrityHash || ''),
-      signatureMethod:String(audit.signatureMethod || ''),
-      signedAt:String(audit.signedAt || ''),
-      emailCopySent:emailSent,
-      audit
-    }
-  });
-  props.setProperty(completeMarkerKey,'1');
-
-  return {
-    ok:true,
-    applicationId,
-    documentId,
-    fileId:file.getId(),
-    fileName,
-    emailSent,
-    data:safeClient({ ...findApplication(applicationId), documents:[] })
-  };
 }
 
 function ensureDriveFolder(record) {
