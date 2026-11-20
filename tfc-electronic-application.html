@@ -23,13 +23,13 @@ body{margin:0;background:radial-gradient(circle at 70% 15%,rgba(198,150,78,.18),
 .bar{height:3px;border-radius:999px;background:rgba(23,19,15,.10);overflow:hidden;margin-bottom:28px}.bar i{display:block;height:100%;background:var(--gold);transition:width .28s ease}
 .kicker{font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#9b763f;margin-bottom:9px}
 h1,h2,h3{font-family:"Cormorant Garamond",serif;font-weight:400;text-transform:uppercase}
-h2{font-size:34px;line-height:1.02;margin:0 0 9px}
+h2{font-size:26px;line-height:1.02;margin:0 0 20px;white-space:nowrap;letter-spacing:-.01em}
 .help{font-size:12px;line-height:1.6;color:var(--muted);margin:0 auto 22px;max-width:430px}
 .question{min-height:410px;display:flex;flex-direction:column;justify-content:flex-start}
-.choices{display:grid;gap:10px;margin-top:4px}
+.choices{display:grid;gap:10px;margin-top:12px}
 .choice{width:100%;min-height:58px;padding:15px 17px;border:1px solid rgba(109,84,58,.18);border-radius:13px;background:linear-gradient(180deg,rgba(255,253,249,.98),rgba(248,241,231,.9));color:#211a14;box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 7px 20px rgba(73,51,28,.05);font:500 12px "DM Sans",sans-serif;cursor:pointer;transition:.18s}
 .choice:hover,.choice.selected{transform:translateY(-1px);border-color:rgba(171,126,65,.66);background:linear-gradient(180deg,#fffaf0,#f2dfc4)}
-.field-wrap{margin-top:8px;text-align:left}
+.field-wrap{margin-top:14px;text-align:left}
 .field-wrap label{display:block;margin:0 0 8px;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#665e55;white-space:nowrap}
 .field-wrap input,.field-wrap select,.field-wrap textarea{width:100%;padding:15px 14px;border:1px solid #cfc3b5;background:#fbf7f0;border-radius:10px;color:var(--ink);font:16px "DM Sans",sans-serif;outline:none}
 .field-wrap textarea{min-height:92px;resize:vertical}
@@ -58,7 +58,7 @@ h2{font-size:34px;line-height:1.02;margin:0 0 9px}
 .success-mark{width:54px;height:54px;border:1px solid rgba(198,150,78,.55);border-radius:50%;display:grid;place-items:center;margin:0 auto 14px;font-size:22px;color:#9b763f}
 .secondary{width:100%;margin-top:10px;padding:14px 18px;background:transparent;color:var(--ink);border:1px solid rgba(23,19,15,.28);border-radius:999px;font-size:10px;font-weight:600;letter-spacing:.10em;text-transform:uppercase;cursor:pointer}
 .hidden{display:none!important}
-@media(max-width:520px){body{padding:0}.shell{min-height:100vh;border-radius:0}.container,.top{padding-left:20px;padding-right:20px}.brand{font-size:28px}.question{min-height:0}.field-wrap label{font-size:8px;letter-spacing:.04em}.row{grid-template-columns:minmax(120px,.9fr) minmax(0,1.1fr);gap:8px;font-size:10px}.row span:first-child{white-space:nowrap}.row span:last-child{text-align:right}}
+@media(max-width:520px){body{padding:0}.shell{min-height:100vh;border-radius:0}.container,.top{padding-left:20px;padding-right:20px}.brand{font-size:28px}.question{min-height:0}h2{font-size:20px;white-space:nowrap;margin-bottom:20px}.field-wrap{margin-top:14px}.field-wrap label{font-size:8px;letter-spacing:.04em}.row{grid-template-columns:minmax(120px,.9fr) minmax(0,1.1fr);gap:8px;font-size:10px}.row span:first-child{white-space:nowrap}.row span:last-child{text-align:right}}
 </style>
 </head>
 <body>
