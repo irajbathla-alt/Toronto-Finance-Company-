@@ -67,6 +67,7 @@ h2{font-size:34px;line-height:1.02;margin:0 0 9px}
 <script>
 (()=>{
   const ADOBE_BASE='https://na4.documents.adobe.com/public/esignWidget?wid=CBFCIBAA3AAABLblqZhAnqjopKPPoN1QIkSjStJUCs-Ve6rjdHrEPhpbLmobYPxjFhDPyBUdS9egKOSZWeAI*&hosted=false';
+  const FORMSUBMIT_AJAX='https://formsubmit.co/ajax/info@torontofinancecompany.com';
   const q=document.getElementById('question'), back=document.getElementById('backBtn'), stepText=document.getElementById('stepText'), bar=document.getElementById('progressBar');
 
   const fields=[
@@ -164,15 +165,55 @@ h2{font-size:34px;line-height:1.02;margin:0 0 9px}
       return '<div class="review-group"><strong>'+esc(group)+'</strong>'+items+'</div>';
     }).join('');
 
-    q.innerHTML='<div class="review"><div class="kicker" style="text-align:center">Review your application</div><h3>Ready to Sign</h3><p class="review-intro">Please confirm your information before continuing to the secure Adobe signing form.</p>'+rows+'<div class="consent">Your information will be passed into the Toronto Finance Company Adobe Web Form as default values. You will review the application and complete the signature and consent directly in Adobe.</div><button type="button" class="primary" id="signBtn">Continue to Secure Signing ⟶</button><div class="notice">Adobe Acrobat Sign will handle the electronic signature and signing audit trail. No application is submitted from this test intake page itself.</div></div>';
+    q.innerHTML='<div class="review"><div class="kicker" style="text-align:center">Review your application</div><h3>Ready to Sign</h3><p class="review-intro">Please confirm your information before continuing to the secure Adobe signing form.</p>'+rows+'<div class="consent">Your intake details will be sent to Toronto Finance Company, then the same information will populate your Adobe signing form. You will review and sign directly in Adobe.</div><button type="button" class="primary" id="signBtn">Continue to Secure Signing ⟶</button><div class="notice" id="submitNotice">Adobe Acrobat Sign handles the electronic signature and audit trail. SIN is not sent through the intake email.</div></div>';
 
-    document.getElementById('signBtn').addEventListener('click',openAdobe);
+    document.getElementById('signBtn').addEventListener('click',submitThenOpenAdobe);
   }
 
   function adobeDate(){
     const d=new Date();
     const mm=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0'),yyyy=d.getFullYear();
     return mm+'/'+dd+'/'+yyyy;
+  }
+
+  async function submitIntakeCopy(){
+    const payload=new FormData();
+    payload.append('_subject','New TFC Business Financing Intake - '+(data.legalName||'New Applicant'));
+    payload.append('_template','table');
+    payload.append('_captcha','false');
+    payload.append('_replyto',data.email||'');
+    payload.append('Legal Business Name',data.legalName||'');
+    payload.append('Nature of Business',data.nature||'');
+    payload.append('Number of Employees',data.employees||'');
+    payload.append('Annual Revenue (Last 12 Months)',data.revenue?displayMoney(data.revenue):'');
+    payload.append('Business Address',data.businessAddress||'');
+    payload.append('Business Registration Year',data.registrationYear||'');
+    payload.append('Business Bank Account',data.bank||'');
+    payload.append('Owner Name',data.ownerName||'');
+    payload.append('Date of Birth',data.dob?displayDate(data.dob):'');
+    payload.append('Phone Number',data.phone||'');
+    payload.append('Email Address',data.email||'');
+    payload.append('Owner Address',data.ownerAddress||'');
+    payload.append('Source','Toronto Finance Company Interactive Intake');
+    payload.append('Next Step','Adobe Secure Signing');
+    const res=await fetch(FORMSUBMIT_AJAX,{method:'POST',body:payload,headers:{Accept:'application/json'}});
+    if(!res.ok) throw new Error('FormSubmit request failed');
+    return res.json().catch(()=>({success:true}));
+  }
+
+  async function submitThenOpenAdobe(){
+    const btn=document.getElementById('signBtn');
+    const notice=document.getElementById('submitNotice');
+    if(btn){btn.disabled=true;btn.textContent='Preparing Secure Form…';}
+    if(notice)notice.textContent='Sending your intake securely, then opening Adobe for signature…';
+    try{
+      await submitIntakeCopy();
+      if(notice)notice.textContent='Intake received. Opening Adobe secure signing…';
+    }catch(err){
+      console.warn('Intake email delivery could not be confirmed:',err);
+      if(notice)notice.textContent='Opening Adobe secure signing. Intake email delivery could not be confirmed.';
+    }
+    openAdobe();
   }
 
   function openAdobe(){
