@@ -2584,15 +2584,14 @@ button,input{font:inherit}
 
       <section class="panel show" id="signPanel">
         <h3>Toronto Finance Company Application</h3>
-        <p id="flowSignCopy">Complete and sign your TFC Electronic Application below. Your client details are securely connected to this application.</p>
+        <p id="flowSignCopy">Complete and sign your Toronto Finance Company business financing application securely through Adobe.</p>
         <div class="adobe">
           <iframe
-            id="tfcElectronicApplicationFrame"
-            src="tfc-electronic-application.html?embedded=1"
-            title="TFC Electronic Application"
+            src="https://na4.documents.adobe.com/public/esignWidget?wid=CBFCIBAA3AAABLblqZhAnqjopKPPoN1QIkSjStJUCs-Ve6rjdHrEPhpbLmobYPxjFhDPyBUdS9egKOSZWeAI*&hosted=false"
+            title="Toronto Finance Company Business Financing Application"
             loading="lazy"></iframe>
         </div>
-        <div class="sign-next-note">When you submit the application, Step 2 confirms automatically and Bank Statements will unlock.</div>
+        <div class="sign-next-note">After signing above, complete Step 2: Confirm Submission. Step 3 will then unlock for your bank statements.</div>
       </section>
 
       <section class="panel" id="uploadPanel">
@@ -2733,8 +2732,7 @@ const crmCfg=window.TFC_CONFIG||{};
  * - sendSignupNotification
  * - clientLogin
  * - getClient
- * - clientConfirmSignature (legacy/manual compatibility)
- * - submitSignedApplication (TFC Electronic Application)
+ * - clientConfirmSignature
  * - clientDecision
  * - uploadDocument (POST only)
  *
@@ -3798,7 +3796,7 @@ function openApplicationFlow(){
   flowEyebrow.textContent='Toronto Finance Company Route';
   flowTitle.textContent='Complete your application.';
   flowIntro.textContent='Follow the three steps below to complete your Toronto Finance Company application.';
-  flowSignCopy.textContent='Complete and sign your TFC Electronic Application below. Your client details are securely connected to this application.';
+  flowSignCopy.textContent='Complete and sign your Toronto Finance Company business financing application securely through Adobe.';
   flowUploadCopy.textContent='Choose recent monthly business bank statements in PDF format. Uploaded statements are saved to your secure client file.';
   tfcFlow.classList.add('show');
   showTask('sign');
@@ -3811,33 +3809,12 @@ closeTfc.addEventListener('click',closeTfcFlow);
 taskSign.addEventListener('click',()=>showTask('sign'));
 taskUpload.addEventListener('click',()=>showTask('upload'));
 
-window.addEventListener('message',async event=>{
-  if(event.origin!==location.origin) return;
-  const message=event.data||{};
-  if(message.type!=='tfcSignedApplicationSubmitted') return;
-  if(!liveClientReady()) return;
-  if(String(message.applicationId||'')!==String(crmClient.applicationId||'')) return;
-
-  signatureActionMsg.textContent='Application submitted. Confirming your secure client file…';
-  signatureActionMsg.className='crm-action-msg';
-  try{
-    await refreshCurrentClient(false);
-    localStorage.setItem('tfc-signed-'+crmClient.applicationId,'yes');
-    signatureActionMsg.textContent='Step 2 complete. Bank Statements are now unlocked.';
-    signatureActionMsg.className='crm-action-msg success';
-    refreshTfcFlowState();
-  }catch(error){
-    signatureActionMsg.textContent='Application received. Your portal will refresh the submission status automatically.';
-    signatureActionMsg.className='crm-action-msg';
-  }
-});
-
 function refreshTfcFlowState(){
   if(!liveClientReady()) return;
   const signed=crmIsTrue(crmClient.signatureConfirmed)||Number(crmClient.statements||0)>0;
-  confirmSignatureBtn.disabled=true;
-  confirmSignatureBtn.textContent=signed?'Submission Confirmed ✓':'Awaiting Application';
-  signatureActionMsg.textContent=signed?'Step 2 complete. Bank Statements are unlocked.':'Step 2 will confirm automatically after Step 1 is submitted.';
+  confirmSignatureBtn.disabled=signed;
+  confirmSignatureBtn.textContent=signed?'Submission Confirmed ✓':'Confirm Submission';
+  signatureActionMsg.textContent=signed?'Step 2 complete. Bank Statements are unlocked.':'';
   signatureActionMsg.className='crm-action-msg'+(signed?' success':'');
   taskConfirm.classList.toggle('complete',signed);
   taskUpload.disabled=!signed;
