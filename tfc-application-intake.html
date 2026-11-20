@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TFC Business Financing Application | Toronto Finance Company</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#17130f;--cream:#f7f0e6;--paper:#fffdf9;--gold:#c6964e;--muted:#786f65;--line:rgba(23,19,15,.14)}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;background:radial-gradient(circle at 70% 15%,rgba(198,150,78,.18),transparent 32%),linear-gradient(135deg,#17130f,#211a13 58%,#110e0b);font-family:"DM Sans",sans-serif;color:var(--ink);padding:28px 16px}
+.shell{width:min(560px,100%);margin:auto;background:rgba(247,240,230,.99);border:1px solid rgba(255,255,255,.18);box-shadow:0 28px 80px rgba(0,0,0,.35);border-radius:18px;overflow:hidden}
+.top{padding:24px 26px 18px;text-align:center;border-bottom:1px solid var(--line)}
+.brand{font-family:"Cormorant Garamond",serif;font-size:31px;line-height:.92;font-weight:300;text-transform:uppercase}.brand span{display:block}
+.tag{margin-top:12px;color:#9b763f;font-size:10px;letter-spacing:.18em;text-transform:uppercase}
+.container{padding:22px 26px 30px;text-align:center}
+.progress-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:14px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#9d9184}
+.back{border:0;background:transparent;padding:8px 0;color:var(--ink);font:inherit;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.bar{height:3px;border-radius:999px;background:rgba(23,19,15,.10);overflow:hidden;margin-bottom:28px}.bar i{display:block;height:100%;background:var(--gold);transition:width .28s ease}
+.kicker{font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#9b763f;margin-bottom:9px}
+h1,h2,h3{font-family:"Cormorant Garamond",serif;font-weight:400;text-transform:uppercase}
+h2{font-size:34px;line-height:1.02;margin:0 0 9px}
+.help{font-size:12px;line-height:1.6;color:var(--muted);margin:0 auto 22px;max-width:430px}
+.question{min-height:410px;display:flex;flex-direction:column;justify-content:flex-start}
+.choices{display:grid;gap:10px;margin-top:4px}
+.choice{width:100%;min-height:58px;padding:15px 17px;border:1px solid rgba(109,84,58,.18);border-radius:13px;background:linear-gradient(180deg,rgba(255,253,249,.98),rgba(248,241,231,.9));color:#211a14;box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 7px 20px rgba(73,51,28,.05);font:500 12px "DM Sans",sans-serif;cursor:pointer;transition:.18s}
+.choice:hover,.choice.selected{transform:translateY(-1px);border-color:rgba(171,126,65,.66);background:linear-gradient(180deg,#fffaf0,#f2dfc4)}
+.field-wrap{margin-top:8px;text-align:left}
+.field-wrap label{display:block;margin:0 0 8px;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#665e55}
+.field-wrap input,.field-wrap select,.field-wrap textarea{width:100%;padding:15px 14px;border:1px solid #cfc3b5;background:#fbf7f0;border-radius:10px;color:var(--ink);font:16px "DM Sans",sans-serif;outline:none}
+.field-wrap textarea{min-height:92px;resize:vertical}
+.field-wrap input:focus,.field-wrap select:focus,.field-wrap textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(198,150,78,.12)}
+.primary{width:100%;margin-top:18px;padding:15px 18px;background:var(--ink);color:#fff;border:0;border-radius:999px;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+.primary:hover{background:#2a2119;transform:translateY(-1px)}
+.primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.tap-hint{margin-top:12px;font-size:9px;color:#9b9085}
+.review{text-align:left}
+.review h3{font-size:28px;margin:0 0 6px;text-align:center}
+.review-intro{text-align:center;margin:0 0 18px;color:var(--muted);font-size:11px}
+.review-group{border-top:1px solid var(--line);padding:14px 0 4px}.review-group:first-of-type{border-top:0}
+.review-group strong{display:block;margin-bottom:9px;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#9b763f}
+.row{display:grid;grid-template-columns:1fr 1.4fr;gap:12px;padding:7px 0;border-bottom:1px solid rgba(23,19,15,.06);font-size:11px;line-height:1.4}.row span:first-child{color:var(--muted)}.row span:last-child{text-align:right;font-weight:600;overflow-wrap:anywhere}
+.consent{margin-top:16px;padding:14px;border:1px solid rgba(198,150,78,.28);border-radius:12px;background:#fffaf2;font-size:10px;line-height:1.55;color:#655a50}
+.notice{margin-top:13px;font-size:9px;line-height:1.5;color:#8a7e72}
+.hidden{display:none!important}
+@media(max-width:520px){body{padding:0}.shell{min-height:100vh;border-radius:0}.container,.top{padding-left:20px;padding-right:20px}.brand{font-size:28px}.question{min-height:0}.row{grid-template-columns:1fr;gap:3px}.row span:last-child{text-align:left}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><span>Toronto</span><span>Finance Company</span></div>
+    <div class="tag">Business Financing Application</div>
+  </header>
+  <main class="container">
+    <div class="progress-head">
+      <button type="button" class="back" id="backBtn">← Back</button>
+      <span id="stepText">1 / 12</span>
+    </div>
+    <div class="bar"><i id="progressBar"></i></div>
+    <section class="question" id="question"></section>
+  </main>
+</div>
+<script>
+(()=>{
+  const ADOBE_BASE='https://na4.documents.adobe.com/public/esignWidget?wid=CBFCIBAA3AAABLblqZhAnqjopKPPoN1QIkSjStJUCs-Ve6rjdHrEPhpbLmobYPxjFhDPyBUdS9egKOSZWeAI*&hosted=false';
+  const q=document.getElementById('question'), back=document.getElementById('backBtn'), stepText=document.getElementById('stepText'), bar=document.getElementById('progressBar');
+
+  const fields=[
+    {key:'legalName',adobe:'1',section:'Business Information',kicker:'About your business',title:'What is the legal business name?',label:'Legal Business Name',type:'text',placeholder:'Enter legal business name'},
+    {key:'nature',adobe:'2',section:'Business Information',kicker:'About your business',title:'What does your business do?',label:'Nature of Business',type:'text',placeholder:'e.g. Trucking and transportation'},
+    {key:'employees',adobe:'3',section:'Business Information',kicker:'Business profile',title:'How many employees does the business have?',label:'Number of Employees',type:'number',min:'0',placeholder:'Enter number of employees'},
+    {key:'revenue',adobe:'4',section:'Business Information',kicker:'Business revenue',title:'What was your revenue over the last 12 months?',label:'Annual Revenue (Last 12 Months)',type:'number',min:'0',placeholder:'Enter annual revenue',money:true},
+    {key:'businessAddress',adobe:'5',section:'Business Information',kicker:'Business location',title:'What is the business address?',label:'Business Address',type:'textarea',placeholder:'Street, city, province, postal code'},
+    {key:'registrationYear',adobe:'undefined',section:'Business Information',kicker:'Business history',title:'What year was the business registered?',label:'Business Registration Year',type:'number',min:'1900',max:String(new Date().getFullYear()),placeholder:'e.g. 2024'},
+    {key:'bank',adobe:'Business Bank Account TDRBCBMOScotia',section:'Business Information',kicker:'Business banking',title:'Where is your main business bank account?',label:'Business Bank Account',type:'choices',options:['TD','RBC','BMO','Scotiabank','CIBC','Other']},
+
+    {key:'ownerName',adobe:'1_2',section:'Business Owner Information',kicker:'Business owner',title:'What is the owner’s full legal name?',label:'First Name & Last Name',type:'text',placeholder:'Enter full legal name'},
+    {key:'dob',adobe:'2_2',section:'Business Owner Information',kicker:'Business owner',title:'What is the owner’s date of birth?',label:'Date of Birth',type:'date'},
+    {key:'phone',adobe:'3_2',section:'Business Owner Information',kicker:'Contact information',title:'What is the best phone number?',label:'Phone Number',type:'tel',placeholder:'604-555-5555'},
+    {key:'email',adobe:'1_3',section:'Business Owner Information',kicker:'Contact information',title:'What is the owner’s email address?',label:'Email Address',type:'email',placeholder:'name@example.com'},
+    {key:'ownerAddress',adobe:'2_3',section:'Business Owner Information',kicker:'Business owner',title:'What is the owner’s home address?',label:'Address',type:'textarea',placeholder:'Street, city, province, postal code'},
+
+    {key:'sin',adobe:'Optional',section:'Consent & Signing',kicker:'Secure signing',title:'SIN (optional)',label:'SIN',type:'text',placeholder:'Optional',optional:true}
+  ];
+
+  const data={};
+  let index=0;
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  const displayMoney=v=>{const n=Number(v||0);return n?'$'+Math.round(n).toLocaleString('en-CA'):''};
+  const displayDate=v=>{if(!v)return'';const [y,m,d]=v.split('-');return [m,d,y].filter(Boolean).join('/')};
+
+  function currentValue(f){return data[f.key]??''}
+  function setProgress(review=false){
+    const total=fields.length+1;
+    const n=review?total:index+1;
+    stepText.textContent=n+' / '+total;
+    bar.style.width=(n/total*100)+'%';
+    back.style.visibility=index===0&&!review?'hidden':'visible';
+  }
+
+  function valid(f,v){
+    if(f.optional)return true;
+    if(f.type==='email')return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    if(f.type==='number')return v!==''&&Number(v)>=Number(f.min||0);
+    return String(v).trim()!=='';
+  }
+
+  function next(){
+    if(index<fields.length-1){index++;render()}
+    else renderReview();
+  }
+
+  function commitAndNext(){
+    const f=fields[index];
+    const el=document.getElementById('fieldInput');
+    const v=el?el.value:'';
+    if(!valid(f,v)){el&&el.focus();return}
+    data[f.key]=v;
+    next();
+  }
+
+  function render(){
+    const f=fields[index];
+    setProgress(false);
+    let control='';
+    if(f.type==='choices'){
+      control='<div class="choices">'+f.options.map(o=>'<button type="button" class="choice'+(currentValue(f)===o?' selected':'')+'" data-value="'+esc(o)+'">'+esc(o)+'</button>').join('')+'</div><div class="tap-hint">Tap an option to continue</div>';
+    }else if(f.type==='textarea'){
+      control='<div class="field-wrap"><label>'+esc(f.label)+'</label><textarea id="fieldInput" placeholder="'+esc(f.placeholder||'')+'">'+esc(currentValue(f))+'</textarea></div><button type="button" class="primary" id="nextBtn">Continue ⟶</button>';
+    }else{
+      const val=currentValue(f);
+      control='<div class="field-wrap"><label>'+esc(f.label)+(f.optional?' · Optional':'')+'</label><input id="fieldInput" type="'+esc(f.type)+'" '+(f.min?'min="'+esc(f.min)+'" ':'')+(f.max?'max="'+esc(f.max)+'" ':'')+'placeholder="'+esc(f.placeholder||'')+'" value="'+esc(val)+'"></div><button type="button" class="primary" id="nextBtn">Continue ⟶</button>';
+    }
+
+    q.innerHTML='<div class="kicker">'+esc(f.kicker)+'</div><h2>'+esc(f.title)+'</h2>'+(f.money?'<p class="help">Enter the approximate gross business revenue for the most recent 12 months.</p>':'')+control;
+
+    if(f.type==='choices'){
+      q.querySelectorAll('.choice').forEach(btn=>btn.addEventListener('click',()=>{data[f.key]=btn.dataset.value;setTimeout(next,120)}));
+    }else{
+      const input=document.getElementById('fieldInput');
+      document.getElementById('nextBtn').addEventListener('click',commitAndNext);
+      input.addEventListener('keydown',e=>{if(e.key==='Enter'&&f.type!=='textarea'){e.preventDefault();commitAndNext()}});
+      setTimeout(()=>input.focus(),30);
+    }
+  }
+
+  function renderReview(){
+    setProgress(true);
+    const groups=['Business Information','Business Owner Information','Consent & Signing'];
+    const rows=groups.map(group=>{
+      const items=fields.filter(f=>f.section===group).map(f=>{
+        let v=data[f.key]||'';
+        if(f.money)v=displayMoney(v);
+        if(f.type==='date')v=displayDate(v);
+        if(!v)v='Not provided';
+        return '<div class="row"><span>'+esc(f.label)+'</span><span>'+esc(v)+'</span></div>';
+      }).join('');
+      return '<div class="review-group"><strong>'+esc(group)+'</strong>'+items+'</div>';
+    }).join('');
+
+    q.innerHTML='<div class="review"><div class="kicker" style="text-align:center">Review your application</div><h3>Ready to Sign</h3><p class="review-intro">Please confirm your information before continuing to the secure Adobe signing form.</p>'+rows+'<div class="consent">Your information will be passed into the Toronto Finance Company Adobe Web Form as default values. You will review the application and complete the signature and consent directly in Adobe.</div><button type="button" class="primary" id="signBtn">Continue to Secure Signing ⟶</button><div class="notice">Adobe Acrobat Sign will handle the electronic signature and signing audit trail. No application is submitted from this test intake page itself.</div></div>';
+
+    document.getElementById('signBtn').addEventListener('click',openAdobe);
+  }
+
+  function adobeDate(){
+    const d=new Date();
+    const mm=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0'),yyyy=d.getFullYear();
+    return mm+'/'+dd+'/'+yyyy;
+  }
+
+  function openAdobe(){
+    const params={
+      '1':data.legalName||'',
+      '2':data.nature||'',
+      '3':data.employees||'',
+      '4':data.revenue?displayMoney(data.revenue):'',
+      '5':data.businessAddress||'',
+      'undefined':data.registrationYear||'',
+      'Business Bank Account TDRBCBMOScotia':data.bank||'',
+      '1_2':data.ownerName||'',
+      '2_2':data.dob?displayDate(data.dob):'',
+      '3_2':data.phone||'',
+      '1_3':data.email||'',
+      '2_3':data.ownerAddress||'',
+      'Name 1':data.ownerName||'',
+      'Optional':data.sin||'',
+      'Date1_af_date':adobeDate()
+    };
+    const fragment=Object.entries(params)
+      .filter(([,v])=>String(v).trim()!=='')
+      .map(([k,v])=>encodeURIComponent(k)+'='+encodeURIComponent(v))
+      .join('&');
+    window.location.href=ADOBE_BASE+'#'+fragment;
+  }
+
+  back.addEventListener('click',()=>{
+    if(index>0){index--;render()}
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
