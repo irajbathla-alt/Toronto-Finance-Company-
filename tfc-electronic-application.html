@@ -6,7 +6,7 @@
 <title>TFC Electronic Application Test | Toronto Finance Company</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400;500&family=Allura&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <style>
 :root{--ink:#17130f;--cream:#f7f0e6;--paper:#fffdf9;--gold:#c6964e;--muted:#786f65;--line:rgba(23,19,15,.14)}
@@ -46,6 +46,13 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
 .row{display:grid;grid-template-columns:minmax(150px,.95fr) minmax(0,1.4fr);gap:12px;padding:7px 0;border-bottom:1px solid rgba(23,19,15,.06);font-size:11px;line-height:1.4}.row span:first-child{color:var(--muted);white-space:nowrap}.row span:last-child{text-align:right;font-weight:600;overflow-wrap:anywhere}
 .consent{margin-top:16px;padding:14px;border:1px solid rgba(198,150,78,.28);border-radius:12px;background:#fffaf2;font-size:10px;line-height:1.55;color:#655a50}
 .notice{margin-top:13px;font-size:9px;line-height:1.5;color:#8a7e72}
+.sign-methods{display:flex;gap:8px;margin-top:18px;margin-bottom:12px}
+.sign-method{flex:1;border:1px solid rgba(23,19,15,.18);background:#fffaf2;color:var(--ink);border-radius:999px;padding:11px 12px;font:600 9px "DM Sans",sans-serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.sign-method.active{background:var(--ink);color:#fff}
+.type-signature{display:none;margin-top:10px}
+.type-signature.active{display:block}
+.type-signature input{width:100%;padding:14px;border:1px solid #cfc3b5;background:#fff;border-radius:10px;font:18px "DM Sans",sans-serif}
+.cursive-preview{min-height:96px;margin-top:10px;padding:14px;border:1px solid #cfc3b5;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;font-family:"Allura",cursive;font-size:48px;color:#17130f}
 .signbox{margin-top:16px;text-align:left}
 .signbox label{display:block;margin-bottom:8px;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#665e55}
 .signature-wrap{background:#fff;border:1px solid #cfc3b5;border-radius:12px;overflow:hidden}
@@ -182,11 +189,14 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
       '<label class="consent-check"><input type="checkbox" id="creditConsentCheck"><span><strong>Credit Check & Consent Authorization:</strong> I have reviewed and agree to the credit, banking, financial information and authorization terms shown above.</span></label>'+
       '<label class="consent-check"><input type="checkbox" id="communicationConsentCheck"><span><strong>Communication Consent:</strong> I consent to being contacted by Toronto Finance Company by email, telephone, text message, or other electronic means regarding my application and financing opportunities.</span></label>'+
       '<label class="consent-check"><input type="checkbox" id="esignConsentCheck"><span>I agree to use an electronic signature for this submission.</span></label>'+
-      '<div class="signbox"><label>Draw your signature</label><div class="signature-wrap"><canvas id="signaturePad"></canvas></div><div class="sign-actions"><button type="button" class="text-btn" id="clearSig">Clear signature</button></div></div>'+
+      '<div class="sign-methods"><button type="button" class="sign-method active" id="drawMethod">Draw Signature</button><button type="button" class="sign-method" id="typeMethod">Type Signature</button></div>'+
+      '<div class="signbox" id="drawSignBox"><label>Draw your signature</label><div class="signature-wrap"><canvas id="signaturePad"></canvas></div><div class="sign-actions"><button type="button" class="text-btn" id="clearSig">Clear signature</button></div></div>'+
+      '<div class="type-signature" id="typeSignBox"><label style="display:block;margin-bottom:8px;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#665e55">Type your full legal name</label><input type="text" id="typedSignatureName" autocomplete="name" placeholder="Type full legal name"><div class="cursive-preview" id="cursivePreview">Your Signature</div></div>'+
       '<button type="button" class="primary" id="submitSigned">Sign & Submit Application ⟶</button>'+
       '<div class="notice" id="submitNotice">A completed TFC application PDF and electronic signature audit trail will be generated and sent through FormSubmit.</div></div>';
 
     initSignaturePad();
+    initSignatureMethods();
     document.getElementById('submitSigned').addEventListener('click',submitSignedApplication);
   }
 
@@ -225,6 +235,49 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
       ctx.clearRect(0,0,canvas.width/ratio,canvas.height/ratio);
       hasInk=false;
     });
+  }
+
+  let signatureMethod='drawn';
+
+  function initSignatureMethods(){
+    const drawBtn=document.getElementById('drawMethod');
+    const typeBtn=document.getElementById('typeMethod');
+    const drawBox=document.getElementById('drawSignBox');
+    const typeBox=document.getElementById('typeSignBox');
+    const input=document.getElementById('typedSignatureName');
+    const preview=document.getElementById('cursivePreview');
+
+    function select(method){
+      signatureMethod=method;
+      const drawn=method==='drawn';
+      drawBtn.classList.toggle('active',drawn);
+      typeBtn.classList.toggle('active',!drawn);
+      drawBox.style.display=drawn?'block':'none';
+      typeBox.classList.toggle('active',!drawn);
+      if(!drawn && input && !input.value && data.ownerName) {
+        input.value=data.ownerName;
+        preview.textContent=data.ownerName;
+      }
+    }
+
+    drawBtn.addEventListener('click',()=>select('drawn'));
+    typeBtn.addEventListener('click',()=>select('typed'));
+    input.addEventListener('input',()=>{preview.textContent=input.value.trim()||'Your Signature'});
+  }
+
+  function typedSignatureDataUrl(name){
+    const canvas=document.createElement('canvas');
+    canvas.width=1200;
+    canvas.height=300;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#ffffff';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#17130f';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.font='120px Allura, cursive';
+    ctx.fillText(String(name||''),canvas.width/2,canvas.height/2);
+    return canvas.toDataURL('image/png');
   }
 
   function makeDocumentId(){
@@ -269,7 +322,7 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
       signer:data.ownerName||'',
       email:data.email||'',
       phone:data.phone||'',
-      signatureMethod:'Drawn electronic signature',
+      signatureMethod:signatureMethod==='typed'?'Typed cursive electronic signature':'Drawn electronic signature',
       creditConsentAccepted:true,
       communicationConsentAccepted:true,
       electronicSignatureConsentAccepted:true,
@@ -397,6 +450,7 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
     payload.append('Credit Consent Accepted','Yes');
     payload.append('Communication Consent Accepted','Yes');
     payload.append('Electronic Signature Consent Accepted','Yes');
+    payload.append('Signature Method',pdf.audit.signatureMethod);
     payload.append('Signed At',pdf.audit.signedAt);
     payload.append('Signer IP',pdf.audit.ipAddress);
     payload.append('Document Integrity Hash',pdf.audit.documentIntegrityHash);
@@ -412,13 +466,17 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
     const communicationConsent=document.getElementById('communicationConsentCheck');
     const esignConsent=document.getElementById('esignConsentCheck');
     const canvas=document.getElementById('signaturePad');
-    const signature=canvas&&canvas.getSignature?canvas.getSignature():'';
+    const typedName=document.getElementById('typedSignatureName');
+    const signature=signatureMethod==='typed'
+      ? typedSignatureDataUrl(typedName&&typedName.value.trim())
+      : (canvas&&canvas.getSignature?canvas.getSignature():'');
     const btn=document.getElementById('submitSigned');
     const notice=document.getElementById('submitNotice');
     if(!creditConsent.checked){notice.textContent='Please accept the Credit Check & Consent Authorization before submitting.';return}
     if(!communicationConsent.checked){notice.textContent='Please accept the communication consent before submitting.';return}
     if(!esignConsent.checked){notice.textContent='Please accept the electronic signature consent before submitting.';return}
-    if(!signature){notice.textContent='Please draw your signature before submitting.';return}
+    if(signatureMethod==='typed' && !(typedName&&typedName.value.trim())){notice.textContent='Please type your full legal name for the signature.';return}
+    if(signatureMethod==='drawn' && !signature){notice.textContent='Please draw your signature before submitting.';return}
     btn.disabled=true;btn.textContent='Generating Signed Application…';
     notice.textContent='Creating your signed application and audit trail…';
     try{
