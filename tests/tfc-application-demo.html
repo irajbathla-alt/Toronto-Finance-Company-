@@ -283,9 +283,7 @@ body{margin:0;background:#f6efe5;color:var(--ink);font-family:"DM Sans",sans-ser
     }).join('');
 
     question.innerHTML='<div class="review"><div class="review-title"><div class="kicker">Review & Sign</div><h3 style="font-family:Cormorant Garamond,serif;text-transform:uppercase;font-weight:400;font-size:30px;margin:0">Electronic Application</h3><div class="notice">Application '+esc(TEST_CLIENT.applicationId)+'</div></div>'+rows+
-      '<label class="consent"><input type="checkbox" id="creditConsent"><span>I agree to the Credit Check & Consent Authorization.</span></label>'+
-      '<label class="consent"><input type="checkbox" id="communicationConsent"><span>I agree to communication consent regarding my application.</span></label>'+
-      '<label class="consent"><input type="checkbox" id="esignConsent"><span>I agree to use an electronic signature.</span></label>'+
+      '<label class="consent"><input type="checkbox" id="combinedConsent"><span><strong>Credit, Communication & Electronic Signature Consent:</strong> I confirm that the information provided is true, accurate and complete. I authorize Toronto Finance Company to obtain and verify credit, banking, financial and business information as described in this application; I consent to being contacted by email, telephone, text message or other electronic means regarding my application and financing opportunities; I agree to the Privacy & Consent Policy; and I agree to use an electronic signature for this submission.</span></label>'+
       '<div class="sign-tabs"><button class="sign-tab active" id="drawTab">Draw Signature</button><button class="sign-tab" id="typeTab">Type Signature</button></div>'+
       '<div id="drawArea"><div class="signature-wrap"><canvas id="signaturePad"></canvas></div><div class="notice"><button class="back-link" id="clearSig">Clear signature</button></div></div>'+
       '<div class="typed" id="typeArea"><input id="typedName" value="'+esc(data.ownerName||'')+'"><div class="preview" id="typedPreview">'+esc(data.ownerName||'Your Signature')+'</div></div>'+
@@ -329,9 +327,7 @@ body{margin:0;background:#f6efe5;color:var(--ink);font-family:"DM Sans",sans-ser
   async function submit(){
     const notice=document.getElementById('submitNotice');
     const btn=document.getElementById('submitBtn');
-    if(!document.getElementById('creditConsent').checked){notice.textContent='Please accept the credit authorization.';return}
-    if(!document.getElementById('communicationConsent').checked){notice.textContent='Please accept the communication consent.';return}
-    if(!document.getElementById('esignConsent').checked){notice.textContent='Please accept the electronic signature consent.';return}
+    if(!document.getElementById('combinedConsent').checked){notice.textContent='Please accept the Credit, Communication & Electronic Signature Consent.';return}
     if(signatureMethod==='drawn'&&!hasInk){notice.textContent='Please draw your signature.';return}
     if(signatureMethod==='typed'&&!document.getElementById('typedName').value.trim()){notice.textContent='Please type your full legal name.';return}
 
@@ -348,6 +344,14 @@ body{margin:0;background:#f6efe5;color:var(--ink);font-family:"DM Sans",sans-ser
       email:data.email,
       phone:data.phone,
       signatureMethod,
+      combinedConsentAccepted:true,
+      openedAt:new Date(Date.now()-60000).toISOString(),
+      ipAddress:'Demo / not collected',
+      userAgent:navigator.userAgent||'Unavailable',
+      platform:navigator.platform||'Unavailable',
+      language:navigator.language||'Unavailable',
+      screen:(window.screen?window.screen.width+' x '+window.screen.height:'Unavailable'),
+      pageUrl:location.href,
       driveFolder:'Other Documents',
       emailCopy:'Simulated'
     };
@@ -357,25 +361,145 @@ body{margin:0;background:#f6efe5;color:var(--ink);font-family:"DM Sans",sans-ser
     renderSuccess();
   }
 
+  function wrapPdfText(doc,text,x,y,maxWidth,lineHeight){
+    const lines=doc.splitTextToSize(String(text||''),maxWidth);
+    doc.text(lines,x,y);
+    return y+(lines.length*lineHeight);
+  }
+
+  function addSectionTitle(doc,title,y){
+    doc.setFont('helvetica','bold');doc.setFontSize(10);
+    doc.setTextColor(23,19,15);
+    doc.text(title,54,y);
+    doc.setDrawColor(198,150,78);
+    doc.line(54,y+6,558,y+6);
+    return y+24;
+  }
+
   function buildClientPdf(){
     if(!window.jspdf||!window.jspdf.jsPDF) return;
     const {jsPDF}=window.jspdf;
     const doc=new jsPDF({unit:'pt',format:'letter'});
-    doc.setFont('times','normal');doc.setFontSize(18);
-    doc.text('TORONTO FINANCE COMPANY',306,58,{align:'center'});
-    doc.setFont('helvetica','normal');doc.setFontSize(10);
-    doc.text('TFC Electronic Application - TEST',306,76,{align:'center'});
-    doc.text('Application: '+TEST_CLIENT.applicationId,54,110);
-    doc.text('Document ID: '+audit.documentId,54,128);
-    doc.text('Client: '+String(data.ownerName||''),54,158);
-    doc.text('Email: '+String(data.email||''),54,176);
-    doc.text('Phone: '+String(data.phone||''),54,194);
-    doc.text('Business: '+String(data.legalName||''),54,224);
-    doc.text('Industry: '+String(data.nature||''),54,242);
-    doc.text('Signed: '+audit.signedAt,54,272);
-    doc.text('Signature Method: '+signatureMethod,54,290);
+    const left=54,right=558,width=right-left;
+
+    doc.setTextColor(23,19,15);
+    doc.setFont('times','normal');doc.setFontSize(20);
+    doc.text('TORONTO FINANCE COMPANY',306,54,{align:'center'});
+    doc.setFontSize(12);
+    doc.text('SMALL BUSINESS FINANCING',306,74,{align:'center'});
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+    doc.text('TFC Electronic Application',306,91,{align:'center'});
+    doc.setDrawColor(198,150,78);doc.line(left,104,right,104);
+
     doc.setFontSize(8);
-    doc.text('TEST FILE - Demonstrates the client-download copy only.',54,330);
+    doc.text('Application ID: '+TEST_CLIENT.applicationId,left,123);
+    doc.text('Document ID: '+audit.documentId,right,123,{align:'right'});
+
+    let y=151;
+    y=addSectionTitle(doc,'BUSINESS INFORMATION',y);
+    const appRows=[
+      ['Legal Business Name',data.legalName],
+      ['Nature of Business',data.nature],
+      ['Number of Employees',data.employees],
+      ['Annual Revenue (Last 12 Months)',data.revenue?('$'+Number(data.revenue).toLocaleString('en-CA')):''],
+      ['Business Address',data.businessAddress],
+      ['Business Registration Year',data.registrationYear],
+      ['Business Bank Account',data.bank]
+    ];
+    doc.setFontSize(9);
+    for(const [label,val] of appRows){
+      doc.setFont('helvetica','bold');doc.text(label+':',left,y);
+      doc.setFont('helvetica','normal');
+      y=wrapPdfText(doc,val||'Not provided',220,y,338,10)+8;
+    }
+
+    y+=5;
+    y=addSectionTitle(doc,'BUSINESS OWNER INFORMATION',y);
+    const ownerRows=[
+      ['First Name & Last Name',data.ownerName],
+      ['Date of Birth',data.dob],
+      ['Phone Number',data.phone],
+      ['Email Address',data.email],
+      ['Home Address',data.ownerAddress]
+    ];
+    for(const [label,val] of ownerRows){
+      doc.setFont('helvetica','bold');doc.text(label+':',left,y);
+      doc.setFont('helvetica','normal');
+      y=wrapPdfText(doc,val||'Not provided',220,y,338,10)+8;
+    }
+
+    doc.addPage();
+    doc.setFont('times','normal');doc.setFontSize(18);
+    doc.text('CREDIT CHECK & CONSENT AUTHORIZATION',306,54,{align:'center'});
+    doc.setDrawColor(198,150,78);doc.line(left,69,right,69);
+    doc.setFont('helvetica','normal');doc.setFontSize(8.7);
+    const consent='Each person signing below declares that all information provided in this Business Financing Application is true, accurate, and complete. I/We authorize Toronto Finance Company, its affiliated companies, partner lenders, funding providers, Authorized Agents, and designated representatives — including, but not limited to, DUCA Financial Credit Union, Merchant Growth, Sheaves Capital, KM Capital, Canacap Funding, Journey Capital, Driven, iCapital, Vancity, and Xuper Funding — to obtain, verify, exchange, and disclose personal, business, financial, banking, and credit information as reasonably required to assess, arrange, obtain, or service financing or other financial products on my/our behalf. I/We authorize Toronto Finance Company Inc. and its designated representatives to obtain credit bureau reports and, where reasonably required in connection with my/our financing request, additional credit reports or credit-monitoring information for up to 12 months from the date of this consent. I/We also consent to being contacted by Toronto Finance Company by email, telephone, text message, or other electronic means regarding my/our application, financing opportunities, products, services, renewals, updates, and related financial information. Marketing consent may be withdrawn at any time, subject to communications otherwise permitted or required by law. I/We agree that an electronic or photocopied version of this consent shall have the same validity as the original. I/We consent to the collection, use, and disclosure of my/our personal and business information in accordance with Toronto Finance Company’s Privacy & Consent Policy, available at: https://torontofinancecompany.com/privacy.html';
+    y=92;
+    y=wrapPdfText(doc,consent,left,y,width,11)+14;
+
+    doc.setFont('helvetica','bold');doc.setFontSize(9);
+    doc.text('CONSENT ACCEPTED',left,y);
+    doc.setFont('helvetica','normal');
+    doc.text('✓ Credit, Communication, Privacy & Electronic Signature Consent accepted',left+118,y);
+    y+=24;
+
+    doc.setFont('helvetica','bold');doc.text('Electronic Signature',left,y);y+=10;
+    doc.setDrawColor(180,170,160);doc.rect(left,y,250,72);
+    if(signatureMethod==='typed'){
+      doc.setFont('times','italic');doc.setFontSize(24);
+      doc.text(String(data.ownerName||''),left+125,y+42,{align:'center'});
+    }else{
+      try{
+        const canvas=document.getElementById('signaturePad');
+        if(canvas) doc.addImage(canvas.toDataURL('image/png'),'PNG',left+8,y+8,234,56);
+      }catch(_){}
+    }
+    y+=90;
+    doc.setFont('helvetica','normal');doc.setFontSize(9);
+    doc.text('Signatory: '+String(data.ownerName||''),left,y);
+    doc.text('Date: '+new Date(audit.signedAt).toLocaleString('en-CA'),left+270,y);
+
+    y+=34;
+    doc.setFont('helvetica','bold');doc.setFontSize(9);
+    doc.text('MERCHANT CASH ADVANCE DISCLOSURE',left,y);y+=14;
+    doc.setFont('helvetica','normal');doc.setFontSize(8.4);
+    const mca='The Client understands that a Merchant Cash Advance (“MCA”) is generally structured as the purchase of future business receivables and is not intended to be a conventional loan. MCA pricing may use a factor rate rather than an interest rate or APR, and payments may be deducted daily or weekly. The Client is responsible for reviewing all funding terms, costs, payment obligations, guarantees, security requirements, and default provisions before accepting any offer. Final terms and legal characterization are governed by the funder’s agreement and applicable law.';
+    wrapPdfText(doc,mca,left,y,width,10.5);
+
+    doc.addPage();
+    doc.setFont('times','normal');doc.setFontSize(18);
+    doc.text('ELECTRONIC SIGNATURE AUDIT TRAIL',306,54,{align:'center'});
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+    doc.setDrawColor(198,150,78);doc.line(left,69,right,69);
+    let ay=96;
+    const auditRows=[
+      ['TFC Application ID',TEST_CLIENT.applicationId],
+      ['Document ID',audit.documentId],
+      ['Signer Full Name',audit.signer],
+      ['Signer Email',audit.email],
+      ['Signer Phone',audit.phone],
+      ['Signature Method',audit.signatureMethod==='typed'?'Typed electronic signature':'Drawn electronic signature'],
+      ['Combined Consent','Accepted at '+audit.signedAt],
+      ['Form Opened',audit.openedAt],
+      ['Signed / Submitted',audit.signedAt],
+      ['Signer IP',audit.ipAddress],
+      ['Browser / Device',audit.userAgent],
+      ['Platform',audit.platform],
+      ['Language',audit.language],
+      ['Screen Size',audit.screen],
+      ['Page URL',audit.pageUrl],
+      ['Drive Destination','Other Documents (demo simulation)'],
+      ['TFC Email Copy','Simulated']
+    ];
+    for(const [label,val] of auditRows){
+      doc.setFont('helvetica','bold');doc.text(label,left,ay);
+      doc.setFont('helvetica','normal');
+      ay=wrapPdfText(doc,val||'Unavailable',205,ay,350,10)+10;
+      if(ay>735){doc.addPage();ay=60}
+    }
+    doc.setFont('helvetica','italic');doc.setFontSize(8);
+    wrapPdfText(doc,'This audit record was generated by the Toronto Finance Company demo at the time of electronic submission. Production will retain the same application, consent, signature and audit structure.',left,ay+8,width,10);
+
     signedPdfBlob=doc.output('blob');
     signedPdfName=TEST_CLIENT.applicationId+'-Signed-TFC-Electronic-Application-TEST.pdf';
   }
