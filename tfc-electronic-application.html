@@ -179,7 +179,9 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
 
     q.innerHTML='<div class="review"><div class="kicker" style="text-align:center">Review & sign</div><h3>Electronic Application</h3><p class="review-intro">Please review your information, accept the authorization, and sign below.</p>'+rows+
       '<div class="consent">By signing below, I confirm that the information provided is true, accurate and complete, and I agree to the Toronto Finance Company credit check and consent authorization contained in this application.</div>'+
-      '<label class="consent-check"><input type="checkbox" id="consentCheck"><span>I have reviewed the application and agree to use an electronic signature for this submission.</span></label>'+
+      '<label class="consent-check"><input type="checkbox" id="creditConsentCheck"><span><strong>Credit Check & Consent Authorization:</strong> I have reviewed and agree to the credit, banking, financial information and authorization terms shown above.</span></label>'+
+      '<label class="consent-check"><input type="checkbox" id="communicationConsentCheck"><span><strong>Communication Consent:</strong> I consent to being contacted by Toronto Finance Company by email, telephone, text message, or other electronic means regarding my application and financing opportunities.</span></label>'+
+      '<label class="consent-check"><input type="checkbox" id="esignConsentCheck"><span>I agree to use an electronic signature for this submission.</span></label>'+
       '<div class="signbox"><label>Draw your signature</label><div class="signature-wrap"><canvas id="signaturePad"></canvas></div><div class="sign-actions"><button type="button" class="text-btn" id="clearSig">Clear signature</button></div></div>'+
       '<button type="button" class="primary" id="submitSigned">Sign & Submit Application ⟶</button>'+
       '<div class="notice" id="submitNotice">A completed TFC application PDF and electronic signature audit trail will be generated and sent through FormSubmit.</div></div>';
@@ -268,7 +270,9 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
       email:data.email||'',
       phone:data.phone||'',
       signatureMethod:'Drawn electronic signature',
-      consentAccepted:true,
+      creditConsentAccepted:true,
+      communicationConsentAccepted:true,
+      electronicSignatureConsentAccepted:true,
       openedAt,
       signedAt,
       ipAddress:ip,
@@ -353,7 +357,9 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
       ['Signer Email',audit.email],
       ['Signer Phone',audit.phone],
       ['Signature Method',audit.signatureMethod],
-      ['Consent',audit.consentAccepted?'Accepted':'Not accepted'],
+      ['Credit Consent',audit.creditConsentAccepted?'Accepted':'Not accepted'],
+      ['Communication Consent',audit.communicationConsentAccepted?'Accepted':'Not accepted'],
+      ['Electronic Signature Consent',audit.electronicSignatureConsentAccepted?'Accepted':'Not accepted'],
       ['Form Opened',audit.openedAt],
       ['Signed / Submitted',audit.signedAt],
       ['Signer IP',audit.ipAddress],
@@ -388,7 +394,9 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
     payload.append('Owner Name',data.ownerName||'');
     payload.append('Owner Email',data.email||'');
     payload.append('Owner Phone',data.phone||'');
-    payload.append('Consent Accepted','Yes');
+    payload.append('Credit Consent Accepted','Yes');
+    payload.append('Communication Consent Accepted','Yes');
+    payload.append('Electronic Signature Consent Accepted','Yes');
     payload.append('Signed At',pdf.audit.signedAt);
     payload.append('Signer IP',pdf.audit.ipAddress);
     payload.append('Document Integrity Hash',pdf.audit.documentIntegrityHash);
@@ -400,12 +408,16 @@ h2{font-size:26px;line-height:1.02;margin:0 0 28px;white-space:nowrap;letter-spa
   }
 
   async function submitSignedApplication(){
-    const consent=document.getElementById('consentCheck');
+    const creditConsent=document.getElementById('creditConsentCheck');
+    const communicationConsent=document.getElementById('communicationConsentCheck');
+    const esignConsent=document.getElementById('esignConsentCheck');
     const canvas=document.getElementById('signaturePad');
     const signature=canvas&&canvas.getSignature?canvas.getSignature():'';
     const btn=document.getElementById('submitSigned');
     const notice=document.getElementById('submitNotice');
-    if(!consent.checked){notice.textContent='Please accept the electronic signature consent before submitting.';return}
+    if(!creditConsent.checked){notice.textContent='Please accept the Credit Check & Consent Authorization before submitting.';return}
+    if(!communicationConsent.checked){notice.textContent='Please accept the communication consent before submitting.';return}
+    if(!esignConsent.checked){notice.textContent='Please accept the electronic signature consent before submitting.';return}
     if(!signature){notice.textContent='Please draw your signature before submitting.';return}
     btn.disabled=true;btn.textContent='Generating Signed Application…';
     notice.textContent='Creating your signed application and audit trail…';
