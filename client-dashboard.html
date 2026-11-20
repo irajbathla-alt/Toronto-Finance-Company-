@@ -3534,7 +3534,7 @@ function openApprovalFocus(){
     const approvalCenterY=approvalRect.top+approvalRect.height/2;
 
     approvalSideSample.style.setProperty('--approval-focus-center-x',((lenderCenterX+approvalCenterX)/2)+'px');
-    approvalSideSample.style.setProperty('--approval-focus-center-y',((lenderCenterY+approvalCenterY)/2)+'px');
+    approvalSideSample.style.setProperty('--approval-focus-center-y',(((lenderCenterY+approvalCenterY)/2)-18)+'px');
   }
 
   approvalSideSample.classList.add('focused');
