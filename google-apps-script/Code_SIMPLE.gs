@@ -1615,11 +1615,6 @@ function submitSignedApplication(p) {
     }
 
     properties.setProperty(fileMarker,file.getId());
-
-    updateRecord(record.applicationId,{
-      signatureConfirmed:true,
-      signatureConfirmedAt:record.signatureConfirmedAt || new Date()
-    });
     clearDocumentIndexCache(record.applicationId);
   } finally {
     lock.releaseLock();
@@ -1657,6 +1652,11 @@ function submitSignedApplication(p) {
     properties.setProperty(emailMarker,'1');
     emailSent = true;
   }
+
+  updateRecord(record.applicationId,{
+    signatureConfirmed:true,
+    signatureConfirmedAt:record.signatureConfirmedAt || new Date()
+  });
 
   if (properties.getProperty(auditMarker) !== '1') {
     appendAuditEvent({
