@@ -407,7 +407,8 @@ body{margin:0;background:#f6efe5;color:var(--ink);font-family:"DM Sans",sans-ser
     y=drawValueLine(doc,'Legal Business Name:',data.legalName,y);
     y=drawValueLine(doc,'Nature of Business:',data.nature,y);
     y=drawValueLine(doc,'No. of Employees:',data.employees,y);
-    y=drawValueLine(doc,'Annual Revenue (Last 12 Months):',data.revenue?('
+    y=drawValueLine(doc,'Annual Revenue (Last 12 Months):',data.revenue?('$'+Number(data.revenue).toLocaleString('en-CA')):'',y);
+    y=drawValueLine(doc,'Business Address:',data.businessAddress,y);
     y=drawValueLine(doc,'Business Registration Year:',data.registrationYear,y);
     y=drawValueLine(doc,'Business Bank Account (TD/RBC/BMO/Scotia):',data.bank,y);
 
