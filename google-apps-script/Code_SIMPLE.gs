@@ -101,6 +101,7 @@ function doPost(e) {
       clientDecision,
       clientChatSend,
       sendSignupNotification,
+      submitSignedApplication,
       uploadDocument,
       adminLogin,
       adminList,
@@ -1560,6 +1561,134 @@ function adminEnsureDrive(p) {
       driveFolderId:folder.getId(),
       driveUrl:folder.getUrl()
     })
+  };
+}
+
+
+function submitSignedApplication(p) {
+  const record = findApplication(p.applicationId);
+  const clientEmail = requireClientEmail(record,p.email);
+
+  const documentId = String(p.documentId || '').trim().slice(0,180);
+  if (!documentId) throw new Error('Signed application document ID is required');
+
+  const base64 = String(p.base64 || '').trim();
+  if (!base64) throw new Error('Missing signed application PDF');
+
+  const estimatedBytes = Math.ceil(base64.length * 3 / 4);
+  if (estimatedBytes > 20 * 1024 * 1024) {
+    throw new Error('Signed application PDF is too large');
+  }
+
+  const safeDocumentId = documentId.replace(/[^a-zA-Z0-9._-]/g,'-');
+  const fileName = String(p.fileName || (safeDocumentId + '.pdf')).trim().slice(0,220) || (safeDocumentId + '.pdf');
+  const mimeType = 'application/pdf';
+  const rootFolder = ensureDriveFolder(record);
+  const targetFolder = childFolder(rootFolder,'Other Documents');
+  const properties = PropertiesService.getScriptProperties();
+  const markerBase = 'tfc-signed-app-' + hash(record.applicationId + '|' + documentId).slice(0,48);
+  const fileMarker = markerBase + '-file';
+  const emailMarker = markerBase + '-email';
+  const auditMarker = markerBase + '-audit';
+
+  let file = null;
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const existingFileId = properties.getProperty(fileMarker);
+    if (existingFileId) {
+      try { file = DriveApp.getFileById(existingFileId); } catch (_) {}
+    }
+
+    if (!file) {
+      const matching = targetFolder.getFilesByName(fileName);
+      if (matching.hasNext()) file = matching.next();
+    }
+
+    if (!file) {
+      const blob = Utilities.newBlob(
+        Utilities.base64Decode(base64),
+        mimeType,
+        fileName
+      );
+      file = targetFolder.createFile(blob);
+    }
+
+    properties.setProperty(fileMarker,file.getId());
+
+    updateRecord(record.applicationId,{
+      signatureConfirmed:true,
+      signatureConfirmedAt:record.signatureConfirmedAt || new Date()
+    });
+    clearDocumentIndexCache(record.applicationId);
+  } finally {
+    lock.releaseLock();
+  }
+
+  let emailSent = properties.getProperty(emailMarker) === '1';
+  if (!emailSent) {
+    const freshRecord = findApplication(record.applicationId);
+    const subject = 'Signed TFC Electronic Application - ' +
+      (freshRecord.business || p.legalName || freshRecord.name || freshRecord.applicationId);
+    const body = [
+      'A signed Toronto Finance Company Electronic Application has been submitted.',
+      '',
+      'Application: ' + freshRecord.applicationId,
+      'Document ID: ' + documentId,
+      'Client: ' + (freshRecord.name || p.ownerName || ''),
+      'Business: ' + (freshRecord.business || p.legalName || ''),
+      'Email: ' + (freshRecord.email || ''),
+      'Phone: ' + (freshRecord.phone || ''),
+      'Signed At: ' + String(p.signedAt || ''),
+      '',
+      'The signed PDF is attached and has also been saved to the client Drive folder under Other Documents.'
+    ].join('\n');
+
+    const from = String(CONFIG.CLIENT_NOTIFICATION_FROM || '').trim().toLowerCase();
+    const aliases = GmailApp.getAliases().map(alias => String(alias || '').trim().toLowerCase());
+    const options = {
+      name:CONFIG.COMPANY_NAME,
+      replyTo:clientEmail,
+      attachments:[file.getBlob().setName(fileName)]
+    };
+    if (from && aliases.includes(from)) options.from = CONFIG.CLIENT_NOTIFICATION_FROM;
+
+    GmailApp.sendEmail(CONFIG.SIGNUP_NOTIFICATION_EMAIL,subject,body,options);
+    properties.setProperty(emailMarker,'1');
+    emailSent = true;
+  }
+
+  if (properties.getProperty(auditMarker) !== '1') {
+    appendAuditEvent({
+      applicationId:record.applicationId,
+      actorType:'CLIENT',
+      actorId:clientEmail,
+      action:'SIGNED_APPLICATION_SUBMITTED',
+      field:'signatureConfirmed',
+      oldValue:record.signatureConfirmed || false,
+      newValue:true,
+      summary:'Client submitted the signed TFC Electronic Application',
+      metadata:{
+        documentId,
+        fileName,
+        fileId:file ? file.getId() : '',
+        driveFolder:'Other Documents',
+        emailSent,
+        signedAt:String(p.signedAt || ''),
+        signatureMethod:String(p.signatureMethod || ''),
+        combinedConsentAccepted:String(p.combinedConsentAccepted || '') === 'true' || p.combinedConsentAccepted === true
+      }
+    });
+    properties.setProperty(auditMarker,'1');
+  }
+
+  const fresh = findApplication(record.applicationId);
+  return {
+    ok:true,
+    documentId,
+    fileId:file ? file.getId() : '',
+    emailSent,
+    data:safeClient({ ...fresh, documents:[] })
   };
 }
 
