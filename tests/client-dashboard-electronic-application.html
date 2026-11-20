@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500&family=Allura&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <style>
 :root{--ink:#17130f;--paper:#fffdf9;--cream:#f7f0e6;--gold:#c6964e;--muted:#756c62;--line:rgba(23,19,15,.12);--blue:#1877f2;--green:#2f855a}
 *{box-sizing:border-box}
@@ -29,6 +30,9 @@ body{margin:0;background:#f6efe5;color:var(--ink);font-family:"DM Sans",sans-ser
 .step.locked{opacity:.55}
 .step .status{margin-top:8px;font-size:9px;color:var(--muted)}
 .step.complete .status{color:var(--green);font-weight:700}
+.lender-card{background:linear-gradient(145deg,#fffaf2,#f3e5cf);border:1px solid rgba(185,137,63,.42);border-radius:18px;padding:22px;margin-bottom:18px;box-shadow:0 12px 30px rgba(40,28,18,.07)}
+.lender-card .logo{width:56px;height:56px;border-radius:14px;background:#17130f;color:#d0a15b;display:grid;place-items:center;font-family:"Cormorant Garamond",serif;font-size:22px;margin-bottom:14px}
+.lender-card .kicker2{font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:#9b7137;font-weight:700}.lender-card h2{font-family:"Cormorant Garamond",serif;font-size:30px;font-weight:400;margin:5px 0 8px}.lender-card p{font-size:11px;color:var(--muted);margin:0 0 16px;max-width:620px}
 .actions{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;text-align:center}
 .actions h2{font-family:"Cormorant Garamond",serif;font-size:30px;font-weight:400;text-transform:uppercase;margin:0 0 8px}
 .actions p{font-size:11px;color:var(--muted);margin:0 0 18px}
@@ -111,6 +115,14 @@ body{margin:0;background:#f6efe5;color:var(--ink);font-family:"DM Sans",sans-ser
       <div class="file-ref">Application: <strong id="dashboardAppId">TFC-000123</strong></div>
     </section>
 
+    <section class="lender-card">
+      <div class="logo">TFC</div>
+      <div class="kicker2">Toronto Finance Company</div>
+      <h2>Apply With Us</h2>
+      <p>Complete your Toronto Finance Company electronic application, then continue to your bank statements.</p>
+      <button class="primary" id="tfcApplyNow">Apply Now</button>
+    </section>
+
     <section class="steps">
       <div class="step" id="step1">
         <small>Step 1</small>
@@ -132,7 +144,6 @@ body{margin:0;background:#f6efe5;color:var(--ink);font-family:"DM Sans",sans-ser
     <section class="actions">
       <h2>Complete Your Application</h2>
       <p>The application opens over the dashboard. After submitting, close it and continue here.</p>
-      <button class="primary" id="openApplication">Open TFC Electronic Application</button>
       <button class="primary blue" id="uploadStatements" disabled>Upload Bank Statements</button>
       <div class="test-log" id="testLog"><strong>Test status:</strong> Ready. No real client data, Drive files, or emails will be created.</div>
     </section>
@@ -188,6 +199,8 @@ body{margin:0;background:#f6efe5;color:var(--ink);font-family:"DM Sans",sans-ser
   let signatureMethod='drawn';
   let submitted=false;
   let audit=null;
+  let signedPdfBlob=null;
+  let signedPdfName='';
 
   const modal=document.getElementById('appModal');
   const question=document.getElementById('question');
@@ -338,16 +351,53 @@ body{margin:0;background:#f6efe5;color:var(--ink);font-family:"DM Sans",sans-ser
       driveFolder:'Other Documents',
       emailCopy:'Simulated'
     };
+    buildClientPdf();
     submitted=true;
     markDashboardComplete();
     renderSuccess();
+  }
+
+  function buildClientPdf(){
+    if(!window.jspdf||!window.jspdf.jsPDF) return;
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({unit:'pt',format:'letter'});
+    doc.setFont('times','normal');doc.setFontSize(18);
+    doc.text('TORONTO FINANCE COMPANY',306,58,{align:'center'});
+    doc.setFont('helvetica','normal');doc.setFontSize(10);
+    doc.text('TFC Electronic Application - TEST',306,76,{align:'center'});
+    doc.text('Application: '+TEST_CLIENT.applicationId,54,110);
+    doc.text('Document ID: '+audit.documentId,54,128);
+    doc.text('Client: '+String(data.ownerName||''),54,158);
+    doc.text('Email: '+String(data.email||''),54,176);
+    doc.text('Phone: '+String(data.phone||''),54,194);
+    doc.text('Business: '+String(data.legalName||''),54,224);
+    doc.text('Industry: '+String(data.nature||''),54,242);
+    doc.text('Signed: '+audit.signedAt,54,272);
+    doc.text('Signature Method: '+signatureMethod,54,290);
+    doc.setFontSize(8);
+    doc.text('TEST FILE - Demonstrates the client-download copy only.',54,330);
+    signedPdfBlob=doc.output('blob');
+    signedPdfName=TEST_CLIENT.applicationId+'-Signed-TFC-Electronic-Application-TEST.pdf';
+  }
+
+  function downloadClientPdf(){
+    if(!signedPdfBlob) return;
+    const url=URL.createObjectURL(signedPdfBlob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=signedPdfName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
 
   function renderSuccess(){
     stepText.textContent='Complete';
     progressBar.style.width='100%';
     backBtn.style.visibility='hidden';
-    question.innerHTML='<div class="success"><div class="success-mark">✓</div><div class="kicker">Application Submitted</div><h3>Thank You</h3><p>Your signed application is now linked to <strong>'+esc(TEST_CLIENT.applicationId)+'</strong>. In production it will save to Other Documents, email a copy to TFC, and retain the audit trail.</p><button class="primary" id="closeContinue">Close & Continue</button><div class="notice">Document ID: '+esc(audit.documentId)+'</div></div>';
+    question.innerHTML='<div class="success"><div class="success-mark">✓</div><div class="kicker">Application Submitted</div><h3>Thank You</h3><p>Your signed application is linked to <strong>'+esc(TEST_CLIENT.applicationId)+'</strong>. One signed PDF copy is available to you, one copy is sent to TFC, and the same PDF is saved under Drive > Other Documents.</p><button class="primary" id="downloadPdf">Download My Signed PDF</button><button class="primary blue" style="margin-left:8px" id="closeContinue">Close & Continue</button><div class="notice">Document ID: '+esc(audit.documentId)+'</div></div>';
+    document.getElementById('downloadPdf').onclick=downloadClientPdf;
     document.getElementById('closeContinue').onclick=closeModal;
   }
 
@@ -359,10 +409,10 @@ body{margin:0;background:#f6efe5;color:var(--ink);font-family:"DM Sans",sans-ser
     document.getElementById('step2Status').textContent='Confirmed automatically ✓';
     document.getElementById('step3Status').textContent='Unlocked';
     document.getElementById('uploadStatements').disabled=false;
-    testLog.innerHTML='<strong>Test status:</strong> Modal submission completed successfully. '+TEST_CLIENT.applicationId+' retained; Step 2 auto-confirmed; Step 3 unlocked; audit trail generated.';
+    testLog.innerHTML='<strong>Test status:</strong> Modal submission completed successfully. '+TEST_CLIENT.applicationId+' retained; client PDF generated; TFC email copy simulated; Drive > Other Documents copy simulated; Step 2 auto-confirmed; Step 3 unlocked; audit trail generated.';
   }
 
-  document.getElementById('openApplication').onclick=()=>{
+  document.getElementById('tfcApplyNow').onclick=()=>{
     if(submitted){
       index=fields.length-1;
       renderSuccess();
