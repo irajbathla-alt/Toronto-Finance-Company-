@@ -161,6 +161,7 @@ function health() {
   return {
     ok:true,
     service:'Toronto Finance Company CRM Simple 1.8 Lender Submissions',
+    electronicApplicationBuild:'20261119-test-eapp-v1',
     minimumStatements:CONFIG.MIN_STATEMENTS,
     adminPasswordConfigured:CONFIG.ADMIN_PASSWORD !== 'CHANGE_THIS_PASSWORD',
     clientNotificationFrom:CONFIG.CLIENT_NOTIFICATION_FROM
