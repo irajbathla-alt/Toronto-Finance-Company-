@@ -41,12 +41,12 @@ body{margin:0;background:#f6efe5;color:var(--ink);font-family:"DM Sans",sans-ser
 .primary:disabled{opacity:.5;cursor:not-allowed}
 .modal-backdrop{position:fixed;inset:0;background:rgba(19,15,11,.58);backdrop-filter:blur(7px);display:none;align-items:center;justify-content:center;padding:20px;z-index:999}
 .modal-backdrop.show{display:flex}
-.modal{position:relative;width:min(720px,100%);max-height:92vh;background:var(--cream);border-radius:20px;box-shadow:0 30px 90px rgba(0,0,0,.34);overflow:hidden}
+.modal{position:relative;width:min(900px,96vw);max-height:94vh;background:var(--cream);border-radius:22px;box-shadow:0 30px 90px rgba(0,0,0,.34);overflow:hidden}
 .modal-head{display:flex;justify-content:space-between;align-items:flex-start;padding:20px 22px 15px;border-bottom:1px solid var(--line);background:rgba(255,253,249,.95)}
 .modal-brand{font-family:"Cormorant Garamond",serif;font-size:25px;text-transform:uppercase;line-height:.94}
 .modal-sub{margin-top:6px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#9b763f}
 .close{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:18px;cursor:pointer}
-.modal-body{max-height:calc(92vh - 80px);overflow:auto;padding:22px}
+.modal-body{max-height:calc(94vh - 82px);overflow:auto;padding:26px}
 .progress-row{display:flex;justify-content:space-between;gap:12px;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#8b8177;margin-bottom:10px}
 .bar{height:3px;background:rgba(23,19,15,.10);border-radius:999px;overflow:hidden;margin-bottom:24px}
 .bar i{display:block;height:100%;width:0;background:var(--gold);transition:.2s}
@@ -412,10 +412,10 @@ body{margin:0;background:#f6efe5;color:var(--ink);font-family:"DM Sans",sans-ser
     y=drawValueLine(doc,'Business Registration Year:',data.registrationYear,y);
     y=drawValueLine(doc,'Business Bank Account (TD/RBC/BMO/Scotia):',data.bank,y);
 
-    y+=10;
+    y+=44;
     doc.setFont('times','normal');doc.setFontSize(23);
     doc.text('Business Owner Information:',left,y);
-    y+=22;
+    y+=30;
 
     y=drawValueLine(doc,'First Name & Last Name:',data.ownerName,y);
     y=drawValueLine(doc,'Date of Birth:',data.dob,y);
