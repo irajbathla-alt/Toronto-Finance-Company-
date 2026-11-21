@@ -21,13 +21,31 @@ p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
 a{display:inline-block;margin-top:20px;color:var(--blue);font-size:12px;text-decoration:none}
 
 .waiting-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:8px 16px;
+  border-radius:999px;
+  background:rgba(64,107,138,.10);
+  color:var(--blue);
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.02em;
   pointer-events:none;
   opacity:.62;
   text-decoration:none;
+  transition:background .18s ease,color .18s ease,transform .18s ease,opacity .18s ease;
 }
 .waiting-link.ready{
   pointer-events:auto;
   opacity:1;
+  background:var(--blue);
+  color:#fff;
+  box-shadow:0 6px 16px rgba(64,107,138,.18);
+}
+.waiting-link.ready:active{
+  transform:scale(.98);
 }
 </style>
 </head>
