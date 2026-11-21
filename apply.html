@@ -463,7 +463,7 @@ async function bridge(action,payload){
     });
   }catch(_){}
 
-  const deadline=Date.now()+90000;
+  const deadline=Date.now()+25000;
   let lastTransientError=null;
 
   while(Date.now()<deadline){
@@ -484,7 +484,7 @@ async function bridge(action,payload){
         throw error;
       }
     }
-    await new Promise(resolve=>setTimeout(resolve,750));
+    await new Promise(resolve=>setTimeout(resolve,300));
   }
 
   throw lastTransientError||new Error("Your account is taking longer than expected to finish. Please try again.");
@@ -500,11 +500,15 @@ async function syncUser(user,profile){
 }
 async function stageSignupProfile(user,profile){
   const token=await user.getIdToken();
-  return bridge("stageFirebaseSignupProfile",{
+  const staged=bridge("stageFirebaseSignupProfile",{
     firebaseIdToken:token,
     name:profile.name,
     phone:profile.phone
   });
+  return Promise.race([
+    staged,
+    new Promise(resolve=>setTimeout(()=>resolve({ok:false,pending:true}),6000))
+  ]);
 }
 function successText(result,email){
   const id=result?.data?.applicationId||"";
@@ -563,12 +567,13 @@ createButton.addEventListener("click",async()=>{
     if(!current) throw new Error("Your secure Firebase session ended. Please try again.");
 
     if(!current.emailVerified){
-      await stageSignupProfile(current,profile);
+      const stageResult=await stageSignupProfile(current,profile);
       localStorage.setItem(EMAIL_VERIFY_PROFILE_KEY,JSON.stringify({
         name:profile.name,
         phone:profile.phone,
         email:current.email||d.email
       }));
+      if(stageResult?.pending) console.warn("TFC signup profile staging is still finishing in the background.");
 
       const verificationSettings={
         url:"https://torontofinancecompany.com/verify-email.html",
