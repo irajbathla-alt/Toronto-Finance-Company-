@@ -213,15 +213,20 @@ try{
 
     if(!current?.emailVerified){
       showError("Your email verification is not complete yet. Please reopen the verification email and try again.");
-    }else if(!profile){
-      showError("Your email is verified. Please continue to Client Login to access your account.");
     }else{
       const token=await current.getIdToken(true);
-      const synced=await bridge("createAccountFirebaseTest",{
-        firebaseIdToken:token,
-        name:String(profile.name||current.displayName||""),
-        phone:String(profile.phone||"")
-      });
+      let synced;
+      if(profile){
+        synced=await bridge("createAccountFirebaseTest",{
+          firebaseIdToken:token,
+          name:String(profile.name||current.displayName||""),
+          phone:String(profile.phone||"")
+        });
+      }else{
+        synced=await bridge("clientLoginFirebaseTest",{
+          firebaseIdToken:token
+        });
+      }
 
       savePortalSession(synced.data);
       localStorage.removeItem(PROFILE_KEY);
