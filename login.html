@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <meta name="robots" content="noindex,nofollow,noarchive">
 <title>Client Login | Toronto Finance Company</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -483,6 +485,9 @@ function jsonp(action,payload={},timeout=20000){
     document.head.appendChild(script);
   });
 }
+// Warm Apps Script while the client is entering credentials so login can complete faster.
+jsonp("firebaseTestHealth",{},5000).catch(()=>{});
+
 async function preflight(){
   let lastError=null;
   for(let attempt=0;attempt<3;attempt++){
@@ -542,7 +547,7 @@ async function bridgeLogin(firebaseIdToken,profile=null){
         throw error;
       }
     }
-    await new Promise(resolve=>setTimeout(resolve,750));
+    await new Promise(resolve=>setTimeout(resolve,250));
   }
 
   throw lastTransientError||new Error("Your secure login is taking longer than expected. Please try again.");
