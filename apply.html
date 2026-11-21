@@ -507,7 +507,7 @@ async function stageSignupProfile(user,profile){
   });
   return Promise.race([
     staged,
-    new Promise(resolve=>setTimeout(()=>resolve({ok:false,pending:true}),6000))
+    new Promise(resolve=>setTimeout(()=>resolve({ok:false,pending:true}),4000))
   ]);
 }
 function successText(result,email){
@@ -602,7 +602,7 @@ createButton.addEventListener("click",async()=>{
 
     savePortalSession(synced.data);
     localStorage.removeItem(EMAIL_VERIFY_PROFILE_KEY);
-    await signOut(auth);
+    signOut(auth).catch(()=>{});
     $("#password").value="";
     show(
       "Account Ready",
@@ -629,7 +629,7 @@ async function completeGoogleCredential(credential,profile){
 
   const synced=await syncUser(user,profile);
   savePortalSession(synced.data);
-  await signOut(auth);
+  signOut(auth).catch(()=>{});
   show("Account Created",successText(synced,googleEmail)+" Opening your client dashboard...","good");
   openClientDashboard();
 }
