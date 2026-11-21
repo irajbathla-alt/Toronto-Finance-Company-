@@ -389,6 +389,7 @@ const EXPECTED_BUILD="20261110-fb-debug-v8";
 const API_URL=String(window.TFC_CONFIG?.apiUrl||"").trim();
 const SESSION_KEY="tfc-client-auth";
 const LEGACY_KEY="tfc-current-application";
+const EMAIL_VERIFY_PROFILE_KEY="tfc-email-verification-profile";
 
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
@@ -502,7 +503,7 @@ async function preflight(){
   }
   throw lastError||new Error("Secure application service is temporarily unavailable.");
 }
-async function bridgeLogin(firebaseIdToken){
+async function bridgeLogin(firebaseIdToken,profile=null){
   const id=requestId();
 
   try{
@@ -513,7 +514,9 @@ async function bridgeLogin(firebaseIdToken){
       body:JSON.stringify({
         action:"clientLoginFirebaseTest",
         requestId:id,
-        firebaseIdToken
+        firebaseIdToken,
+        name:profile?.name||"",
+        phone:profile?.phone||""
       })
     });
   }catch(_){}
@@ -561,8 +564,17 @@ async function completeLogin(user){
   // The user has just authenticated, so this token is already fresh.
   // Apps Script still verifies it server-side before returning any TFC file.
   const token=await current.getIdToken();
-  const result=await bridgeLogin(token);
+  let localProfile=null;
+  try{
+    const stored=localStorage.getItem(EMAIL_VERIFY_PROFILE_KEY);
+    const parsed=stored?JSON.parse(stored):null;
+    if(parsed&&String(parsed.email||"").trim().toLowerCase()===String(current.email||"").trim().toLowerCase()){
+      localProfile={name:String(parsed.name||""),phone:String(parsed.phone||"")};
+    }
+  }catch(_){}
+  const result=await bridgeLogin(token,localProfile);
   savePortalSession(result.data);
+  localStorage.removeItem(EMAIL_VERIFY_PROFILE_KEY);
   await signOut(auth);
   return result;
 }
