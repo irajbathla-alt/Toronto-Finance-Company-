@@ -18,6 +18,16 @@ p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
 .loader:after{content:"";display:block;width:42%;height:100%;border-radius:999px;background:var(--blue);animation:load 1.05s ease-in-out infinite}
 @keyframes load{0%{transform:translateX(-100%)}100%{transform:translateX(240%)}}
 a{display:inline-block;margin-top:20px;color:var(--blue);font-size:12px;text-decoration:none}
+
+.waiting-link{
+  pointer-events:none;
+  opacity:.62;
+  text-decoration:none;
+}
+.waiting-link.ready{
+  pointer-events:auto;
+  opacity:1;
+}
 </style>
 </head>
 <body>
@@ -27,7 +37,7 @@ a{display:inline-block;margin-top:20px;color:var(--blue);font-size:12px;text-dec
   <h1 id="title">Verifying your email</h1>
   <p id="message">Please keep this page open while we securely finish your account.</p>
   <div class="loader" id="loader"></div>
-  <a id="fallback" href="login.html" hidden>Continue to Client Login</a>
+  <a id="fallback" href="login.html" aria-disabled="true" class="waiting-link">Please wait…</a>
 </div>
 
 <script src="crm-config.js?v=20261109-firebase-test-existing-backend"></script>
@@ -67,7 +77,9 @@ function showError(text){
   title.textContent="Email verified";
   message.textContent=text;
   loader.hidden=true;
-  fallback.hidden=false;
+  fallback.textContent="Continue to Client Login";
+  fallback.classList.add("ready");
+  fallback.removeAttribute("aria-disabled");
 }
 function requestId(){
   if(globalThis.crypto?.randomUUID) return crypto.randomUUID().replace(/-/g,"");
@@ -199,6 +211,16 @@ try{
 
   title.textContent="Email verified";
   message.textContent="Finishing your secure Toronto Finance Company account…";
+  fallback.textContent="Please wait…";
+  fallback.classList.remove("ready");
+  fallback.setAttribute("aria-disabled","true");
+  const fallbackTimer=setTimeout(()=>{
+    if(!fallback.classList.contains("ready")){
+      fallback.textContent="Continue to Client Login";
+      fallback.classList.add("ready");
+      fallback.removeAttribute("aria-disabled");
+    }
+  },12000);
 
   const user=await waitForUser(auth);
   const stored=localStorage.getItem(PROFILE_KEY);
@@ -228,6 +250,7 @@ try{
         });
       }
 
+      clearTimeout(fallbackTimer);
       savePortalSession(synced.data);
       localStorage.removeItem(PROFILE_KEY);
       await signOut(auth);
