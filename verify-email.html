@@ -136,7 +136,7 @@ async function bridge(action,payload){
     });
   }catch(_){}
 
-  const deadline=Date.now()+90000;
+  const deadline=Date.now()+25000;
   let lastTransientError=null;
 
   while(Date.now()<deadline){
@@ -157,7 +157,7 @@ async function bridge(action,payload){
         throw error;
       }
     }
-    await new Promise(resolve=>setTimeout(resolve,750));
+    await new Promise(resolve=>setTimeout(resolve,300));
   }
 
   throw lastTransientError||new Error("Your verified account is taking longer than expected to finish. Please continue to Client Login if needed.");
@@ -185,6 +185,14 @@ function savePortalSession(data){
   }));
   localStorage.setItem(LEGACY_KEY,JSON.stringify(data));
 }
+
+window.addEventListener("pageshow",event=>{
+  if(event.persisted&&fallback){
+    fallback.textContent="Continue to Client Login";
+    fallback.classList.add("ready");
+    fallback.removeAttribute("aria-disabled");
+  }
+});
 
 const params=new URLSearchParams(location.search);
 const mode=params.get("mode");
@@ -221,7 +229,7 @@ try{
       fallback.classList.add("ready");
       fallback.removeAttribute("aria-disabled");
     }
-  },12000);
+  },8000);
 
   const user=await waitForUser(auth);
   const stored=localStorage.getItem(PROFILE_KEY);
