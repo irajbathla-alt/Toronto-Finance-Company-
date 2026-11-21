@@ -1090,6 +1090,10 @@ function clientLoginFirebaseTest(p) {
           if (!recovered || !recovered.ok || !recovered.data) {
             throw new Error((recovered && recovered.error) || 'Your verified Toronto Finance Company account could not be completed.');
           }
+          // The browser cannot read the no-cors POST response directly.
+          // Cache this recovered result under the original login request ID
+          // so the polling frontend can complete immediately without refresh.
+          cacheFirebaseTestResult(requestId,recovered);
           return recovered;
         }
 
