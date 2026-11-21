@@ -237,7 +237,13 @@ try{
   try{profile=stored?JSON.parse(stored):null}catch(_){}
 
   if(!user){
-    showError("Your email is verified. Please continue to Client Login to access your account.");
+    title.textContent="Email verified";
+    message.textContent="Finishing your secure Toronto Finance Company account…";
+    loader.hidden=false;
+    fallback.textContent="Please wait…";
+    fallback.classList.remove("ready");
+    fallback.setAttribute("aria-disabled","true");
+    setTimeout(()=>window.location.replace("login.html"),2500);
   }else{
     await reload(user);
     const current=auth.currentUser;
