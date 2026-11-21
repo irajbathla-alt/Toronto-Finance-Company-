@@ -578,7 +578,18 @@ async function completeLogin(user){
       localProfile={name:String(parsed.name||""),phone:String(parsed.phone||"")};
     }
   }catch(_){}
-  const result=await bridgeLogin(token,localProfile);
+  let result;
+  try{
+    result=await bridgeLogin(token,localProfile);
+  }catch(firstError){
+    const message=String(firstError?.message||firstError||"");
+    if(/taking longer|timed out|could not be reached|not linked to this verified account/i.test(message)){
+      await new Promise(resolve=>setTimeout(resolve,700));
+      result=await bridgeLogin(await current.getIdToken(true),localProfile);
+    }else{
+      throw firstError;
+    }
+  }
   savePortalSession(result.data);
   localStorage.removeItem(EMAIL_VERIFY_PROFILE_KEY);
   signOut(auth).catch(()=>{});
