@@ -498,6 +498,14 @@ async function syncUser(user,profile){
     phone:profile.phone
   });
 }
+async function stageSignupProfile(user,profile){
+  const token=await user.getIdToken();
+  return bridge("stageFirebaseSignupProfile",{
+    firebaseIdToken:token,
+    name:profile.name,
+    phone:profile.phone
+  });
+}
 function successText(result,email){
   const id=result?.data?.applicationId||"";
   return "Account created successfully"+(id?" · "+id:"")+". "+email+" has been added to your Toronto Finance Company file.";
@@ -555,6 +563,7 @@ createButton.addEventListener("click",async()=>{
     if(!current) throw new Error("Your secure Firebase session ended. Please try again.");
 
     if(!current.emailVerified){
+      await stageSignupProfile(current,profile);
       localStorage.setItem(EMAIL_VERIFY_PROFILE_KEY,JSON.stringify({
         name:profile.name,
         phone:profile.phone,
