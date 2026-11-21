@@ -165,7 +165,7 @@ async function bridge(action,payload){
 function waitForUser(auth){
   return new Promise(resolve=>{
     let settled=false;
-    const timer=setTimeout(()=>{if(!settled){settled=true;unsub();resolve(auth.currentUser||null)}},5000);
+    const timer=setTimeout(()=>{if(!settled){settled=true;unsub();resolve(auth.currentUser||null)}},2500);
     const unsub=onAuthStateChanged(auth,user=>{
       if(!settled){
         settled=true;
@@ -229,7 +229,7 @@ try{
       fallback.classList.add("ready");
       fallback.removeAttribute("aria-disabled");
     }
-  },8000);
+  },5000);
 
   const user=await waitForUser(auth);
   const stored=localStorage.getItem(PROFILE_KEY);
@@ -262,7 +262,7 @@ try{
       clearTimeout(fallbackTimer);
       savePortalSession(synced.data);
       localStorage.removeItem(PROFILE_KEY);
-      await signOut(auth);
+      signOut(auth).catch(()=>{});
       title.textContent="Account ready";
       message.textContent="Opening your secure client dashboard…";
       window.location.replace("client-dashboard.html");
