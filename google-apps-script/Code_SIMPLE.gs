@@ -101,6 +101,7 @@ function doPost(e) {
       clientDecision,
       clientChatSend,
       sendSignupNotification,
+      stageFirebaseSignupProfile,
       submitSignedApplication,
       uploadDocument,
       adminLogin,
@@ -850,6 +851,63 @@ function firebaseTestRecoverRecordByVerifiedEmail(firebase) {
   return record;
 }
 
+
+function firebasePendingProfileKey(uid) {
+  return 'tfc-firebase-pending-profile-' + String(uid || '').trim();
+}
+
+function firebaseGetPendingProfile(uid) {
+  const raw = PropertiesService.getScriptProperties().getProperty(firebasePendingProfileKey(uid));
+  if (!raw) return null;
+  try {
+    const profile = JSON.parse(raw);
+    const createdAt = new Date(profile.createdAt || 0).getTime();
+    if (!createdAt || (Date.now() - createdAt) > 7 * 24 * 60 * 60 * 1000) {
+      PropertiesService.getScriptProperties().deleteProperty(firebasePendingProfileKey(uid));
+      return null;
+    }
+    return profile;
+  } catch (_) {
+    return null;
+  }
+}
+
+function firebaseClearPendingProfile(uid) {
+  try {
+    PropertiesService.getScriptProperties().deleteProperty(firebasePendingProfileKey(uid));
+  } catch (_) {}
+}
+
+function stageFirebaseSignupProfile(p) {
+  const requestId = String(p.requestId || '').trim();
+  let result;
+  try {
+    const firebase = firebaseTestVerifyIdToken(p.firebaseIdToken,false);
+    const name = String(p.name || '').trim();
+    const phone = String(p.phone || '').trim();
+
+    if (!name) throw new Error('Name is required');
+    if (phone.replace(/\D/g,'').length < 7) throw new Error('A valid phone number is required');
+
+    PropertiesService.getScriptProperties().setProperty(
+      firebasePendingProfileKey(firebase.uid),
+      JSON.stringify({
+        firebaseUid:firebase.uid,
+        email:firebase.email,
+        name,
+        phone,
+        createdAt:new Date().toISOString()
+      })
+    );
+
+    result = { ok:true, staged:true, email:firebase.email };
+  } catch (err) {
+    result = { ok:false, error:err.message || String(err) };
+  }
+  cacheFirebaseTestResult(requestId,result);
+  return result;
+}
+
 function createAccountFirebaseTest(p) {
   const requestId = String(p.requestId || '').trim();
   let result;
@@ -988,6 +1046,8 @@ function createAccountFirebaseTest(p) {
           email:record.email
         });
 
+    firebaseClearPendingProfile(firebase.uid);
+
     result = {
       ok:true,
       testOnly:true,
@@ -1016,6 +1076,23 @@ function clientLoginFirebaseTest(p) {
     if (!mapped) {
       const existingRow = findRow('email',firebase.email);
       if (!existingRow) {
+        const pending = firebaseGetPendingProfile(firebase.uid);
+        const fallbackName = String((pending && pending.email === firebase.email ? pending.name : '') || p.name || '').trim();
+        const fallbackPhone = String((pending && pending.email === firebase.email ? pending.phone : '') || p.phone || '').trim();
+
+        if (fallbackName && fallbackPhone.replace(/\D/g,'').length >= 7) {
+          const recovered = createAccountFirebaseTest({
+            firebaseIdToken:p.firebaseIdToken,
+            name:fallbackName,
+            phone:fallbackPhone,
+            requestId:''
+          });
+          if (!recovered || !recovered.ok || !recovered.data) {
+            throw new Error((recovered && recovered.error) || 'Your verified Toronto Finance Company account could not be completed.');
+          }
+          return recovered;
+        }
+
         throw new Error('No Toronto Finance Company application is linked to this verified account yet');
       }
 
