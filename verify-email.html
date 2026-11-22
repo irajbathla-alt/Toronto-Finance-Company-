@@ -183,14 +183,18 @@ async function bridge(action,payload){
 function waitForUser(auth){
   return new Promise(resolve=>{
     let settled=false;
-    const timer=setTimeout(()=>{if(!settled){settled=true;unsub();resolve(auth.currentUser||null)}},2500);
+    const finish=user=>{
+      if(settled)return;
+      settled=true;
+      clearTimeout(timer);
+      try{unsub()}catch(_){}
+      resolve(user||auth.currentUser||null);
+    };
+    const timer=setTimeout(()=>finish(auth.currentUser||null),6000);
     const unsub=onAuthStateChanged(auth,user=>{
-      if(!settled){
-        settled=true;
-        clearTimeout(timer);
-        unsub();
-        resolve(user||null);
-      }
+      // Safari/iPhone may briefly emit null while persisted Firebase auth is restoring.
+      // Ignore that transient null and give persistence a short grace period.
+      if(user) finish(user);
     });
   });
 }
