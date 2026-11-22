@@ -183,18 +183,14 @@ async function bridge(action,payload){
 function waitForUser(auth){
   return new Promise(resolve=>{
     let settled=false;
-    const finish=user=>{
-      if(settled)return;
-      settled=true;
-      clearTimeout(timer);
-      try{unsub()}catch(_){}
-      resolve(user||auth.currentUser||null);
-    };
-    const timer=setTimeout(()=>finish(auth.currentUser||null),6000);
+    const timer=setTimeout(()=>{if(!settled){settled=true;unsub();resolve(auth.currentUser||null)}},2500);
     const unsub=onAuthStateChanged(auth,user=>{
-      // Safari/iPhone may briefly emit null while persisted Firebase auth is restoring.
-      // Ignore that transient null and give persistence a short grace period.
-      if(user) finish(user);
+      if(!settled){
+        settled=true;
+        clearTimeout(timer);
+        unsub();
+        resolve(user||null);
+      }
     });
   });
 }
@@ -219,7 +215,6 @@ window.addEventListener("pageshow",event=>{
 const params=new URLSearchParams(location.search);
 const mode=params.get("mode");
 const code=params.get("oobCode");
-const handoffToken=String(params.get("handoff")||"").trim();
 
 try{
   const app=initializeApp(firebaseConfig);
@@ -266,18 +261,7 @@ try{
     fallback.textContent="Please wait…";
     fallback.classList.remove("ready");
     fallback.setAttribute("aria-disabled","true");
-
-    if(handoffToken){
-      const synced=await bridge("completeFirebaseSignupHandoff",{handoffToken});
-      clearTimeout(fallbackTimer);
-      savePortalSession(synced.data);
-      localStorage.removeItem(PROFILE_KEY);
-      title.textContent="Account ready";
-      message.textContent="Opening your secure client dashboard…";
-      window.location.replace("client-dashboard.html");
-    }else{
-      setTimeout(()=>window.location.replace("login.html"),2500);
-    }
+    setTimeout(()=>window.location.replace("login.html"),2500);
   }else{
     await reload(user);
     const current=auth.currentUser;
