@@ -498,25 +498,17 @@ async function syncUser(user,profile){
     phone:profile.phone
   });
 }
-async function stageSignupProfile(user,profile,handoffToken){
-  let lastError=null;
-  for(let attempt=0;attempt<2;attempt++){
-    try{
-      const token=await user.getIdToken(attempt>0);
-      const staged=await bridge("stageFirebaseSignupProfile",{
-        firebaseIdToken:token,
-        name:profile.name,
-        phone:profile.phone,
-        handoffToken
-      });
-      if(staged?.ok&&staged?.handoffReady) return staged;
-      throw new Error(staged?.error||"Secure verification handoff was not confirmed.");
-    }catch(error){
-      lastError=error;
-      if(attempt===0) await new Promise(resolve=>setTimeout(resolve,500));
-    }
-  }
-  throw lastError||new Error("We could not prepare your secure verification link. Please try again.");
+async function stageSignupProfile(user,profile){
+  const token=await user.getIdToken();
+  const staged=bridge("stageFirebaseSignupProfile",{
+    firebaseIdToken:token,
+    name:profile.name,
+    phone:profile.phone
+  });
+  return Promise.race([
+    staged,
+    new Promise(resolve=>setTimeout(()=>resolve({ok:false,pending:true}),4000))
+  ]);
 }
 function successText(result,email){
   const id=result?.data?.applicationId||"";
@@ -575,17 +567,16 @@ createButton.addEventListener("click",async()=>{
     if(!current) throw new Error("Your secure Firebase session ended. Please try again.");
 
     if(!current.emailVerified){
-      const handoffToken=requestId()+requestId();
-      const stageResult=await stageSignupProfile(current,profile,handoffToken);
+      const stageResult=await stageSignupProfile(current,profile);
       localStorage.setItem(EMAIL_VERIFY_PROFILE_KEY,JSON.stringify({
         name:profile.name,
         phone:profile.phone,
-        email:current.email||d.email,
-        handoffToken
+        email:current.email||d.email
       }));
+      if(stageResult?.pending) console.warn("TFC signup profile staging is still finishing in the background.");
 
       const verificationSettings={
-        url:"https://torontofinancecompany.com/verify-email.html?handoff="+encodeURIComponent(handoffToken),
+        url:"https://torontofinancecompany.com/verify-email.html",
         handleCodeInApp:false
       };
 
