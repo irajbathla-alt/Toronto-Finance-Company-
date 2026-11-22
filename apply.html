@@ -500,16 +500,20 @@ async function syncUser(user,profile){
 }
 async function stageSignupProfile(user,profile,handoffToken){
   const token=await user.getIdToken();
-  const staged=bridge("stageFirebaseSignupProfile",{
-    firebaseIdToken:token,
-    name:profile.name,
-    phone:profile.phone,
-    handoffToken
-  });
-  return Promise.race([
-    staged,
-    new Promise(resolve=>setTimeout(()=>resolve({ok:false,pending:true}),4000))
-  ]);
+  for(let attempt=0;attempt<2;attempt++){
+    const staged=await Promise.race([
+      bridge("stageFirebaseSignupProfile",{
+        firebaseIdToken:token,
+        name:profile.name,
+        phone:profile.phone,
+        handoffToken
+      }),
+      new Promise(resolve=>setTimeout(()=>resolve({ok:false,pending:true}),6000))
+    ]);
+    if(staged?.ok&&staged?.handoffReady) return staged;
+    if(attempt===0) await new Promise(resolve=>setTimeout(resolve,500));
+  }
+  throw new Error("We could not prepare your secure verification link. Please try again.");
 }
 function successText(result,email){
   const id=result?.data?.applicationId||"";
@@ -576,7 +580,6 @@ createButton.addEventListener("click",async()=>{
         email:current.email||d.email,
         handoffToken
       }));
-      if(stageResult?.pending) console.warn("TFC signup profile staging is still finishing in the background.");
 
       const verificationSettings={
         url:"https://torontofinancecompany.com/verify-email.html?handoff="+encodeURIComponent(handoffToken),
