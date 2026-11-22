@@ -498,12 +498,13 @@ async function syncUser(user,profile){
     phone:profile.phone
   });
 }
-async function stageSignupProfile(user,profile){
+async function stageSignupProfile(user,profile,handoffToken){
   const token=await user.getIdToken();
   const staged=bridge("stageFirebaseSignupProfile",{
     firebaseIdToken:token,
     name:profile.name,
-    phone:profile.phone
+    phone:profile.phone,
+    handoffToken
   });
   return Promise.race([
     staged,
@@ -567,16 +568,18 @@ createButton.addEventListener("click",async()=>{
     if(!current) throw new Error("Your secure Firebase session ended. Please try again.");
 
     if(!current.emailVerified){
-      const stageResult=await stageSignupProfile(current,profile);
+      const handoffToken=requestId()+requestId();
+      const stageResult=await stageSignupProfile(current,profile,handoffToken);
       localStorage.setItem(EMAIL_VERIFY_PROFILE_KEY,JSON.stringify({
         name:profile.name,
         phone:profile.phone,
-        email:current.email||d.email
+        email:current.email||d.email,
+        handoffToken
       }));
       if(stageResult?.pending) console.warn("TFC signup profile staging is still finishing in the background.");
 
       const verificationSettings={
-        url:"https://torontofinancecompany.com/verify-email.html",
+        url:"https://torontofinancecompany.com/verify-email.html?handoff="+encodeURIComponent(handoffToken),
         handleCodeInApp:false
       };
 
