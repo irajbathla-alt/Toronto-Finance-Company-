@@ -350,67 +350,6 @@ function hideEmailVerifyPopup(){
   if(emailVerifyModal) emailVerifyModal.classList.remove("show");
 }
 emailVerifyOk?.addEventListener("click",hideEmailVerifyPopup);
-
-// The verification email may open in a different app. Recover the verified
-// Firebase session in the original signup tab when the client returns.
-let verificationWatchTimer=null;
-let verificationWatchBusy=false;
-let verificationRedirecting=false;
-function pendingSignupForCurrentUser(){
-  const current=auth.currentUser;
-  if(!current?.email) return null;
-  try{
-    const raw=localStorage.getItem(EMAIL_VERIFY_PROFILE_KEY);
-    const value=raw?JSON.parse(raw):null;
-    if(value&&String(value.email||"").trim().toLowerCase()===String(current.email).trim().toLowerCase()){
-      return {name:String(value.name||""),phone:String(value.phone||""),email:String(value.email||"")};
-    }
-  }catch(_){}
-  return null;
-}
-async function checkVerifiedSignup(){
-  if(verificationWatchBusy||verificationRedirecting||document.hidden) return;
-  const profile=pendingSignupForCurrentUser();
-  if(!profile) return;
-  verificationWatchBusy=true;
-  try{
-    const current=auth.currentUser;
-    if(!current) return;
-    await reload(current);
-    if(!auth.currentUser?.emailVerified) return;
-    const synced=await syncUser(auth.currentUser,profile);
-    if(!synced?.data?.applicationId) throw new Error("Verified account is not ready yet.");
-    verificationRedirecting=true;
-    savePortalSession(synced.data);
-    localStorage.removeItem(EMAIL_VERIFY_PROFILE_KEY);
-    stopVerificationWatch();
-    hideEmailVerifyPopup();
-    show("Account Ready","Email verified. Opening your client dashboard...","good");
-    signOut(auth).catch(()=>{});
-    openClientDashboard();
-  }catch(error){
-    console.warn("TFC verified signup recovery pending:",String(error?.message||error));
-  }finally{
-    verificationWatchBusy=false;
-  }
-}
-function stopVerificationWatch(){
-  if(verificationWatchTimer){clearInterval(verificationWatchTimer);verificationWatchTimer=null;}
-  document.removeEventListener("visibilitychange",onVerificationReturn);
-  window.removeEventListener("focus",onVerificationReturn);
-  window.removeEventListener("pageshow",onVerificationReturn);
-}
-function onVerificationReturn(){
-  if(!document.hidden) void checkVerifiedSignup();
-}
-function startVerificationWatch(){
-  if(verificationWatchTimer) return;
-  verificationWatchTimer=setInterval(onVerificationReturn,6000);
-  document.addEventListener("visibilitychange",onVerificationReturn);
-  window.addEventListener("focus",onVerificationReturn);
-  window.addEventListener("pageshow",onVerificationReturn);
-  void checkVerifiedSignup();
-}
 function show(title,message,type=""){
   statusBox.className="status"+(type?" "+type:"");
   statusBox.innerHTML="<h2></h2><p></p>";
@@ -641,8 +580,11 @@ createButton.addEventListener("click",async()=>{
         handleCodeInApp:false
       };
 
-      // Show "Verification Sent" only after Firebase confirms the email request.
-      await sendEmailVerification(current,verificationSettings);
+      if(newlyCreated){
+        await sendEmailVerification(current,verificationSettings);
+      }else{
+        try{await sendEmailVerification(current,verificationSettings)}catch(_){}
+      }
 
       const verificationEmail=current.email||d.email;
       show(
@@ -652,7 +594,6 @@ createButton.addEventListener("click",async()=>{
       );
       showEmailVerifyPopup(verificationEmail);
       createButton.textContent="Verification Sent";
-      startVerificationWatch();
       return;
     }
 
@@ -743,11 +684,6 @@ try{
   try{if(auth.currentUser) await signOut(auth)}catch(_){}
   show("Google Sign-In Failed",friendlyError(error),"bad");
   busy(false);
-}
-// Recover a pending verification after returning to the signup page.
-if(pendingSignupForCurrentUser()){
-  showEmailVerifyPopup(auth.currentUser.email);
-  startVerificationWatch();
 }
 </script>
 </body>
