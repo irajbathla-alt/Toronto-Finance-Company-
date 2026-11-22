@@ -102,7 +102,6 @@ function doPost(e) {
       clientChatSend,
       sendSignupNotification,
       stageFirebaseSignupProfile,
-      completeFirebaseSignupHandoff,
       submitSignedApplication,
       uploadDocument,
       adminLogin,
@@ -879,166 +878,6 @@ function firebaseClearPendingProfile(uid) {
   } catch (_) {}
 }
 
-
-function firebaseHandoffKey(token) {
-  const clean = String(token || '').trim();
-  if (!/^[a-zA-Z0-9_-]{32,160}$/.test(clean)) throw new Error('Invalid verification handoff token');
-  return 'tfc-firebase-handoff-' + clean;
-}
-
-function firebaseHandoffResultCacheKey(token) {
-  return 'tfc-firebase-handoff-result-' + hash(String(token || '')).slice(0,40);
-}
-
-function completeFirebaseSignupHandoff(p) {
-  const requestId = String(p.requestId || '').trim();
-  const token = String(p.handoffToken || '').trim();
-  let result;
-
-  try {
-    const cache = CacheService.getScriptCache();
-    const resultKey = firebaseHandoffResultCacheKey(token);
-    const cached = cache.get(resultKey);
-    if (cached) {
-      result = JSON.parse(cached);
-      cacheFirebaseTestResult(requestId,result);
-      return result;
-    }
-
-    const props = PropertiesService.getScriptProperties();
-    const raw = props.getProperty(firebaseHandoffKey(token));
-    if (!raw) throw new Error('This verification handoff has expired. Please continue to Client Login.');
-
-    const pending = JSON.parse(raw);
-    const createdAt = new Date(pending.createdAt || 0).getTime();
-    if (!createdAt || (Date.now() - createdAt) > 60 * 60 * 1000) {
-      props.deleteProperty(firebaseHandoffKey(token));
-      throw new Error('This verification handoff has expired. Please continue to Client Login.');
-    }
-
-    const email = String(pending.email || '').trim().toLowerCase();
-    const name = String(pending.name || '').trim();
-    const phone = String(pending.phone || '').trim();
-    const uid = String(pending.firebaseUid || '').trim();
-    const provider = String(pending.provider || 'firebase').trim() || 'firebase';
-
-    if (!uid || !/^\\S+@\\S+\\.\\S+$/.test(email) || !name || phone.replace(/\\D/g,'').length < 7) {
-      throw new Error('Verification handoff data is incomplete.');
-    }
-
-    const lock = LockService.getScriptLock();
-    lock.waitLock(20000);
-
-    let record;
-    let deduplicated = false;
-    try {
-      const existingRow = findRow('email',email);
-      if (existingRow) {
-        record = readRecord(existingRow);
-        deduplicated = true;
-      } else {
-        const now = new Date();
-        const sh = applicationsSheet();
-        const headers = getHeaders(sh);
-        record = {
-          applicationId:nextApplicationIdInSheet(sh,headers),
-          created:now,
-          updated:now,
-          name,
-          email,
-          passwordHash:'',
-          phone,
-          business:'',
-          address:'',
-          city:'',
-          province:'',
-          postal:'',
-          industry:'',
-          revenue:'',
-          requested:'',
-          years:'',
-          purpose:'',
-          status:'Account Created',
-          statements:0,
-          signatureConfirmed:false,
-          signatureConfirmedAt:'',
-          advisor:'',
-          messageTitle:'Welcome',
-          messageBody:'Your account has been created. Please complete your application and upload six recent bank statements.',
-          approvedAmount:'',
-          quote:'',
-          term:'',
-          paymentFrequency:'',
-          paymentAmount:'',
-          numberPayments:'',
-          totalRepayment:'',
-          documentsRequested:'',
-          clientDecision:'',
-          clientDecisionNote:'',
-          clientDecisionAt:'',
-          chatHistory:JSON.stringify([{
-            id:Utilities.getUuid(),
-            sender:'ADVISOR',
-            message:'Your account has been created. Please complete your application and upload six recent bank statements.',
-            at:now.toISOString()
-          }]),
-          notes:'',
-          driveFolderId:'',
-          driveUrl:'',
-          lastNotificationStatus:'',
-          lastNotificationAt:'',
-          lastNotificationError:''
-        };
-        appendRecordToSheet(sh,headers,record);
-
-        appendAuditEvent({
-          applicationId:record.applicationId,
-          actorType:'CLIENT',
-          actorId:record.email,
-          action:'ACCOUNT_CREATED',
-          summary:'Verified email handoff client account created',
-          metadata:{ authProvider:provider, handoff:true }
-        });
-      }
-
-      firebaseTestSaveMapping({
-        uid,
-        email,
-        emailVerified:true,
-        provider
-      },record.applicationId);
-    } finally {
-      lock.releaseLock();
-    }
-
-    const notification = deduplicated
-      ? { ok:true, sent:true, alreadySent:true }
-      : sendSignupNotification({
-          applicationId:record.applicationId,
-          email:record.email
-        });
-
-    firebaseClearPendingProfile(uid);
-    props.deleteProperty(firebaseHandoffKey(token));
-
-    result = {
-      ok:true,
-      data:safeClient({ ...record, documents:[] }),
-      firebase:{ provider, email, emailVerified:true },
-      notification,
-      deduplicated,
-      handoff:true
-    };
-
-    cache.put(resultKey,JSON.stringify(result),600);
-  } catch (err) {
-    result = { ok:false, error:err.message || String(err) };
-  }
-
-  cacheFirebaseTestResult(requestId,result);
-  return result;
-}
-
 function stageFirebaseSignupProfile(p) {
   const requestId = String(p.requestId || '').trim();
   let result;
@@ -1050,31 +889,18 @@ function stageFirebaseSignupProfile(p) {
     if (!name) throw new Error('Name is required');
     if (phone.replace(/\D/g,'').length < 7) throw new Error('A valid phone number is required');
 
-    const createdAt = new Date().toISOString();
-    const stagedProfile = {
-      firebaseUid:firebase.uid,
-      email:firebase.email,
-      name,
-      phone,
-      provider:firebase.provider,
-      createdAt
-    };
-
-    const props = PropertiesService.getScriptProperties();
-    props.setProperty(
+    PropertiesService.getScriptProperties().setProperty(
       firebasePendingProfileKey(firebase.uid),
-      JSON.stringify(stagedProfile)
+      JSON.stringify({
+        firebaseUid:firebase.uid,
+        email:firebase.email,
+        name,
+        phone,
+        createdAt:new Date().toISOString()
+      })
     );
 
-    const handoffToken = String(p.handoffToken || '').trim();
-    if (handoffToken) {
-      props.setProperty(
-        firebaseHandoffKey(handoffToken),
-        JSON.stringify(stagedProfile)
-      );
-    }
-
-    result = { ok:true, staged:true, email:firebase.email, handoffReady:Boolean(handoffToken) };
+    result = { ok:true, staged:true, email:firebase.email };
   } catch (err) {
     result = { ok:false, error:err.message || String(err) };
   }
