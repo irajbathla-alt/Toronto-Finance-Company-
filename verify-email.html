@@ -180,18 +180,30 @@ async function bridge(action,payload){
 
   throw lastTransientError||new Error("Your verified account is taking longer than expected to finish. Please continue to Client Login if needed.");
 }
-function waitForUser(auth){
+async function waitForUser(auth){
+  // Restore the persisted Firebase user before deciding there is no session.
+  // This matters on Android when returning from an email app or custom tab.
+  if(typeof auth.authStateReady==="function"){
+    await Promise.race([
+      auth.authStateReady().catch(()=>{}),
+      new Promise(resolve=>setTimeout(resolve,5000))
+    ]);
+  }
+  if(auth.currentUser) return auth.currentUser;
   return new Promise(resolve=>{
-    let settled=false;
-    const timer=setTimeout(()=>{if(!settled){settled=true;unsub();resolve(auth.currentUser||null)}},2500);
-    const unsub=onAuthStateChanged(auth,user=>{
-      if(!settled){
-        settled=true;
-        clearTimeout(timer);
-        unsub();
-        resolve(user||null);
-      }
-    });
+    let finished=false;
+    let unsubscribe=()=>{};
+    const finish=user=>{
+      if(finished) return;
+      finished=true;
+      clearTimeout(timer);
+      unsubscribe();
+      resolve(user||auth.currentUser||null);
+    };
+    const timer=setTimeout(()=>finish(auth.currentUser),1800);
+    unsubscribe=onAuthStateChanged(auth,user=>{
+      if(user) finish(user);
+    },()=>finish(null));
   });
 }
 function savePortalSession(data){
@@ -255,13 +267,15 @@ try{
   try{profile=stored?JSON.parse(stored):null}catch(_){}
 
   if(!user){
-    title.textContent="Email verified";
-    message.textContent="Finishing your secure Toronto Finance Company account…";
-    loader.hidden=false;
-    fallback.textContent="Please wait…";
-    fallback.classList.remove("ready");
-    fallback.setAttribute("aria-disabled","true");
-    setTimeout(()=>window.location.replace("login.html"),2500);
+    // Firebase verification does not sign a client in across separate browser
+    // storage contexts. Never claim a dashboard session exists or force Login.
+    clearTimeout(fallbackTimer);
+    title.textContent=(mode==="verifyEmail"&&code)?"Email verified":"Continue your verification";
+    message.textContent="If your email opened in a different browser, return to your original signup tab. It will finish your verified account and open the dashboard automatically. Otherwise, continue to Client Login.";
+    loader.hidden=true;
+    fallback.textContent="Continue to Client Login";
+    fallback.classList.add("ready");
+    fallback.removeAttribute("aria-disabled");
   }else{
     await reload(user);
     const current=auth.currentUser;
