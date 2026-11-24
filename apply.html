@@ -350,64 +350,6 @@ function hideEmailVerifyPopup(){
   if(emailVerifyModal) emailVerifyModal.classList.remove("show");
 }
 emailVerifyOk?.addEventListener("click",hideEmailVerifyPopup);
-
-// Email apps may open the verification link in another browser tab. Keep the
-// original signup session ready to complete the verified handoff on return.
-let verificationResumeTimer=null;
-let verificationResumeBusy=false;
-let verificationResumeComplete=false;
-function pendingVerifiedSignup(){
-  const user=auth.currentUser;
-  if(!user?.email)return null;
-  try{
-    const profile=JSON.parse(localStorage.getItem(EMAIL_VERIFY_PROFILE_KEY)||"null");
-    if(profile&&String(profile.email||"").trim().toLowerCase()===String(user.email).trim().toLowerCase()){
-      return {name:String(profile.name||""),phone:String(profile.phone||"")};
-    }
-  }catch(_){}
-  return null;
-}
-async function resumeVerifiedSignup(){
-  if(verificationResumeBusy||verificationResumeComplete||document.hidden)return;
-  const profile=pendingVerifiedSignup();
-  const user=auth.currentUser;
-  if(!profile||!user)return;
-  verificationResumeBusy=true;
-  try{
-    await reload(user);
-    if(!auth.currentUser?.emailVerified)return;
-    const result=await syncUser(auth.currentUser,profile);
-    if(!result?.data?.applicationId)return;
-    verificationResumeComplete=true;
-    stopVerificationResume();
-    savePortalSession(result.data);
-    localStorage.removeItem(EMAIL_VERIFY_PROFILE_KEY);
-    hideEmailVerifyPopup();
-    signOut(auth).catch(()=>{});
-    openClientDashboard();
-  }catch(error){
-    // A temporary connection issue must not discard an already verified user.
-    console.warn("Verified signup handoff will retry:",String(error?.message||error));
-  }finally{
-    verificationResumeBusy=false;
-  }
-}
-function onVerificationReturn(){if(!document.hidden)void resumeVerifiedSignup();}
-function stopVerificationResume(){
-  if(verificationResumeTimer)clearInterval(verificationResumeTimer);
-  verificationResumeTimer=null;
-  window.removeEventListener("focus",onVerificationReturn);
-  window.removeEventListener("pageshow",onVerificationReturn);
-  document.removeEventListener("visibilitychange",onVerificationReturn);
-}
-function startVerificationResume(){
-  if(verificationResumeTimer||verificationResumeComplete)return;
-  verificationResumeTimer=setInterval(onVerificationReturn,5000);
-  window.addEventListener("focus",onVerificationReturn);
-  window.addEventListener("pageshow",onVerificationReturn);
-  document.addEventListener("visibilitychange",onVerificationReturn);
-  void resumeVerifiedSignup();
-}
 function show(title,message,type=""){
   statusBox.className="status"+(type?" "+type:"");
   statusBox.innerHTML="<h2></h2><p></p>";
@@ -652,7 +594,6 @@ createButton.addEventListener("click",async()=>{
       );
       showEmailVerifyPopup(verificationEmail);
       createButton.textContent="Verification Sent";
-      startVerificationResume();
       return;
     }
 
@@ -744,9 +685,6 @@ try{
   show("Google Sign-In Failed",friendlyError(error),"bad");
   busy(false);
 }
-// A reload of the original signup tab must not lose its verified handoff.
-if(typeof auth.authStateReady==="function")await auth.authStateReady();
-if(pendingVerifiedSignup())startVerificationResume();
 </script>
 </body>
 </html>
