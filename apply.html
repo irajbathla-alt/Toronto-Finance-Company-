@@ -8,6 +8,9 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Apply | Toronto Finance Company</title>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
@@ -567,24 +570,27 @@ createButton.addEventListener("click",async()=>{
     if(!current) throw new Error("Your secure Firebase session ended. Please try again.");
 
     if(!current.emailVerified){
-      const stageResult=await stageSignupProfile(current,profile);
+      // Save the pending profile before sending the email, so a fast click
+      // on the verification link cannot race the local profile write.
       localStorage.setItem(EMAIL_VERIFY_PROFILE_KEY,JSON.stringify({
         name:profile.name,
         phone:profile.phone,
         email:current.email||d.email
       }));
-      if(stageResult?.pending) console.warn("TFC signup profile staging is still finishing in the background.");
-
       const verificationSettings={
         url:"https://torontofinancecompany.com/verify-email.html",
         handleCodeInApp:false
       };
-
-      if(newlyCreated){
-        await sendEmailVerification(current,verificationSettings);
-      }else{
-        try{await sendEmailVerification(current,verificationSettings)}catch(_){}
-      }
+      // Profile staging and Firebase email delivery are independent requests.
+      // Start both immediately; the popup still waits for the same stage
+      // result and an acknowledged email send as in the original flow.
+      const stagePromise=stageSignupProfile(current,profile);
+      const emailPromise=sendEmailVerification(current,verificationSettings)
+        .then(()=>({sent:true}),error=>({sent:false,error}));
+      const stageResult=await stagePromise;
+      if(stageResult?.pending) console.warn("TFC signup profile staging is still finishing in the background.");
+      const emailResult=await emailPromise;
+      if(newlyCreated&&!emailResult.sent) throw emailResult.error;
 
       const verificationEmail=current.email||d.email;
       show(
