@@ -2379,42 +2379,6 @@ button,input{font:inherit}
 .tfc-app-notice{margin-top:9px;font-size:9px;line-height:1.45;color:#817367}.tfc-app-typed{display:none;margin-top:12px}.tfc-app-typed.show{display:block}.tfc-app-typed input{width:100%;padding:12px;border:1px solid #cfc3b5;border-radius:10px;background:#fff}.tfc-app-preview{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:28px;text-align:center;padding:13px}
 .tfc-app-success{text-align:center;padding:26px 4px}.tfc-app-success-mark{width:56px;height:56px;border-radius:50%;border:1px solid rgba(47,133,90,.3);color:#2f855a;display:grid;place-items:center;margin:0 auto 14px;font-size:24px}.tfc-app-success h3{font-family:"Cormorant Garamond",serif;font-size:30px;font-weight:400;text-transform:uppercase;margin:0 0 8px}.tfc-app-success p{font-size:11px;color:var(--muted);max-width:430px;margin:0 auto 18px}.tfc-app-success-actions{display:grid;gap:8px}
 @media(max-width:700px){.tfc-app-overlay{padding:20px}.tfc-app-card{width:min(430px,92vw);height:min(620px,74vh);max-height:74vh;border-radius:22px}.tfc-app-body{height:calc(100% - 82px);max-height:none;padding:18px}.tfc-app-question h3{font-size:clamp(11px,3.2vw,16px);white-space:nowrap}}
-
-/* Client Dashboard header only: keep branding, portal badge and logout
-   aligned and fully visible on narrow phone screens. */
-@media (max-width:760px){
-  #portalShell > header.top{
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:10px;
-    padding:14px 12px 13px;
-  }
-  #portalShell > header.top > div:first-child{
-    width:100%;
-    min-width:0;
-    text-align:center;
-  }
-  #portalShell > header.top .brand{
-    max-width:100%;
-    white-space:normal;
-    font-size:clamp(19px,5.1vw,23px)!important;
-    line-height:1.05!important;
-  }
-  #portalShell > header.top .candidate-top-actions{
-    width:100%;
-    min-width:0;
-    justify-content:center;
-    flex-wrap:wrap;
-    gap:8px;
-  }
-  #portalShell > header.top .sample,
-  #portalShell > header.top .candidate-logout{
-    font-size:clamp(7px,1.8vw,8px);
-    padding:8px 11px;
-    white-space:nowrap;
-  }
-}
 </style>
 </head>
 <body>
