@@ -180,27 +180,18 @@ async function bridge(action,payload){
 
   throw lastTransientError||new Error("Your verified account is taking longer than expected to finish. Please continue to Client Login if needed.");
 }
-async function waitForUser(auth){
-  // Wait for Firebase to restore the initial browser session before deciding
-  // whether Gmail opened this page in an independent browser context.
-  if(typeof auth.authStateReady==="function"){
-    try{await auth.authStateReady()}catch(_){}
-  }
-  if(auth.currentUser)return auth.currentUser;
+function waitForUser(auth){
   return new Promise(resolve=>{
     let settled=false;
-    let unsubscribe=()=>{};
-    const finish=user=>{
-      if(settled)return;
-      settled=true;
-      clearTimeout(timer);
-      unsubscribe();
-      resolve(user||auth.currentUser||null);
-    };
-    const timer=setTimeout(()=>finish(auth.currentUser),2000);
-    unsubscribe=onAuthStateChanged(auth,user=>{
-      if(user)finish(user);
-    },()=>finish(null));
+    const timer=setTimeout(()=>{if(!settled){settled=true;unsub();resolve(auth.currentUser||null)}},2500);
+    const unsub=onAuthStateChanged(auth,user=>{
+      if(!settled){
+        settled=true;
+        clearTimeout(timer);
+        unsub();
+        resolve(user||null);
+      }
+    });
   });
 }
 function savePortalSession(data){
@@ -264,16 +255,13 @@ try{
   try{profile=stored?JSON.parse(stored):null}catch(_){}
 
   if(!user){
-    // A verification link is not an authenticated sign-in on a new browser.
-    // Do not force Login while the original signup tab can still complete
-    // the verified handoff securely when the client returns to it.
-    clearTimeout(fallbackTimer);
-    title.textContent="Email verification complete";
-    message.textContent="If Gmail opened this link in a separate browser, return to your original signup tab. Your verified account will open the Client Dashboard automatically. Otherwise, continue to Client Login.";
-    loader.hidden=true;
-    fallback.textContent="Continue to Client Login";
-    fallback.classList.add("ready");
-    fallback.removeAttribute("aria-disabled");
+    title.textContent="Email verified";
+    message.textContent="Finishing your secure Toronto Finance Company account…";
+    loader.hidden=false;
+    fallback.textContent="Please wait…";
+    fallback.classList.remove("ready");
+    fallback.setAttribute("aria-disabled","true");
+    setTimeout(()=>window.location.replace("login.html"),2500);
   }else{
     await reload(user);
     const current=auth.currentUser;
