@@ -435,6 +435,9 @@ function jsonp(action,payload={},timeout=20000){
     document.head.appendChild(script);
   });
 }
+// Warm the existing Apps Script endpoint while the client fills in the form.
+// This is a read-only, non-blocking request; signup never depends on it.
+jsonp("firebaseTestHealth",{},5000).catch(()=>{});
 async function preflight(){
   let lastError=null;
   for(let attempt=0;attempt<3;attempt++){
