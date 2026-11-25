@@ -3892,7 +3892,7 @@ async function sendPortalChat(retryId=''){
     chatSend.disabled=false;
   }
 }
-chatSend.addEventListener('click',sendPortalChat);
+chatSend.addEventListener('click',()=>{void sendPortalChat();});
 chatInput.addEventListener('input',()=>{ delete chatInput.dataset.messageId; });
 chatInput.addEventListener('keydown',e=>{
   if(e.key==='Enter'){
