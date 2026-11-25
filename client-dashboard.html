@@ -817,6 +817,45 @@ button,input{font:inherit}
   color:#fff;
   border-bottom-right-radius:4px;
 }
+/* Only newly composed chat bubbles receive transient delivery feedback. */
+.chat-bubble.chat-outgoing{animation:tfcChatArrive .2s ease-out both}
+@keyframes tfcChatArrive{
+  from{opacity:.5;transform:translateY(7px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.chat-delivery{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:5px;
+  margin-top:5px;
+  font-size:8px;
+  color:rgba(255,255,255,.75);
+}
+.chat-delivery.sending::before{
+  content:'';
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:currentColor;
+  animation:tfcChatPulse .9s ease-in-out infinite;
+}
+@keyframes tfcChatPulse{
+  50%{opacity:.35;transform:scale(.65)}
+}
+.chat-delivery.failed{color:#ffd9cc}
+.chat-delivery button{
+  border:0;
+  padding:0;
+  background:transparent;
+  color:#fff;
+  font:inherit;
+  text-decoration:underline;
+  cursor:pointer;
+}
+@media(prefers-reduced-motion:reduce){
+  .chat-bubble.chat-outgoing,.chat-delivery.sending::before{animation:none}
+}
 .chat-compose{
   display:grid;
   grid-template-columns:1fr auto;
@@ -2871,6 +2910,8 @@ let crmRefreshApplicationId='';
 let crmRefreshFailures=0;
 let crmHealthReady=false;
 let portalConversationSignature='';
+let portalChatLocalMessages=[];
+let portalChatSending=false;
 let pendingMoreInfo=false;
 function crmIsTrue(v){
   return v===true||['true','1','yes'].includes(String(v||'').trim().toLowerCase());
@@ -3718,23 +3759,42 @@ function parsePortalChatHistory(value){
     return [];
   }
 }
-function addChatBubble(senderType,message){
+function addChatBubble(senderType,message,delivery='',messageId=''){
   if(!message) return;
   const bubble=document.createElement('div');
-  bubble.className='chat-bubble '+(senderType==='CLIENT'?'client':'advisor');
+  bubble.className='chat-bubble '+(senderType==='CLIENT'?'client':'advisor')+(delivery?' chat-outgoing':'');
   bubble.textContent=String(message);
+  if(delivery){
+    const status=document.createElement('div');
+    status.className='chat-delivery '+delivery;
+    status.setAttribute('role','status');
+    if(delivery==='failed'){
+      status.appendChild(document.createTextNode('Not confirmed · '));
+      const retry=document.createElement('button');
+      retry.type='button';
+      retry.textContent='Retry';
+      retry.addEventListener('click',()=>{void sendPortalChat(messageId)});
+      status.appendChild(retry);
+    }else{
+      status.textContent=delivery==='sending'?'Sending…':'Sent';
+    }
+    bubble.appendChild(status);
+  }
   chatHistory.appendChild(bubble);
 }
 function renderPortalConversation(){
   if(!liveClientReady()){
+    portalChatLocalMessages=[];
     portalConversationSignature='';
     chatHistory.replaceChildren();
     return;
   }
 
+  const currentApplicationId=String(crmClient.applicationId||'');
   const history=parsePortalChatHistory(crmClient.chatHistory);
   const entries=history.length
     ? history.map(entry=>({
+        id:String(entry.id||''),
         sender:String(entry.sender||'ADVISOR').toUpperCase(),
         message:String(entry.message||'')
       }))
@@ -3746,27 +3806,51 @@ function renderPortalConversation(){
         ...(crmClient.clientDecisionNote ? [{sender:'CLIENT',message:String(crmClient.clientDecisionNote)}] : [])
       ];
 
-  const signature=String(crmClient.applicationId||'')+'|'+JSON.stringify(entries);
+  // The server's message ID is authoritative. Keep local bubbles visible
+  // through background CRM refreshes until their ID appears in history.
+  const confirmedIds=new Set(entries.map(entry=>entry.id).filter(Boolean));
+  portalChatLocalMessages=portalChatLocalMessages.filter(entry=>
+    entry.applicationId===currentApplicationId&&!confirmedIds.has(entry.id)
+  );
+  const outgoing=portalChatLocalMessages.map(entry=>({
+    id:entry.id,sender:'CLIENT',message:entry.message,delivery:entry.status
+  }));
+  const signature=currentApplicationId+'|'+JSON.stringify([...entries,...outgoing]);
   if(signature===portalConversationSignature) return;
 
   const nearBottom=(chatHistory.scrollHeight-chatHistory.scrollTop-chatHistory.clientHeight)<48;
   chatHistory.replaceChildren();
   entries.forEach(entry=>addChatBubble(entry.sender,entry.message));
+  outgoing.forEach(entry=>addChatBubble(entry.sender,entry.message,entry.delivery,entry.id));
   portalConversationSignature=signature;
 
   if(nearBottom){
     requestAnimationFrame(()=>{ chatHistory.scrollTop=chatHistory.scrollHeight; });
   }
 }
-async function sendPortalChat(){
-  const message=chatInput.value.trim();
-  if(!message||!liveClientReady()) return;
+async function sendPortalChat(retryId=''){
+  if(!liveClientReady()||portalChatSending)return;
   const requestApplicationId=String(crmClient.applicationId||'');
   const requestEmail=String(crmClient.email||'');
-  const messageId=chatInput.dataset.messageId||
-    (crypto.randomUUID?crypto.randomUUID():'MSG-'+Date.now()+'-'+Math.random().toString(36).slice(2));
-  chatInput.dataset.messageId=messageId;
+  const retry=retryId?portalChatLocalMessages.find(entry=>
+    entry.id===retryId&&entry.applicationId===requestApplicationId&&entry.status==='failed'
+  ):null;
+  if(retryId&&!retry)return;
+  const message=retry?retry.message:chatInput.value.trim();
+  if(!message)return;
+  const messageId=retry?retry.id:(chatInput.dataset.messageId||
+    (crypto.randomUUID?crypto.randomUUID():'MSG-'+Date.now()+'-'+Math.random().toString(36).slice(2)));
+  const outgoing=retry||{id:messageId,applicationId:requestApplicationId,message,status:'sending'};
+  if(!retry){
+    portalChatLocalMessages.push(outgoing);
+    chatInput.value='';
+    delete chatInput.dataset.messageId;
+  }
+  outgoing.status='sending';
+  portalChatSending=true;
   chatSend.disabled=true;
+  // Display immediately, independently of the Apps Script round-trip.
+  renderPortalConversation();
 
   try{
     let result=await crmApi(CURRENT_CRM_ACTIONS.clientChatSend,{
@@ -3787,21 +3871,24 @@ async function sendPortalChat(){
     }
 
     if(!result?.ok) throw new Error(result?.error||'Your message could not be sent.');
-    if(!liveClientReady()||String(crmClient.applicationId||'')!==requestApplicationId) return;
+    if(!liveClientReady()||String(crmClient.applicationId||'')!==requestApplicationId)return;
+    outgoing.status='sent';
     crmClient={...crmClient,...(result.data||{})};
     saveCurrentClient(crmClient);
     pendingMoreInfo=false;
-    chatInput.value='';
-    delete chatInput.dataset.messageId;
     chatInput.placeholder='Send a message to your advisor...';
     renderPortalState(crmClient);
     renderPortalConversation();
-    chatHistory.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
   }catch(error){
-    const workspace=document.getElementById('approvalWorkspace');
-    portalModeHelper.textContent=error.message||'Your message could not be sent.';
-    workspace?.scrollIntoView({behavior:'smooth',block:'nearest'});
+    if(liveClientReady()&&String(crmClient.applicationId||'')===requestApplicationId){
+      // A timeout does not prove delivery failed; retry uses the SAME ID,
+      // which the existing Apps Script deduplicates if it already arrived.
+      outgoing.status='failed';
+      renderPortalConversation();
+      console.warn('Advisor chat delivery not confirmed:',error);
+    }
   }finally{
+    portalChatSending=false;
     chatSend.disabled=false;
   }
 }
@@ -4070,6 +4157,7 @@ function showCandidateLogin(message=''){
     crmRefreshFailures=0;
   }
   crmClient=null;
+  portalChatLocalMessages=[];
   portalConversationSignature='';
   chatHistory.replaceChildren();
   portalShell.hidden=true;
