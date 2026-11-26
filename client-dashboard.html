@@ -235,6 +235,9 @@ button,input{font:inherit}
 .route.xuper .route-logo strong{color:#d9402d}
 .route.driven{background:linear-gradient(145deg,#f5fbf8,#edf7f3);border-color:rgba(32,116,88,.20)}
 .route.driven .route-logo strong{color:#246b56}
+.route.afn{background:linear-gradient(145deg,#f5f9fc,#edf3f8);border-color:rgba(46,93,125,.20)}
+.route.afn .route-logo strong{color:#305c79}
+.route.afn h2{font-size:clamp(20px,2.7vw,31px);letter-spacing:-.025em;white-space:nowrap}
 .route.tfc{background:linear-gradient(145deg,#fffaf2,#f3e5cf);border-color:rgba(185,137,63,.42)}
 
 .route.tfc .route-logo strong{color:#9b7137}
@@ -2577,6 +2580,18 @@ button,input{font:inherit}
         <p>Continue directly to Driven's secure small-business financing application.</p>
         <div class="arrow">↗</div>
       </article>
+
+      <article class="route afn" data-url="https://app.advancefundsnetwork.com/application/OuwBiO97ZAbeSOkJeUZyMzSlqUF3?partner=fA2Z6qh9r1O6xW1REOqeyWtcYdF2">
+        <div class="route-logo"><img src="https://www.google.com/s2/favicons?domain=advancefundsnetwork.ca&amp;sz=128" alt=""><strong>Advance Funds Network</strong></div>
+        <div class="route-kicker">Direct Application</div>
+        <h2>Advance Funds Network</h2>
+        <div class="card-actions">
+          <button class="card-action apply" type="button" data-action="apply">Apply Now</button>
+          <button class="card-action more" type="button" data-action="more">Know More</button>
+        </div>
+        <p>Explore business financing through Advance Funds Network using your dedicated partner application.</p>
+        <div class="arrow">↗</div>
+      </article>
     </section>
     <div class="carousel-controls">
       <button class="carousel-arrow" id="carouselPrev" type="button" aria-label="Previous lender">←</button>
@@ -3497,6 +3512,31 @@ const lenderCriteria={
       {name:'MCA Alternative',desc:'Structured term financing for businesses looking for an alternative before resorting to a merchant cash advance.'}
     ],
     note:'Driven positions this product for cash-flow gaps, growth initiatives, repeat borrowers and businesses seeking an MCA alternative. Approved customers choose their amount and term; funding can occur within 24–48 hours once onboarding and required documents are completed. Minimum requirements are for pre-screening only. Final eligibility, available amount and terms are subject to Driven review and underwriting.'
+  },
+  afn:{
+    title:'Advance Funds Network',
+    intro:'A business-financing network serving established Canadian businesses, with working-capital funding, term loans, business lines of credit and other solutions.',
+    highlights:[
+      {value:'1 year',label:'Minimum time in business'},
+      {value:'$15K/mo',label:'General minimum revenue'},
+      {value:'500+',label:'General minimum credit'}
+    ],
+    eligibility:[
+      'Canadian-registered business operating for at least 1 year',
+      'General screening: $15,000+ in average monthly revenue (about $180,000 annually)',
+      'General screening: personal credit score of 500 or higher',
+      'Completed online application and usually the last 3 months of business bank statements',
+      'AFN Access programs have stricter criteria: $35,000+ average monthly deposits and 6 months of Canadian business bank statements',
+      'Individual products may require stronger credit, longer operating history or other documentation'
+    ],
+    products:[
+      {name:'Working Capital & Merchant Cash Advance',desc:'Short-term access to cash based on established business sales; repayment structure and costs vary by offer.'},
+      {name:'Business Term Loans',desc:'Structured financing for expansion, inventory, payroll or other defined business needs.'},
+      {name:'Business Line of Credit',desc:'Flexible access to approved credit for ongoing cash-flow needs; qualification is more selective for some programs.'},
+      {name:'Debt Consolidation',desc:'Potential refinancing or consolidation of existing business obligations, subject to cash flow and lender assessment.'},
+      {name:'Equipment Financing',desc:'Options for eligible equipment purchases, subject to the equipment and applicant profile.'}
+    ],
+    note:'Advance Funds Network publishes general Canadian eligibility of 1 year in business, $15,000 monthly revenue and a 500+ credit score. Its separate AFN Access criteria are more restrictive, and product-specific standards vary. Same-day decisions or funding may be possible but are not guaranteed. No upfront application fee is advertised. Actual approval, documents, credit inquiry, pricing, repayment schedule and funding amount depend on the selected financing provider and its due diligence.'
   }};
 
 function lenderKey(card){
@@ -3504,6 +3544,7 @@ function lenderKey(card){
   if(card.classList.contains('journey')) return 'journey';
   if(card.classList.contains('merchant')) return 'merchant';
   if(card.classList.contains('driven')) return 'driven';
+  if(card.classList.contains('afn')) return 'afn';
   return 'xuper';
 }
 function openCriteria(card){
