@@ -3610,7 +3610,8 @@ function openCriteria(card){
 
   criteriaNote.textContent=data.note;
 
-  // Anchor Know More around the active lender card instead of the viewport.
+  // Keep the original lender-centered position without approval.
+  // With an approval visible, center Know More between the two cards.
   const cardRect=card.getBoundingClientRect();
   criteriaModal.classList.add('show');
   criteriaModal.setAttribute('aria-hidden','false');
@@ -3618,8 +3619,18 @@ function openCriteria(card){
   requestAnimationFrame(()=>{
     const panelRect=criteriaCard.getBoundingClientRect();
     const edge=12;
-    const desiredX=cardRect.left+(cardRect.width/2);
-    const desiredY=cardRect.top+(cardRect.height/2);
+    const lenderCenterX=cardRect.left+cardRect.width/2;
+    const lenderCenterY=cardRect.top+cardRect.height/2;
+    const approvalRect=fundingRow.classList.contains('has-approval')&&
+      approvalSideSample.classList.contains('visible')
+        ? approvalSideSample.getBoundingClientRect()
+        : null;
+    const desiredX=approvalRect
+      ? (lenderCenterX+approvalRect.left+approvalRect.width/2)/2
+      : lenderCenterX;
+    const desiredY=approvalRect
+      ? (lenderCenterY+approvalRect.top+approvalRect.height/2)/2
+      : lenderCenterY;
     const halfW=panelRect.width/2;
     const halfH=panelRect.height/2;
     const centerX=Math.max(edge+halfW,Math.min(window.innerWidth-edge-halfW,desiredX));
