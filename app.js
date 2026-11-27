@@ -202,10 +202,9 @@ function landing(){
           <button type="button" class="btn btn-ghost" data-go="apply">Apply Now ↗</button>
           <button type="button" class="btn btn-gold">Check Eligibility</button>
         </div>
-        <div class="tfc-home-proof" aria-label="Toronto Finance Company services">
-          <span><strong>4</strong> Funding Solutions</span>
-          <span><strong>5+</strong> Canadian Financing Partners</span>
-          <span><strong>24 HRS</strong> Potential Initial Response</span>
+        <div class="tfc-home-proof" aria-label="Toronto Finance Company funding options and lending partners">
+          <span><strong>4</strong> Funding Options</span>
+          <span><strong>5+</strong> Lending Partners</span>
         </div>
         <div class="tfc-home-contact" aria-label="Contact Toronto Finance Company">
           <div class="tfc-home-contact-actions">
@@ -351,6 +350,8 @@ const tfcHomePunjabi={
   "Call Us": "ਕਾਲ ਕਰੋ",
   "Email Us": "ਈਮੇਲ ਕਰੋ",
   "Funding Solutions": "ਫੰਡਿੰਗ ਸਲਿਊਸ਼ਨਜ਼",
+  "Funding Options": "ਫੰਡਿੰਗ ਆਪਸ਼ਨਜ਼",
+  "Lending Partners": "ਲੈਂਡਿੰਗ ਪਾਰਟਨਰਜ਼",
   "Canadian Financing Partners": "ਕੈਨੇਡੀਅਨ ਫਾਈਨੈਂਸਿੰਗ ਪਾਰਟਨਰਜ਼",
   "Potential Initial Response": "ਸ਼ੁਰੂਆਤੀ ਜਵਾਬ ਦੀ ਸੰਭਾਵਨਾ",
   "All approvals are subject to lender’s discretion & due diligence.": "ਸਾਰੀਆਂ ਅਪਰੂਵਲਜ਼ ਲੈਂਡਰ ਦੇ ਫੈਸਲੇ ਅਤੇ ਡਿਊ ਡਿਲੀਜੈਂਸ 'ਤੇ ਨਿਰਭਰ ਹਨ।",
