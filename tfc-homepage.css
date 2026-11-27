@@ -1012,3 +1012,11 @@
   .tfc-home .tfc-home-slide-title{font-size:clamp(18px,5.4vw,21px)}
   .tfc-home.is-punjabi .tfc-home-slide-title{font-size:clamp(16px,4.6vw,19px)}
 }
+
+
+/* Keep the carousel cards genuinely rectangular: remove the curved
+   top/bottom screen masks that previously cut into their edges. */
+.tfc-home .tfc-home-screen::before,
+.tfc-home .tfc-home-screen::after{
+  display:none;
+}
