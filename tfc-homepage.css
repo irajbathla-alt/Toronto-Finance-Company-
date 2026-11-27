@@ -957,12 +957,13 @@
    Scoped strictly to the four homepage carousel cards. */
 .tfc-home .tfc-home-slide{
   background:
-    radial-gradient(ellipse 90% 92% at 107% 108%,rgba(208,165,112,.19) 0%,rgba(154,112,76,.13) 39%,transparent 75%),
-    radial-gradient(circle at 112% 124%,transparent 0 40%,rgba(219,178,128,.25) 40.12%,transparent 40.42%),
-    linear-gradient(125deg,#37291f 0%,#423025 63%,#34251c 100%);
-  border:1px solid rgba(232,204,169,.75);
+    linear-gradient(118deg,transparent 0%,rgba(255,222,174,.025) 24%,rgba(255,231,192,.16) 36%,rgba(255,234,198,.025) 46%,transparent 61%),
+    radial-gradient(ellipse 95% 90% at 108% 108%,rgba(226,170,98,.29) 0%,rgba(157,101,57,.17) 42%,transparent 75%),
+    radial-gradient(circle at 112% 124%,transparent 0 40%,rgba(246,196,125,.34) 40.12%,transparent 40.48%),
+    linear-gradient(135deg,#2f2119 0%,#61422d 19%,#422d21 40%,#6a472f 55%,#3c291f 76%,#2d2019 100%);
+  border:1px solid #b98955;
   border-radius:4px;
-  box-shadow:0 12px 36px rgba(18,10,5,.17);
+  box-shadow:inset 0 1px 0 rgba(255,223,174,.55),inset 1px 0 0 rgba(246,197,132,.17),inset 0 -1px 0 rgba(32,17,9,.45),0 12px 36px rgba(18,10,5,.2);
 }
 .tfc-home .tfc-home-slide-tag{
   color:#e9d7bd;
