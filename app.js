@@ -234,6 +234,17 @@ function landing(){
               <span class="tfc-home-contact-label">Email Us</span>
               <span class="tfc-home-contact-detail">info@torontofinancecompany.com</span>
             </a>
+            <a class="tfc-home-contact-item" href="https://www.instagram.com/torontofinancecompany_/" target="_blank" rel="noopener noreferrer" aria-label="Toronto Finance Company on Instagram">
+              <span class="tfc-home-contact-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5"/>
+                  <circle cx="12" cy="12" r="4"/>
+                  <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+                </svg>
+              </span>
+              <span class="tfc-home-contact-label">Instagram</span>
+              <span class="tfc-home-contact-detail">@torontofinancecompany_</span>
+            </a>
           </div>
         </div>
         <footer class="tfc-home-footer">All approvals are subject to lender’s discretion &amp; due diligence.</footer>
