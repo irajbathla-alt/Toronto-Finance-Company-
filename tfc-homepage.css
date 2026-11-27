@@ -817,3 +817,33 @@
 @media(prefers-reduced-motion:reduce){
   .tfc-home-slide,.tfc-home-contact-icon{transition:none}
 }
+
+/* Pure-white homepage typography on dark surfaces, English and Punjabi.
+   Light call-to-action pills and icon circles keep their contrasting dark text. */
+.tfc-home .tfc-vfc-nav .brand,
+.tfc-home #tfcHomeLanguageSwitch,
+.tfc-home .tfc-vfc-login,
+.tfc-home .tfc-vfc-dropdown a,
+.tfc-home .tfc-home-hero h1,
+.tfc-home .tfc-home-hero h1 span+span,
+.tfc-home .tfc-home-hero p,
+.tfc-home .tfc-home-slide-tag,
+.tfc-home .tfc-home-slide-title,
+.tfc-home .tfc-home-slide-amount,
+.tfc-home .tfc-home-slide-description,
+.tfc-home .tfc-home-slide-foot > span,
+.tfc-home .tfc-home-controls button,
+.tfc-home .tfc-home-controls span,
+.tfc-home .tfc-home-footer,
+.tfc-home .tfc-home-detail,
+.tfc-home .tfc-home-detail-tag,
+.tfc-home .tfc-home-detail h2,
+.tfc-home .tfc-home-detail-amount,
+.tfc-home .tfc-home-detail h3,
+.tfc-home .tfc-home-detail p,
+.tfc-home .tfc-home-detail li,
+.tfc-home .tfc-home-features h3,
+.tfc-home .tfc-home-features p,
+.tfc-home .tfc-home-detail .tfc-home-detail-note {
+  color:#fff;
+}
