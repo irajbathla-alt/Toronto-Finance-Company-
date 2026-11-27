@@ -1,0 +1,85 @@
+/* Adapted from the alternate-lender-list product-carousel homepage.
+   Scoped to the Toronto Finance Company public landing only. */
+.landing.tfc-home{min-height:100vh;isolation:isolate}
+.tfc-home .nav{height:68px;min-height:68px;padding:0 clamp(16px,5vw,65px);border-bottom:1px solid rgba(202,165,111,.13)}
+.tfc-home .nav .brand{font-size:clamp(10px,1.1vw,13px);letter-spacing:.095em;line-height:1.25;max-width:225px}
+.tfc-home .nav .navlinks{gap:clamp(12px,2.25vw,29px)}
+.tfc-home .nav .navlinks button{font-size:10px}
+.tfc-home .nav .pill{background:rgba(185,137,63,.13);border-color:rgba(185,137,63,.45)!important;color:#e9c48e}
+.tfc-home-main{width:100%;max-width:1200px;margin:0 auto;position:relative;z-index:1;text-align:center;padding:0 12px 24px}
+.tfc-home-hero{padding:clamp(24px,4.5vw,60px) 12px 12px}
+.tfc-home-hero h1{font-family:"Cormorant Garamond",Georgia,serif;font-weight:400;font-size:clamp(34px,6.2vw,67px);line-height:.95;letter-spacing:.015em;text-transform:uppercase;margin:0 auto;max-width:100%;color:#f7f0e6}
+.tfc-home-hero h1 span{display:block}
+.tfc-home-hero h1 span+span{font-size:.77em;margin-top:5px;color:#d9b27a}
+.tfc-home-hero p{font-size:clamp(9px,1vw,12px);font-weight:500;letter-spacing:.18em;color:#c7ad8a;margin:14px auto 2px;text-transform:uppercase}
+.tfc-home-screen{height:clamp(270px,33vw,310px);width:100%;max-width:1060px;position:relative;overflow:hidden;margin:9px auto 0;touch-action:pan-y;outline-offset:4px}
+.tfc-home-screen::before,.tfc-home-screen::after{content:"";position:absolute;left:-10%;width:120%;height:66px;background:#1c160f;z-index:10;pointer-events:none;border:1px solid rgba(185,137,63,.05)}
+.tfc-home-screen::before{top:-51px;border-radius:0 0 50% 50%}
+.tfc-home-screen::after{bottom:-51px;border-radius:50% 50% 0 0}
+.tfc-home-slide{position:absolute;left:50%;top:0;width:77%;max-width:670px;height:100%;padding:clamp(32px,5vw,42px) clamp(20px,5vw,40px);background:linear-gradient(135deg,#443224,#30251c 58%,#4c3725);border:1px solid rgba(205,164,105,.23);box-shadow:0 15px 45px rgba(0,0,0,.2);text-align:left;display:grid;grid-template-rows:18px auto auto 1fr 26px;align-items:start;gap:7px;opacity:0;visibility:hidden;transform:translateX(-50%);transition:transform .58s cubic-bezier(.22,.75,.2,1),opacity .4s ease,visibility .4s;overflow:hidden}
+.tfc-home-slide.is-active{opacity:1;visibility:visible;z-index:4;transform:translateX(-50%)}
+.tfc-home-slide.is-previous{opacity:.85;visibility:visible;z-index:2;transform:translateX(calc(-150% - 8px))}
+.tfc-home-slide.is-next{opacity:.85;visibility:visible;z-index:2;transform:translateX(calc(50% + 8px))}
+.tfc-home-slide.is-hidden{opacity:0;visibility:hidden}
+.tfc-home-slide-tag{font-size:clamp(7px,.9vw,9px);letter-spacing:.16em;color:#d6b58a;font-weight:600}
+.tfc-home-slide-title{font-family:"Cormorant Garamond",Georgia,serif;font-weight:400;font-size:clamp(27px,3.8vw,41px);line-height:.96;color:#fff7ed}
+.tfc-home-slide-amount{font-size:clamp(12px,1.65vw,16px);color:#e1bc82;letter-spacing:.05em}
+.tfc-home-slide-description{font-size:clamp(10px,1.1vw,13px);line-height:1.52;color:#e1d4c5;margin:0;max-width:490px}
+.tfc-home-slide-foot{display:flex;gap:10px;justify-content:space-between;align-items:center;min-width:0;align-self:end}
+.tfc-home-slide-foot>span{font-size:8px;letter-spacing:.1em;color:#d3b38a}
+.tfc-home-know{font-size:10px;font-weight:600;white-space:nowrap;color:#211810;background:#d3a565;border:0;border-radius:999px;padding:8px 13px;cursor:pointer}
+.tfc-home-slide:not(.is-active) .tfc-home-know{pointer-events:none;visibility:hidden}
+.tfc-home-controls{display:flex;justify-content:center;align-items:center;gap:18px;margin:9px auto 15px}
+.tfc-home-controls button{border:1px solid rgba(207,168,108,.25);background:#382a1c;color:#f5e6d1;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer}
+.tfc-home-controls span{font-size:10px;letter-spacing:.14em;color:#d7bc96;min-width:62px}
+.tfc-home-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(440px,94%);margin:0 auto 18px}
+.tfc-home-actions .btn{width:100%;font-size:11px;font-weight:600;border-radius:999px;padding:13px 10px;min-height:42px;text-transform:none;letter-spacing:.025em}
+.tfc-home-actions .btn-ghost{background:#f7ebdb;color:#20170f;border-color:#f7ebdb}
+.tfc-home-actions .btn-gold{background:#b9893f;color:#1c140d;border-color:#b9893f}
+.tfc-home-proof{display:flex;gap:28px;flex-wrap:wrap;align-items:center;justify-content:center;margin:8px auto 15px;color:#cab69d;font-size:10px;letter-spacing:.04em}
+.tfc-home-proof strong{font-family:"Cormorant Garamond",serif;font-size:17px;font-weight:500;color:#d8a96b;margin-right:5px}
+.tfc-home-contact{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:7px 16px;font-size:10px;color:#d6b58a;margin:12px auto}
+.tfc-home-contact span{font-size:9px;font-weight:600;letter-spacing:.12em}
+.tfc-home-contact a{color:#f0e2d0;text-decoration:none}
+.tfc-home-footer{font-size:9px;color:#a9967e;letter-spacing:.03em;margin:17px auto 0}
+.tfc-home-detail{width:min(540px,92vw);max-width:92vw;max-height:85dvh;overflow:auto;box-sizing:border-box;border:1px solid rgba(190,143,70,.4);border-radius:22px;padding:28px;background:#faf2e7;color:#17130f;text-align:left;box-shadow:0 26px 75px rgba(0,0,0,.4)}
+.tfc-home-detail::backdrop{background:rgba(14,10,7,.76);backdrop-filter:blur(5px)}
+.tfc-home-close{position:absolute;top:14px;right:14px;border:1px solid rgba(22,18,14,.12);border-radius:50%;background:white;color:#17130f;width:34px;height:34px;font-size:20px;cursor:pointer}
+.tfc-home-detail-tag{font-size:9px;letter-spacing:.16em;font-weight:600;color:#987344;padding-right:30px}
+.tfc-home-detail h2{font-family:"Cormorant Garamond",Georgia,serif;font-weight:400;font-size:clamp(31px,5.4vw,45px);line-height:1.02;margin:9px 30px 7px 0}
+.tfc-home-detail-amount{font-size:15px;font-weight:600;color:#8c6636;margin-bottom:16px}
+.tfc-home-detail p,.tfc-home-detail li{font-size:12px;line-height:1.64;color:#51483e}
+.tfc-home-detail h3{font-size:12px;letter-spacing:.03em;margin:20px 0 7px}
+.tfc-home-detail ul{padding-left:20px;margin:8px 0}
+.tfc-home-features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:18px}
+.tfc-home-features section{background:#f3e6d4;border:1px solid rgba(141,104,58,.16);border-radius:11px;padding:12px}
+.tfc-home-features h3{margin:0 0 7px;color:#8c6636;font-size:11px}
+.tfc-home-features p{margin:0;font-size:11px}
+.tfc-home-detail .tfc-home-detail-note{font-size:10px;color:#806e59;margin-top:20px}
+.tfc-home-detail-actions{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 0}
+.tfc-home-detail-actions a{padding:11px 16px;border-radius:999px;font-size:11px;background:#17130f;color:#fff;text-decoration:none}
+.tfc-home-detail-actions a+ a{background:#b9893f;color:#17130f}
+.tfc-home :is(a,button,.tfc-home-screen):focus-visible{outline:2px solid #ddb06c;outline-offset:3px}
+@media(max-width:760px){
+  .tfc-home .nav{height:72px;padding:0 18px}
+  .tfc-home-hero{padding-top:32px}
+  .tfc-home-screen{height:260px}
+  .tfc-home-screen::before,.tfc-home-screen::after{height:54px}
+  .tfc-home-screen::before{top:-44px}
+  .tfc-home-screen::after{bottom:-44px}
+  .tfc-home-slide{width:84%;padding:32px 18px;grid-template-rows:16px auto auto 1fr 26px}
+  .tfc-home-slide-title{font-size:clamp(25px,6.3vw,32px)}
+  .tfc-home-slide-foot>span{font-size:6px}
+  .tfc-home-know{font-size:9px;padding:7px 10px}
+  .tfc-home-proof{gap:9px 20px}
+  .tfc-home-features{grid-template-columns:1fr}
+}
+@media(max-width:420px){
+  .tfc-home-hero h1{font-size:clamp(30px,8.5vw,38px)}
+  .tfc-home-slide{width:90%;padding:30px 14px}
+  .tfc-home-slide-foot>span{font-size:5.5px;letter-spacing:0}
+  .tfc-home-know{font-size:8px;padding:6px 8px}
+  .tfc-home-actions{width:96%;gap:8px}
+  .tfc-home-contact a{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){.tfc-home-slide{transition:none}}
