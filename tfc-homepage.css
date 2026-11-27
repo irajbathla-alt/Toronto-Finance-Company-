@@ -83,3 +83,123 @@
   .tfc-home-contact a{font-size:9px}
 }
 @media(prefers-reduced-motion:reduce){.tfc-home-slide{transition:none}}
+
+
+/* Single-viewport homepage fit.
+   Keep all content and interactions, scale spacing to the visible screen height. */
+.landing.tfc-home{
+  height:100dvh;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  overflow-x:hidden;
+  overflow-y:hidden;
+}
+.tfc-home .nav{
+  flex:0 0 auto;
+  height:clamp(50px,7.4dvh,64px);
+  min-height:0;
+}
+.tfc-home-main{
+  flex:1 1 auto;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(5px,1dvh,11px);
+  padding:clamp(6px,1dvh,12px) 10px;
+}
+.tfc-home-hero{flex:0 0 auto;padding:0 10px}
+.tfc-home-hero h1{font-size:clamp(30px,min(6vw,7dvh),62px)}
+.tfc-home-hero p{margin:7px auto 0;font-size:clamp(8px,.95vw,11px)}
+.tfc-home-screen{
+  flex:0 1 auto;
+  height:clamp(185px,31dvh,260px);
+  min-height:178px;
+  max-width:1060px;
+  margin:0 auto;
+}
+.tfc-home-slide{
+  padding:clamp(17px,3.2dvh,28px) clamp(14px,3vw,30px);
+  grid-template-rows:14px auto auto minmax(0,1fr) 26px;
+  gap:clamp(3px,.7dvh,6px);
+}
+.tfc-home-slide-title{font-size:clamp(23px,3.2vw,36px);overflow-wrap:break-word}
+.tfc-home-slide-amount{font-size:clamp(11px,1.35vw,14px)}
+.tfc-home-slide-description{font-size:clamp(10px,1.05vw,12px);line-height:1.4}
+.tfc-home-controls{flex:0 0 auto;margin:0;gap:14px}
+.tfc-home-controls button{width:32px;height:32px;font-size:16px}
+.tfc-home-actions{flex:0 0 auto;margin:0;width:min(420px,96%)}
+.tfc-home-actions .btn{min-height:38px;padding:9px 10px;font-size:10px}
+.tfc-home-proof{
+  flex:0 0 auto;
+  gap:5px 18px;
+  margin:0;
+  font-size:9px;
+  line-height:1.3;
+}
+.tfc-home-proof strong{font-size:15px}
+.tfc-home-contact{
+  flex:0 0 auto;
+  gap:3px 12px;
+  margin:0;
+  font-size:9px;
+  line-height:1.4;
+}
+.tfc-home-footer{flex:0 0 auto;margin:0;font-size:8px;line-height:1.35}
+@media(max-width:760px){
+  .tfc-home .nav{height:clamp(50px,7.4dvh,60px);padding:0 15px}
+  .tfc-home-hero h1{font-size:clamp(29px,8vw,41px)}
+  .tfc-home-hero p{letter-spacing:.12em;font-size:9px}
+  .tfc-home-screen{height:clamp(185px,31dvh,248px)}
+  .tfc-home-slide{
+    width:87%;
+    padding:clamp(17px,3dvh,23px) 15px;
+  }
+  .tfc-home-slide-title{font-size:clamp(23px,6.1vw,31px)}
+  .tfc-home-slide-foot>span{font-size:6px;letter-spacing:.03em}
+  .tfc-home-know{font-size:9px;padding:7px 10px}
+  .tfc-home-main{gap:clamp(4px,.85dvh,8px)}
+  .tfc-home-proof{gap:4px 12px;font-size:8px}
+  .tfc-home-contact{gap:3px 10px}
+}
+@media(max-width:420px){
+  .tfc-home-hero h1{font-size:clamp(27px,8vw,34px)}
+  .tfc-home-slide{width:92%;padding-inline:12px}
+  .tfc-home-slide-title{font-size:clamp(21px,6.2vw,27px)}
+  .tfc-home-slide-foot>span{font-size:5.5px}
+  .tfc-home-know{font-size:8px;padding:7px 9px}
+  .tfc-home-actions{gap:7px}
+  .tfc-home-actions .btn{min-height:36px;padding:8px;font-size:9px}
+  .tfc-home-contact a{font-size:8.5px}
+}
+@media(max-height:700px){
+  .tfc-home .nav{height:50px}
+  .tfc-home-main{gap:clamp(3px,.8dvh,6px);padding-block:5px}
+  .tfc-home-hero h1{font-size:clamp(27px,min(7vw,7dvh),43px)}
+  .tfc-home-hero p{margin-top:4px;font-size:8px}
+  .tfc-home-screen{height:clamp(183px,29dvh,215px);min-height:183px}
+  .tfc-home-slide{padding-block:clamp(14px,2.5dvh,19px);gap:3px;grid-template-rows:13px auto auto minmax(0,1fr) 24px}
+  .tfc-home-slide-title{font-size:clamp(21px,5.6vw,29px)}
+  .tfc-home-slide-description{font-size:10px;line-height:1.35}
+  .tfc-home-controls button{width:29px;height:29px;font-size:15px}
+  .tfc-home-actions .btn{min-height:34px;padding:7px 8px}
+  .tfc-home-proof{font-size:8px;gap:4px 11px}
+  .tfc-home-proof strong{font-size:14px}
+  .tfc-home-contact{font-size:8px;gap:2px 8px}
+  .tfc-home-footer{font-size:7.5px}
+}
+@media(max-height:590px) and (max-width:480px){
+  .tfc-home .nav{height:48px}
+  .tfc-home-screen{height:181px;min-height:181px}
+  .tfc-home-hero h1{font-size:clamp(26px,8vw,30px)}
+  .tfc-home-slide{padding-block:14px}
+  .tfc-home-proof{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));max-width:410px;width:100%;gap:4px;font-size:7.5px}
+  .tfc-home-proof strong{display:block;margin:0;font-size:14px}
+}
+@media(max-height:490px){
+  /* Tiny landscape windows need scrolling rather than clipped content. */
+  .landing.tfc-home{height:auto;min-height:100dvh;overflow-y:visible}
+  .tfc-home-main{min-height:490px}
+}
