@@ -26,15 +26,15 @@ const tfcHomeProducts=[
     "features": [
       [
         "More choice",
-        "Compare available lenders and financing structures."
+        "Choose funding from $10,000 to $500,000, with participating lender terms of 6–24 months."
       ],
       [
-        "Repayment options",
-        "Scheduled payments and terms vary by lender."
+        "Repay your way",
+        "Daily or weekly scheduled payments may be available, depending on your lender."
       ],
       [
-        "Clear financing costs",
-        "Review borrowing costs and repayment obligations before accepting."
+        "Clear pricing",
+        "Understand the total borrowing cost and repayment obligations before committing."
       ]
     ],
     "uses": [
@@ -369,6 +369,11 @@ const tfcHomePunjabi={
   "More choice": "ਹੋਰ ਆਪਸ਼ਨਜ਼",
   "Repayment options": "ਰੀਪੇਮੈਂਟ ਆਪਸ਼ਨਜ਼",
   "Clear financing costs": "ਕਲੀਅਰ ਫਾਈਨੈਂਸਿੰਗ ਕੌਸਟ",
+  "Repay your way": "ਆਪਣੇ ਢੰਗ ਨਾਲ ਰੀਪੇਮੈਂਟ",
+  "Clear pricing": "ਕਲੀਅਰ ਪ੍ਰਾਈਸਿੰਗ",
+  "Choose funding from $10,000 to $500,000, with participating lender terms of 6–24 months.": "$10,000 ਤੋਂ $500,000 ਤੱਕ ਫੰਡਿੰਗ ਚੁਣੋ, ਭਾਗੀਦਾਰ ਲੈਂਡਰਾਂ ਦੀਆਂ ਟਰਮਜ਼ 6 ਤੋਂ 24 ਮਹੀਨੇ ਹੋ ਸਕਦੀਆਂ ਹਨ।",
+  "Daily or weekly scheduled payments may be available, depending on your lender.": "ਤੁਹਾਡੇ ਲੈਂਡਰ ਮੁਤਾਬਕ ਰੋਜ਼ਾਨਾ ਜਾਂ ਹਫ਼ਤਾਵਾਰੀ ਸ਼ੈਡਿਊਲਡ ਪੇਮੈਂਟਸ ਉਪਲਬਧ ਹੋ ਸਕਦੀਆਂ ਹਨ।",
+  "Understand the total borrowing cost and repayment obligations before committing.": "ਕਮਿਟ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਕੁੱਲ ਬੋਰੋਇੰਗ ਕੌਸਟ ਅਤੇ ਰੀਪੇਮੈਂਟ ਦੀਆਂ ਸ਼ਰਤਾਂ ਸਮਝੋ।",
   "Put funding to work": "ਫੰਡਿੰਗ ਦੀ ਵਰਤੋਂ",
   "Indicative eligibility": "ਐਲੀਜੀਬਿਲਟੀ ਗਾਈਡਲਾਈਨਜ਼",
   "Access funds as needed": "ਲੋੜ ਮੁਤਾਬਕ ਫੰਡਜ਼",
