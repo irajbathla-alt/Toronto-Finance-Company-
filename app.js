@@ -163,6 +163,7 @@ function landing(){
           <button data-go="dashboard" type="button">Log In</button>
           <button class="pill" data-go="apply" type="button">Apply</button>
         </div>
+        <button type="button" class="tfc-home-mobile-login" data-go="dashboard" aria-label="Log in to your Toronto Finance Company account">Log In ↗</button>
       </nav>
       <div class="tfc-home-main">
         <header class="tfc-home-hero">
@@ -196,10 +197,28 @@ function landing(){
           <span><strong>5+</strong> Canadian Financing Partners</span>
           <span><strong>24 HRS</strong> Potential Initial Response</span>
         </div>
-        <div class="tfc-home-contact">
-          <span>CONTACT US</span>
-          <a href="tel:+16044459624">+1 604 445 9624</a>
-          <a href="mailto:info@torontofinancecompany.com">info@torontofinancecompany.com</a>
+        <div class="tfc-home-contact" aria-label="Contact Toronto Finance Company">
+          <div class="tfc-home-contact-actions">
+            <a class="tfc-home-contact-item" href="tel:+16044459624" aria-label="Call Toronto Finance Company at +1 604 445 9624">
+              <span class="tfc-home-contact-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 3.09 5.18 2 2 0 0 1 5.08 3h3a2 2 0 0 1 2 1.72c.12.95.35 1.89.68 2.78a2 2 0 0 1-.45 2.11L9.04 10.9a16 16 0 0 0 4.06 4.06l1.29-1.27a2 2 0 0 1 2.11-.45c.89.33 1.83.56 2.78.68a2 2 0 0 1 1.72 2Z"/>
+                </svg>
+              </span>
+              <span class="tfc-home-contact-label">Call Us</span>
+              <span class="tfc-home-contact-detail">+1 604 445 9624</span>
+            </a>
+            <a class="tfc-home-contact-item" href="mailto:info@torontofinancecompany.com" aria-label="Email Toronto Finance Company at info@torontofinancecompany.com">
+              <span class="tfc-home-contact-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2"/>
+                  <path d="m22 7-10 7L2 7"/>
+                </svg>
+              </span>
+              <span class="tfc-home-contact-label">Email Us</span>
+              <span class="tfc-home-contact-detail">info@torontofinancecompany.com</span>
+            </a>
+          </div>
         </div>
         <footer class="tfc-home-footer">All approvals are subject to lender’s discretion &amp; due diligence.</footer>
       </div>

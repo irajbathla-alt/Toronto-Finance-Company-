@@ -203,3 +203,152 @@
   .landing.tfc-home{height:auto;min-height:100dvh;overflow-y:visible}
   .tfc-home-main{min-height:490px}
 }
+
+
+/* Vancouver-style spacing rhythm and circular contact actions.
+   Toronto Finance Company colours, routes and funding content remain intact. */
+.tfc-home-main{
+  justify-content:space-evenly;
+  gap:clamp(3px,.7dvh,8px);
+  padding:clamp(12px,3.2dvh,30px) 10px clamp(12px,3.1dvh,28px);
+}
+.tfc-home .tfc-home-mobile-login{display:none}
+.tfc-home-proof{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:start;
+  justify-content:center;
+  width:min(560px,97%);
+  gap:clamp(6px,1.4vw,17px);
+  margin:0;
+  line-height:1.2;
+}
+.tfc-home-proof>span{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:3px;
+  min-width:0;
+  text-align:center;
+  font-size:clamp(7px,.95vw,10px);
+}
+.tfc-home-proof strong{
+  display:block;
+  margin:0;
+  font-size:clamp(17px,2.25vw,21px);
+  line-height:1;
+}
+.tfc-home-contact{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:min(560px,100%);
+  margin:0;
+}
+.tfc-home-contact-actions{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  gap:clamp(25px,7vw,65px);
+}
+.tfc-home-contact-item{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:4px;
+  flex:0 1 auto;
+  min-width:0;
+  text-decoration:none;
+  color:#f3e7d5;
+}
+.tfc-home-contact-icon{
+  display:grid;
+  place-items:center;
+  width:clamp(43px,5.8dvh,52px);
+  height:clamp(43px,5.8dvh,52px);
+  border-radius:50%;
+  background:#f7eee2;
+  color:#2a211a;
+  box-shadow:0 5px 16px rgba(0,0,0,.14);
+  transition:transform .16s ease,background .16s ease;
+}
+.tfc-home-contact-icon svg{display:block;width:47%;height:47%}
+.tfc-home-contact-item:hover .tfc-home-contact-icon{transform:translateY(-2px);background:#e9bf80}
+.tfc-home-contact-label{
+  font-size:clamp(8px,.85vw,10px);
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  font-weight:600;
+  color:#e8c48f;
+}
+.tfc-home-contact-detail{
+  font-size:clamp(8px,.9vw,10px);
+  line-height:1.25;
+  white-space:nowrap;
+  color:#eadaca;
+}
+.tfc-home-footer{max-width:98%;text-align:center}
+@media(max-width:760px){
+  .tfc-home .nav{gap:8px}
+  .tfc-home .nav .brand{
+    font-size:clamp(8px,2.5vw,11px);
+    max-width:min(48vw,210px);
+    line-height:1.3;
+    margin-right:auto;
+  }
+  .tfc-home .tfc-home-mobile-login{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 auto;
+    border:1px solid rgba(224,181,119,.28);
+    border-radius:999px;
+    padding:10px clamp(10px,3vw,16px);
+    background:rgba(255,255,255,.1);
+    color:#f2e5d4;
+    font:600 10px "DM Sans",sans-serif;
+    white-space:nowrap;
+    cursor:pointer;
+  }
+  .tfc-home .mobile-nav-toggle{width:38px;height:38px;flex:0 0 38px}
+  .tfc-home-main{gap:clamp(3px,.6dvh,7px)}
+  .tfc-home-proof{width:min(460px,97%);gap:6px}
+  .tfc-home-proof>span{font-size:clamp(7px,2vw,9px)}
+  .tfc-home-proof strong{font-size:clamp(16px,4.4vw,20px)}
+  .tfc-home-contact-actions{gap:clamp(20px,6vw,36px)}
+  .tfc-home-contact-icon{width:clamp(39px,5.7dvh,47px);height:clamp(39px,5.7dvh,47px)}
+  .tfc-home-contact-detail{font-size:clamp(8px,2.2vw,10px)}
+}
+@media(max-width:380px){
+  .tfc-home .nav{padding-inline:11px;gap:6px}
+  .tfc-home .nav .brand{max-width:45vw;font-size:8px}
+  .tfc-home .tfc-home-mobile-login{font-size:9px;padding:9px 10px}
+  .tfc-home .mobile-nav-toggle{width:35px;height:35px;flex-basis:35px}
+  .tfc-home-contact-actions{gap:18px}
+  .tfc-home-contact-detail{font-size:8px}
+}
+@media(max-height:700px){
+  .tfc-home-main{
+    justify-content:space-evenly;
+    padding:clamp(5px,1.3dvh,10px) 10px;
+    gap:3px;
+  }
+  .tfc-home-contact-icon{width:clamp(34px,6dvh,42px);height:clamp(34px,6dvh,42px)}
+  .tfc-home-contact-item{gap:2px}
+  .tfc-home-contact-label{font-size:8px}
+  .tfc-home-contact-detail{font-size:8px}
+  .tfc-home-proof strong{font-size:15px}
+  .tfc-home-proof>span{font-size:7px}
+}
+@media(max-height:550px){
+  .tfc-home-main{justify-content:center;padding-block:5px;gap:3px}
+  .tfc-home-contact-icon{width:33px;height:33px}
+  .tfc-home-contact-label{font-size:7px}
+  .tfc-home-contact-detail{font-size:7.5px}
+}
+@media(prefers-reduced-motion:reduce){
+  .tfc-home-contact-icon{transition:none}
+}
