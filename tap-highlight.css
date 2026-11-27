@@ -1,0 +1,3 @@
+/* Suppress the browser's brief blue tap flash on touch screens only.
+   Preserve existing :focus, :focus-visible, hover and active styling. */
+* { -webkit-tap-highlight-color: transparent; }
