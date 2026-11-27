@@ -666,47 +666,46 @@
   font:400 10px/1.4 "Manrope",Arial,sans-serif;
   letter-spacing:0;
 }
+/* Know More: precise Vancouver feature-card design with TFC colours */
 .tfc-home-detail{
   width:min(460px,92vw);
   max-width:92vw;
   max-height:85dvh;
   overflow:auto;
+  box-sizing:border-box;
+  text-align:left;
   padding:22px;
-  border:1px solid rgba(185,137,63,.4);
-  border-radius:20px;
   background:#30251c;
   color:#fff3e3;
-  text-align:left;
-  font-family:"Manrope",Arial,sans-serif;
+  border:1px solid #694930;
+  border-radius:20px;
   box-shadow:0 20px 60px #0007;
+  font-family:"Manrope",Arial,sans-serif;
 }
 .tfc-home-detail::backdrop{background:#0009}
 .tfc-home-close{
   float:right;
   position:static;
+  border:0;
+  background:#493729;
+  color:#fff;
+  border-radius:50%;
   width:32px;
   height:32px;
-  padding:0;
-  border:0;
-  border-radius:50%;
-  background:#58402b;
-  color:#fff4e8;
   font-size:19px;
+  cursor:pointer;
 }
-.tfc-home-detail-tag{color:#d2ac74;font-size:9px}
-.tfc-home-detail h2{
-  font:400 28px "Playfair Display",Georgia,serif;
-  margin:8px 0;
-  color:#fff0df;
-}
-.tfc-home-detail-amount{font-size:15px;color:#e2b97a;margin-bottom:12px}
-.tfc-home-detail h3{font-size:13px;margin:18px 0 6px;color:#f8ebda}
+.tfc-home-detail-tag{font-size:9px;letter-spacing:1.3px;color:#d6b68b}
+.tfc-home-detail h2{font:400 28px "Playfair Display",Georgia,serif;margin:8px 0;color:#fff3e7}
+.tfc-home-detail-amount{font-size:15px;color:#e4ba7e;margin-bottom:12px}
+.tfc-home-detail h3{font-size:13px;margin:18px 0 6px;color:#f0ddc3}
 .tfc-home-detail p,.tfc-home-detail li{
   font-size:13px;
   line-height:1.6;
-  color:#e5d8c9;
+  color:#e3d6c7;
   text-align:justify;
   text-justify:inter-word;
+  hyphens:auto;
   overflow-wrap:break-word;
 }
 .tfc-home-detail ul{padding-left:18px;margin:5px 0}
@@ -717,30 +716,93 @@
   gap:5px;
   margin:14px 0;
 }
-.tfc-home-features section{
+.tfc-home-features .tfc-home-feature{
   min-width:0;
-  border:1px solid rgba(213,164,99,.2);
-  border-radius:7px;
-  padding:10px 5px;
-  background:#3c2c21;
+  background:#3e2e22;
   text-align:center;
+  padding:10px 5px;
+  border:1px solid #654630;
+  border-radius:7px;
 }
-.tfc-home-features h3{
-  margin:0 0 5px;
+.tfc-home-feature svg{
+  width:27px;
+  height:27px;
+  color:#f3e4cd;
+  display:block;
+  margin:0 auto 7px;
+}
+.tfc-home-feature h3{
   font:400 clamp(11px,3vw,15px)/1.2 "Playfair Display",Georgia,serif;
-  color:#edd4ad;
+  color:#f1dfc6;
+  text-align:center;
+  margin:0 0 5px;
   overflow-wrap:break-word;
 }
-.tfc-home-features p{
-  margin:0;
+.tfc-home-detail .tfc-home-feature p{
   font-size:clamp(9px,2.4vw,11px);
   line-height:1.4;
-  color:#e2d1ba;
+  color:#e3d3bd;
   text-align:center;
+  text-align-last:center;
+  hyphens:none;
+  margin:0;
+  overflow-wrap:break-word;
 }
-.tfc-home-detail .tfc-home-detail-note{font-size:10px;color:#c0ad92}
-.tfc-home-detail-actions a{background:#b9893f;color:#20170f}
-.tfc-home-detail-actions a+a{background:#4f3a29;color:#fff2e0}
+.tfc-home-detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}
+.tfc-home-detail-actions a{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:10px 15px;
+  border-radius:25px;
+  background:#b9893f;
+  color:#23190f;
+  font-size:12px;
+  font-weight:600;
+  text-decoration:none;
+}
+.tfc-home-detail-actions a+a{background:#553e2b;color:#fff0df}
+.tfc-home-detail .tfc-home-detail-note{
+  font-size:10px;
+  line-height:1.6;
+  color:#c5b197;
+  margin:14px 0 0;
+}
+@keyframes tfcKnowMoreReveal{
+  from{opacity:0;transform:translateY(5px) scale(.99)}
+  to{opacity:1;transform:none}
+}
+@keyframes tfcKnowMoreFeatureFade{
+  from{opacity:0}
+  to{opacity:1}
+}
+@media(prefers-reduced-motion:no-preference){
+  .tfc-home-detail[open]{
+    animation:tfcKnowMoreReveal .75s cubic-bezier(.22,.61,.36,1) both;
+  }
+  .tfc-home-detail[open] .tfc-home-feature{
+    animation:tfcKnowMoreFeatureFade 2.1s cubic-bezier(.37,0,.63,1) both;
+    animation-delay:.2s;
+  }
+  .tfc-home-detail[open] .tfc-home-feature:nth-child(2){animation-delay:.4s}
+  .tfc-home-detail[open] .tfc-home-feature:nth-child(3){animation-delay:.6s}
+  .tfc-home-detail[open] .tfc-home-feature svg{
+    animation:tfcKnowMoreFeatureFade 2.4s cubic-bezier(.37,0,.63,1) both;
+    animation-delay:.25s;
+  }
+  .tfc-home-detail[open] .tfc-home-feature:nth-child(2) svg{animation-delay:.45s}
+  .tfc-home-detail[open] .tfc-home-feature:nth-child(3) svg{animation-delay:.65s}
+}
+@media(max-width:380px){
+  .tfc-home-features .tfc-home-feature{padding:8px 4px}
+  .tfc-home-feature svg{width:24px;height:24px}
+  .tfc-home-features{gap:4px}
+}
+@media(prefers-reduced-motion:reduce){
+  .tfc-home-detail[open],.tfc-home-detail[open] .tfc-home-feature,.tfc-home-detail[open] .tfc-home-feature svg{
+    animation:none;
+  }
+}
 .tfc-home :is(a,button,summary,.tfc-home-screen):focus-visible{outline:2px solid #d6a66a;outline-offset:3px}
 .tfc-home .nav .mobile-nav-toggle,.tfc-home .nav .mobile-nav-menu{display:none!important}
 @media(min-width:1024px){

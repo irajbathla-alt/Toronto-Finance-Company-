@@ -150,6 +150,13 @@ const tfcHomeProducts=[
   }
 ];
 
+/* The three original VFC Know More feature icons, recoloured for Toronto Finance Company. */
+const tfcHomeFeatureIcons=[
+  "<svg viewBox=\"0 0 48 48\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"15\" cy=\"15\" r=\"10\"/><path d=\"m10 15 4 4 8-9M24 35l-7-7 3-3 7 5V16a3 3 0 0 1 6 0v9l8 4q5 3 2 12\"/><rect x=\"39\" y=\"3\" width=\"6\" height=\"6\" fill=\"#b9893f\" stroke=\"none\"/></svg>",
+  "<svg viewBox=\"0 0 48 48\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"25\" cy=\"12\" r=\"10\"/><path d=\"M25 5v14m4-11h-6q-5 4 2 5t-2 5h6M4 29h6v15H4zM10 32l13-4 9 3q4 3 0 5h-9m9 0h10q5 2 0 5l-20 3-12-3\"/><rect x=\"39\" y=\"3\" width=\"6\" height=\"6\" fill=\"#b9893f\" stroke=\"none\"/></svg>",
+  "<svg viewBox=\"0 0 48 48\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"29\" cy=\"19\" r=\"13\"/><path d=\"m19 29-13 13q-3 4-6 0l14-15M29 10v18m5-14h-7q-6 5 2 6t-2 5h7\"/><rect x=\"39\" y=\"3\" width=\"6\" height=\"6\" fill=\"#b9893f\" stroke=\"none\"/></svg>"
+];
+
 function landing(){
   app.innerHTML=`
     <section class="landing tfc-home">
@@ -238,16 +245,16 @@ function landing(){
           <h2 id="tfcHomeTitle-${product.id}">${product.title}</h2>
           <div class="tfc-home-detail-amount">${product.range}</div>
           <p>${product.intro}</p>
-          <div class="tfc-home-features">${product.features.map(f=>`<section><h3>${f[0]}</h3><p>${f[1]}</p></section>`).join('')}</div>
+          <div class="tfc-home-features">${product.features.map((f,i)=>`<section class="tfc-home-feature">${tfcHomeFeatureIcons[i]}<h3>${f[0]}</h3><p>${f[1]}</p></section>`).join('')}</div>
           <h3>Put funding to work</h3>
           <ul>${product.uses.map(x=>`<li>${x}</li>`).join('')}</ul>
           <h3>Indicative eligibility</h3>
           <ul>${product.criteria.map(x=>`<li>${x}</li>`).join('')}</ul>
-          <p class="tfc-home-detail-note"><span>${product.note}</span> <span>Toronto Finance Company arranges financing through participating lenders and does not guarantee approval.</span></p>
           <div class="tfc-home-detail-actions">
             <a href="apply.html">Apply Now ↗</a>
             <a href="eligibility.html">Check Eligibility ↗</a>
           </div>
+          <p class="tfc-home-detail-note"><span>${product.note}</span> <span>Toronto Finance Company arranges financing through participating lenders and does not guarantee approval.</span></p>
         </dialog>`).join('')}
     </section>`;
   wire();
