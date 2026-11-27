@@ -951,3 +951,64 @@
 @media(max-height:520px){
   .tfc-home .tfc-home-proof{margin:-10px auto 2px}
 }
+
+
+/* Reference-inspired financing cards, using TFC's original espresso/bronze palette.
+   Scoped strictly to the four homepage carousel cards. */
+.tfc-home .tfc-home-slide{
+  background:
+    radial-gradient(ellipse 90% 92% at 107% 108%,rgba(208,165,112,.19) 0%,rgba(154,112,76,.13) 39%,transparent 75%),
+    radial-gradient(circle at 112% 124%,transparent 0 40%,rgba(219,178,128,.25) 40.12%,transparent 40.42%),
+    linear-gradient(125deg,#37291f 0%,#423025 63%,#34251c 100%);
+  border:1px solid rgba(232,204,169,.75);
+  border-radius:4px;
+  box-shadow:0 12px 36px rgba(18,10,5,.17);
+}
+.tfc-home .tfc-home-slide-tag{
+  color:#e9d7bd;
+  font-family:"Manrope",Arial,sans-serif;
+  font-weight:400;
+  letter-spacing:.15em;
+}
+.tfc-home .tfc-home-slide-title{
+  color:#fff8ed;
+  font-family:"Manrope",Arial,sans-serif;
+  font-size:clamp(21px,3.2vw,34px);
+  font-weight:300;
+  line-height:1.12;
+  letter-spacing:.045em;
+  text-transform:uppercase;
+}
+.tfc-home .tfc-home-slide-amount{
+  color:#e7c594;
+  font-family:"Manrope",Arial,sans-serif;
+  font-size:clamp(12px,1.7vw,16px);
+  letter-spacing:.01em;
+}
+.tfc-home .tfc-home-slide-description{
+  color:#f1e3d1;
+  font-family:"Manrope",Arial,sans-serif;
+  font-size:clamp(10px,1.08vw,12px);
+  line-height:1.48;
+}
+.tfc-home .tfc-home-slide-foot > span{
+  color:#fff8ee;
+  letter-spacing:.075em;
+}
+.tfc-home.is-punjabi .tfc-home-slide-title{
+  font-family:"Noto Sans Gurmukhi","Manrope",sans-serif;
+  font-size:clamp(17px,3.1vw,27px);
+  font-weight:400;
+  line-height:1.32;
+  letter-spacing:0;
+}
+@media(max-width:760px){
+  .tfc-home .tfc-home-slide-title{font-size:clamp(20px,4.7vw,29px)}
+  .tfc-home .tfc-home-slide-amount{font-size:clamp(12px,2.9vw,15px)}
+  .tfc-home .tfc-home-slide-description{font-size:clamp(10px,2.45vw,12px)}
+  .tfc-home.is-punjabi .tfc-home-slide-title{font-size:clamp(17px,4.3vw,24px)}
+}
+@media(max-width:380px){
+  .tfc-home .tfc-home-slide-title{font-size:clamp(18px,5.4vw,21px)}
+  .tfc-home.is-punjabi .tfc-home-slide-title{font-size:clamp(16px,4.6vw,19px)}
+}
