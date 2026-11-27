@@ -244,7 +244,7 @@ function landing(){
           <ul>${product.uses.map(x=>`<li>${x}</li>`).join('')}</ul>
           <h3>Indicative eligibility</h3>
           <ul>${product.criteria.map(x=>`<li>${x}</li>`).join('')}</ul>
-          <p class="tfc-home-detail-note">${product.note} Toronto Finance Company arranges financing through participating lenders and does not guarantee approval.</p>
+          <p class="tfc-home-detail-note"><span>${product.note}</span> <span>Toronto Finance Company arranges financing through participating lenders and does not guarantee approval.</span></p>
           <div class="tfc-home-detail-actions">
             <a href="apply.html">Apply Now ↗</a>
             <a href="eligibility.html">Check Eligibility ↗</a>
