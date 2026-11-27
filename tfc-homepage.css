@@ -352,3 +352,468 @@
 @media(prefers-reduced-motion:reduce){
   .tfc-home-contact-icon{transition:none}
 }
+
+
+/* Exact structural reference: Vancouver Finance Company alternate-lender-list homepage.
+   Toronto Finance Company's colour palette, products and application links are retained. */
+.landing.tfc-home{
+  display:block;
+  height:auto;
+  min-height:100dvh;
+  overflow-x:hidden;
+  overflow-y:auto;
+  font-family:"Manrope",Arial,sans-serif;
+  text-align:center;
+}
+.tfc-home .nav.tfc-vfc-nav{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  height:auto;
+  min-height:0;
+  padding:14px 5%;
+  gap:10px;
+  border-bottom:0;
+  font-family:"Manrope",Arial,sans-serif;
+  position:relative;
+  z-index:20;
+}
+.tfc-home .tfc-vfc-nav .brand{
+  flex:1 1 auto;
+  margin:0;
+  padding:0;
+  min-width:0;
+  width:auto;
+  max-width:none;
+  font-size:clamp(8px,1vw,11px);
+  font-weight:400;
+  line-height:1.25;
+  letter-spacing:.45px;
+  color:#f4e7d4;
+  text-align:left;
+  white-space:nowrap;
+}
+.tfc-vfc-nav-actions{display:flex;align-items:center;gap:7px;flex:0 0 auto}
+#tfcHomeLanguageSwitch{
+  border:1px solid rgba(213,174,115,.52);
+  background:transparent;
+  color:#f8eddf;
+  border-radius:30px;
+  padding:7px 10px;
+  font:500 11px "Manrope",Arial,sans-serif;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.tfc-vfc-login{
+  display:inline-flex;
+  justify-content:center;
+  align-items:center;
+  padding:10px 21px;
+  border-radius:40px;
+  background:#493729;
+  color:#f9eddd;
+  text-decoration:none;
+  font-size:12px;
+  letter-spacing:0;
+  white-space:nowrap;
+}
+.tfc-vfc-menu{position:relative;z-index:50}
+.tfc-vfc-menu summary{
+  list-style:none;
+  cursor:pointer;
+  display:grid;
+  place-items:center;
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:#493729;
+  color:#f9eddd;
+}
+.tfc-vfc-menu summary::-webkit-details-marker{display:none}
+.tfc-vfc-menu summary:active{background:#614831}
+.tfc-vfc-dropdown{
+  position:absolute;
+  right:0;
+  top:calc(100% + 8px);
+  z-index:100;
+  min-width:185px;
+  display:grid;
+  gap:0;
+  padding:5px;
+  border-radius:12px;
+  border:1px solid rgba(197,152,87,.4);
+  background:#32251c;
+  box-shadow:0 8px 24px #0006;
+  text-align:left;
+}
+.tfc-vfc-dropdown a{
+  display:block;
+  color:#f4e6d3;
+  text-decoration:none;
+  font-size:12px;
+  padding:11px 12px;
+  white-space:nowrap;
+  border-radius:7px;
+}
+.tfc-vfc-dropdown a:hover{background:#58402b}
+.tfc-home-main{
+  display:block;
+  width:100%;
+  max-width:none;
+  min-height:0;
+  height:auto;
+  margin:0 auto;
+  padding:0;
+  text-align:center;
+}
+.tfc-home-hero{padding:40px 12px 23px}
+.tfc-home-hero h1{
+  font:400 clamp(19px,4.3vw,48px)/1.15 "Playfair Display",Georgia,serif;
+  letter-spacing:-.5px;
+  margin:0 auto;
+  max-width:100%;
+  color:#f7f0e6;
+}
+.tfc-home-hero h1 span{display:block}
+.tfc-home-hero h1 span+span{font-size:.78em;margin-top:4px;color:#d7ad75}
+.tfc-home-hero p{
+  margin:10px auto 0;
+  color:#cdbba9;
+  font:400 10px "Manrope",Arial,sans-serif;
+  letter-spacing:1.8px;
+  line-height:1.4;
+}
+.tfc-home-screen{
+  position:relative;
+  display:block;
+  width:100%;
+  max-width:1100px;
+  height:clamp(205px,33vw,265px);
+  min-height:0;
+  flex:initial;
+  margin:0 auto;
+  overflow:hidden;
+  touch-action:pan-y;
+}
+.tfc-home-screen::before,.tfc-home-screen::after{
+  content:"";
+  position:absolute;
+  left:-10%;
+  width:120%;
+  height:80px;
+  background:#201811;
+  z-index:10;
+  pointer-events:none;
+  border:0;
+}
+.tfc-home-screen::before{top:-58px;border-radius:0 0 50% 50%}
+.tfc-home-screen::after{bottom:-58px;border-radius:50% 50% 0 0}
+.tfc-home-slide{
+  position:absolute;
+  top:0;
+  left:50%;
+  width:78%;
+  max-width:570px;
+  height:100%;
+  display:grid;
+  grid-template-rows:16px 44px 24px minmax(0,1fr) 18px;
+  align-items:center;
+  gap:5px;
+  padding:29px clamp(17px,4vw,34px);
+  border:1px solid rgba(203,161,103,.21);
+  background:linear-gradient(115deg,#463323,#31241b 75%,#4b3626);
+  box-shadow:0 14px 42px #0004;
+  opacity:0;
+  visibility:hidden;
+  text-align:left;
+  overflow:hidden;
+  transform:translateX(-50%);
+  transition:transform .65s cubic-bezier(.22,.75,.2,1),opacity .5s,visibility .5s;
+}
+.tfc-home-slide.is-active{opacity:1;visibility:visible;z-index:3;transform:translateX(-50%)}
+.tfc-home-slide.is-previous{opacity:1;visibility:visible;z-index:2;transform:translateX(calc(-150% - 7px))}
+.tfc-home-slide.is-next{opacity:1;visibility:visible;z-index:2;transform:translateX(calc(50% + 7px))}
+.tfc-home-slide.is-hidden{opacity:0;visibility:hidden;z-index:1}
+.tfc-home-slide-tag{
+  font:400 9px "Manrope",Arial,sans-serif;
+  letter-spacing:1.3px;
+  color:#ddc3a2;
+}
+.tfc-home-slide-title{
+  font:400 clamp(20px,3.6vw,33px)/1.08 "Playfair Display",Georgia,serif;
+  color:#fbf1e6;
+  overflow-wrap:break-word;
+}
+.tfc-home-slide-amount{font:400 clamp(12px,2.2vw,16px) "Manrope",Arial,sans-serif;color:#e9c28b}
+.tfc-home-slide-description{
+  align-self:start;
+  max-width:none;
+  margin:0;
+  color:#e4d7c7;
+  font:400 12px/1.45 "Manrope",Arial,sans-serif;
+}
+.tfc-home-slide-foot{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:5px;
+  min-width:0;
+  align-self:end;
+}
+.tfc-home-slide-foot>span{
+  min-width:0;
+  font:400 8px "Manrope",Arial,sans-serif;
+  letter-spacing:.65px;
+  color:#d0b69a;
+}
+.tfc-home-know{
+  flex:0 0 auto;
+  border:0;
+  border-radius:20px;
+  background:#b9893f;
+  color:#211810;
+  font:600 10px "Manrope",Arial,sans-serif;
+  padding:6px 12px;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.tfc-home-controls{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:15px;
+  margin:12px auto 16px;
+}
+.tfc-home-controls button{
+  width:32px;
+  height:32px;
+  border:0;
+  border-radius:50%;
+  background:#473525;
+  color:#fff3e6;
+  font:400 16px "Manrope",Arial,sans-serif;
+}
+.tfc-home-controls span{
+  min-width:0;
+  font:400 10px "Manrope",Arial,sans-serif;
+  letter-spacing:1.5px;
+  color:#d6bc99;
+}
+.tfc-home-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  width:90%;
+  max-width:440px;
+  margin:0 auto 22px;
+  padding:0;
+}
+.tfc-home-actions .btn{
+  width:100%;
+  height:auto;
+  min-height:0;
+  border:0;
+  border-radius:40px;
+  padding:13px 7px;
+  font:600 11px "Manrope",Arial,sans-serif;
+  letter-spacing:0;
+  line-height:1.2;
+  text-transform:none;
+  cursor:pointer;
+}
+.tfc-home-actions .btn-ghost{background:#f5ede4;color:#271e17;border-color:transparent}
+.tfc-home-actions .btn-gold{background:#493729;color:#f8eddf;border-color:transparent}
+.tfc-home-actions .btn-gold::after{content:" ↗"}
+.tfc-home-proof{display:none!important}
+.tfc-home-contact{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  width:auto;
+  max-width:none;
+  margin:20px auto 24px;
+  padding:0;
+}
+.tfc-home-contact-actions{display:flex;justify-content:center;align-items:center;gap:clamp(14px,3vw,24px)}
+.tfc-home-contact-item{
+  display:grid;
+  place-items:center;
+  flex:initial;
+  width:44px;
+  height:44px;
+  margin:0;
+  text-decoration:none;
+}
+.tfc-home-contact-icon{
+  display:grid;
+  place-items:center;
+  width:44px;
+  height:44px;
+  border:0;
+  border-radius:50%;
+  color:#251b15;
+  background:#f7f0e6;
+  box-shadow:none;
+  transition:transform .18s ease,background .18s ease;
+}
+.tfc-home-contact-icon svg{width:23px;height:23px}
+.tfc-home-contact-item:hover .tfc-home-contact-icon{background:#e7ba78;transform:translateY(-2px)}
+.tfc-home-contact-label,.tfc-home-contact-detail{display:none!important}
+.tfc-home-footer{
+  margin:0;
+  padding:7px 15px 17px;
+  color:#c0ac95;
+  font:400 10px/1.4 "Manrope",Arial,sans-serif;
+  letter-spacing:0;
+}
+.tfc-home-detail{
+  width:min(460px,92vw);
+  max-width:92vw;
+  max-height:85dvh;
+  overflow:auto;
+  padding:22px;
+  border:1px solid rgba(185,137,63,.4);
+  border-radius:20px;
+  background:#30251c;
+  color:#fff3e3;
+  text-align:left;
+  font-family:"Manrope",Arial,sans-serif;
+  box-shadow:0 20px 60px #0007;
+}
+.tfc-home-detail::backdrop{background:#0009}
+.tfc-home-close{
+  float:right;
+  position:static;
+  width:32px;
+  height:32px;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  background:#58402b;
+  color:#fff4e8;
+  font-size:19px;
+}
+.tfc-home-detail-tag{color:#d2ac74;font-size:9px}
+.tfc-home-detail h2{
+  font:400 28px "Playfair Display",Georgia,serif;
+  margin:8px 0;
+  color:#fff0df;
+}
+.tfc-home-detail-amount{font-size:15px;color:#e2b97a;margin-bottom:12px}
+.tfc-home-detail h3{font-size:13px;margin:18px 0 6px;color:#f8ebda}
+.tfc-home-detail p,.tfc-home-detail li{
+  font-size:13px;
+  line-height:1.6;
+  color:#e5d8c9;
+  text-align:justify;
+  text-justify:inter-word;
+  overflow-wrap:break-word;
+}
+.tfc-home-detail ul{padding-left:18px;margin:5px 0}
+.tfc-home-features{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:stretch;
+  gap:5px;
+  margin:14px 0;
+}
+.tfc-home-features section{
+  min-width:0;
+  border:1px solid rgba(213,164,99,.2);
+  border-radius:7px;
+  padding:10px 5px;
+  background:#3c2c21;
+  text-align:center;
+}
+.tfc-home-features h3{
+  margin:0 0 5px;
+  font:400 clamp(11px,3vw,15px)/1.2 "Playfair Display",Georgia,serif;
+  color:#edd4ad;
+  overflow-wrap:break-word;
+}
+.tfc-home-features p{
+  margin:0;
+  font-size:clamp(9px,2.4vw,11px);
+  line-height:1.4;
+  color:#e2d1ba;
+  text-align:center;
+}
+.tfc-home-detail .tfc-home-detail-note{font-size:10px;color:#c0ad92}
+.tfc-home-detail-actions a{background:#b9893f;color:#20170f}
+.tfc-home-detail-actions a+a{background:#4f3a29;color:#fff2e0}
+.tfc-home :is(a,button,summary,.tfc-home-screen):focus-visible{outline:2px solid #d6a66a;outline-offset:3px}
+.tfc-home .nav .mobile-nav-toggle,.tfc-home .nav .mobile-nav-menu{display:none!important}
+@media(min-width:1024px){
+  .tfc-home-screen{max-width:1100px}
+  .tfc-home-slide{width:76%;max-width:none}
+  .tfc-home-hero{padding-top:64px}
+}
+@media(max-width:760px){
+  .tfc-home .nav.tfc-vfc-nav{height:auto;min-height:0;padding:14px 5%;gap:8px}
+  .tfc-home .tfc-vfc-nav .brand{font-size:clamp(8px,2.25vw,10px);max-width:none}
+  .tfc-home-hero{padding:40px 12px 23px}
+  .tfc-home-hero h1{font-size:clamp(19px,4.3vw,48px)}
+  .tfc-home-hero p{font-size:10px;letter-spacing:1.8px}
+  .tfc-home-screen{height:clamp(205px,33vw,265px);min-height:0}
+  .tfc-home-slide{
+    width:78%;
+    padding:29px clamp(17px,4vw,34px);
+    grid-template-rows:16px 44px 24px minmax(0,1fr) 18px;
+    gap:5px;
+  }
+  .tfc-home-slide-title{font-size:clamp(20px,3.6vw,33px)}
+  .tfc-home-slide-foot>span{font-size:8px;letter-spacing:.65px}
+  .tfc-home-know{font-size:10px;padding:6px 12px}
+  .tfc-home-main{padding:0;display:block}
+  .tfc-home-proof{display:none!important}
+  .tfc-home-contact{margin:20px auto 24px}
+  .tfc-home-contact-actions{gap:clamp(14px,3vw,24px)}
+  .tfc-home-contact-icon{width:44px;height:44px}
+  .tfc-home-actions{width:90%;gap:8px}
+  .tfc-home-actions .btn{min-height:0;padding:13px 7px;font-size:11px}
+  .tfc-home-detail .tfc-home-features{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:380px){
+  .tfc-home .nav.tfc-vfc-nav{gap:5px;padding-inline:4%}
+  .tfc-home .tfc-vfc-nav .brand{font-size:7.8px;letter-spacing:.1px}
+  .tfc-vfc-nav-actions{gap:4px}
+  #tfcHomeLanguageSwitch{padding:6px;font-size:10px}
+  .tfc-vfc-login{font-size:10px;padding:10px 12px}
+  .tfc-vfc-menu summary{width:32px;height:32px}
+  .tfc-home-slide{padding:25px 14px}
+  .tfc-home-slide-foot>span{font-size:6px}
+  .tfc-home-know{font-size:9px;padding:6px 9px}
+}
+@media(max-height:680px){
+  .tfc-home-hero{padding:24px 12px 14px}
+  .tfc-home-screen{height:clamp(175px,31dvh,205px)}
+  .tfc-home-slide{padding-block:clamp(17px,3dvh,25px)}
+  .tfc-home-controls{margin:8px auto 12px}
+  .tfc-home-actions{margin-bottom:14px}
+  .tfc-home-contact{margin:12px auto 14px}
+  .tfc-home-footer{padding-bottom:12px}
+}
+.tfc-home.is-punjabi{font-family:"Noto Sans Gurmukhi","Manrope",sans-serif}
+.tfc-home.is-punjabi .tfc-vfc-dropdown a,
+.tfc-home.is-punjabi .tfc-vfc-login,
+.tfc-home.is-punjabi .tfc-home-slide-tag,
+.tfc-home.is-punjabi .tfc-home-slide-description,
+.tfc-home.is-punjabi .tfc-home-know,
+.tfc-home.is-punjabi .tfc-home-actions .btn,
+.tfc-home.is-punjabi .tfc-home-detail p,
+.tfc-home.is-punjabi .tfc-home-detail li{
+  font-family:"Noto Sans Gurmukhi","Manrope",sans-serif;
+}
+.tfc-home.is-punjabi .tfc-home-slide-title,
+.tfc-home.is-punjabi .tfc-home-detail h2,
+.tfc-home.is-punjabi .tfc-home-detail h3,
+.tfc-home.is-punjabi .tfc-home-features h3{
+  font-family:"Noto Sans Gurmukhi",Arial,sans-serif;
+}
+.tfc-home.is-punjabi .tfc-home-slide-title{font-size:clamp(16px,3.3vw,28px);line-height:1.3}
+.tfc-home.is-punjabi .tfc-home-slide-description{font-size:10px;line-height:1.5}
+.tfc-home.is-punjabi .tfc-home-hero p{letter-spacing:0;font-family:"Noto Sans Gurmukhi",sans-serif}
+.tfc-home.is-punjabi .tfc-home-detail p,.tfc-home.is-punjabi .tfc-home-detail li{line-height:1.8}
+@media(prefers-reduced-motion:reduce){
+  .tfc-home-slide,.tfc-home-contact-icon{transition:none}
+}
