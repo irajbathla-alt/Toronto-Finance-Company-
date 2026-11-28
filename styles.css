@@ -3,8 +3,9 @@
 /* Balanced mobile proportions for the original homepage. */
 @media (max-width:760px){
   .landing .hero{
-    padding:clamp(32px,5vh,48px) 18px 28px;
-    min-height:calc(100svh - 84px);
+    padding:clamp(54px,8svh,76px) 18px 28px;
+    min-height:calc(100svh - 84px + 135px);
+    justify-content:flex-start;
   }
   .landing .hero .eyebrow{margin-bottom:18px}
   .landing .hero h1{
@@ -26,7 +27,7 @@
   .landing .hero .actions .btn{padding:13px 17px;font-size:10px}
   .landing .hero .metrics{
     grid-template-columns:repeat(3,minmax(0,1fr));
-    margin-top:36px;
+    margin-top:auto;
     padding-top:21px;
     gap:10px;
     width:100%;
