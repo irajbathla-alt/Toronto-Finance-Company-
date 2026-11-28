@@ -44,7 +44,7 @@ function landing() {
         <div class="metrics">
           <div class="metric"><strong>4</strong><span>Funding Solutions</span></div>
           <div class="metric"><strong>5+</strong><span>Canadian financing partners</span></div>
-          <div class="metric"><strong>24 Hrs</strong><span>Potential initial response</span></div>
+          <div class="metric"><strong>24 hrs</strong><span>Potential initial response</span></div>
         </div>
         <div class="contact-strip" aria-label="Contact Toronto Finance Company">
           <span class="contact-label">Contact Us</span>
